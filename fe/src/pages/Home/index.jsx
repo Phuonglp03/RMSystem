@@ -1,14 +1,11 @@
-import { MainLogo, HorizontalLogo, MinimalLogo, JesterHat } from '../../components/Logo';
+import { AntdLogoDemo } from '../../components/Logo';
 
 const HomePage = () => {
   
 
   return (
     <>
-    <MainLogo />
-    <JesterHat />
-    <HorizontalLogo />
-    <MinimalLogo />
+   <AntdLogoDemo />
       <div className="container">
         <h1>Welcome to the RMSystem</h1>
         <p>This is the home page of the RMSystem application.</p>

@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { MainLogo } from './Logo';
 const { Title } = Typography;
 
 const Header = () => {
@@ -43,23 +44,7 @@ const Header = () => {
             justifyContent: 'space-between',
             padding: '5px 40px'
         }}>
-            <div
-                style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-                onClick={() => navigate('/')}
-            >
-                <img
-                    src="/logo.png"
-                    alt="BỰ Restaurant"
-                    style={{
-                        height: 60,
-                        marginRight: 10
-                    }}
-                />
-                <Title level={3} style={{ marginBottom: 0, marginTop: 0 }}>
-                    Restaurant
-                </Title>
-            </div>
-
+            <MainLogo  />        
             <Menu
                 mode="horizontal"
                 defaultSelectedKeys={['1']}
