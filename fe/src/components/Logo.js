@@ -155,7 +155,8 @@ export const HorizontalLogo = ({
 export const MinimalLogo = ({ 
   className = "", 
   showTagline = true, 
-  style = {} 
+  style = {},
+  textColor = null
 }) => (
   <div 
     className={className}
@@ -166,7 +167,7 @@ export const MinimalLogo = ({
   >
     <h2 
       style={{
-        ...logoStyles.goldText,
+        ...(textColor ? { color: textColor } : logoStyles.goldText),
         fontSize: '36px',
         fontWeight: '300',
         letterSpacing: '2px',
@@ -180,7 +181,7 @@ export const MinimalLogo = ({
     {showTagline && (
       <p 
         style={{
-          color: '#666',
+          color: textColor || '#666',
           fontStyle: 'italic',
           letterSpacing: '1px',
           fontSize: '16px',
