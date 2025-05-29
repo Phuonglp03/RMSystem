@@ -1,14 +1,13 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const connectDB = require('./config/db');
-const { json, urlencoded } = require('body-parser');
-const morgan = require('morgan');
-const cors = require('cors');
-const app = express();
-const { corsOptions } = require('./config/corsOptions');
-
+import express from 'express';
+import mongoose from 'mongoose';
+import connectDB from './config/db.js'; 
+import morgan from 'morgan';
+import cors from 'cors';
+import authRoutes from './routes/authRoutes.js'; 
 import dotenv from 'dotenv';
-dotenv.config(); // Load biến từ .env vào process.env
+dotenv.config(); 
+
+const app = express();
 
 // Connect Database
 connectDB();
@@ -18,12 +17,19 @@ app.use(cors({
   origin: "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"]
+  
 }));
-app.use(express.json());
-app.use(json());
-app.use(urlencoded({ extended: true }));
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 app.use(morgan('dev'));
 
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Route cơ bản
+app.get('/', (req, res) => {
+  res.send('Chào mừng đến với API!');
+});
 
 const PORT = process.env.PORT || 9999;
 
