@@ -5,9 +5,30 @@ const { json, urlencoded } = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
 const app = express();
-const { corsOptions } = require('./config/corsOptions');
+const Admin = require('./models/Admin');
+const User = require('./models/User');
+const Blog = require('./models/Blog');
+const Certification = require('./models/Certification');
+const Chef = require('./models/Chef');
+const Combo = require('./models/Combo');
+const ComboItem = require('./models/ComboItem');
+const Customer = require('./models/Customer');
+const Feedback = require('./models/Feedback');
+const Food = require('./models/Food');
+const FoodCategory = require('./models/FoodCategory');
+const Ingredient = require('./models/Ingredient');
+const IngredientCategory = require('./models/IngredientCategory');
+const Inventory = require('./models/Inventory');
+const Notification = require('./models/Notification');
+const Reservation = require('./models/Reservation');
+const RestockLog = require('./models/RestockLog');
+const Servant = require('./models/Servant');
+const Table = require('./models/Table');
+const TableOrder = require('./models/TableOrder');
 
-import dotenv from 'dotenv';
+
+
+const  dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
 
 // Connect Database
