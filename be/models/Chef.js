@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const chefSchema = new mongoose.Schema(
   {
@@ -6,7 +6,7 @@ const chefSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      unique: true, 
+      unique: true,
     },
     specialties: [
       {
@@ -16,7 +16,7 @@ const chefSchema = new mongoose.Schema(
     ],
     experiencedYear: {
       type: Number,
-      min: 0, 
+      min: 0,
     },
     status: [
       {
@@ -33,13 +33,13 @@ const chefSchema = new mongoose.Schema(
     certifications: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Certification', 
+        ref: 'Certification',
       },
     ],
-    
+
   }
 );
 
 const Chef = mongoose.model('Chef', chefSchema);
 
-export default Chef;
+module.exports = Chef;

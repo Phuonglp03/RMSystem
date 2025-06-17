@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const comboSchema = new mongoose.Schema(
   {
@@ -6,7 +6,7 @@ const comboSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Tên combo là bắt buộc'],
       trim: true,
-      unique: true, 
+      unique: true,
     },
     description: {
       type: String,
@@ -18,25 +18,25 @@ const comboSchema = new mongoose.Schema(
       min: [0, 'Giá combo không thể âm'],
     },
     image: {
-      type: String, 
+      type: String,
       trim: true,
     },
     isActive: {
       type: Boolean,
-      default: true, 
+      default: true,
     },
     quantity: {
-      type: Number, 
+      type: Number,
       default: 0,
       min: [0, 'Số lượng không thể âm'],
     },
 
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
 const Combo = mongoose.model('Combo', comboSchema);
 
-export default Combo;
+module.exports = Combo;

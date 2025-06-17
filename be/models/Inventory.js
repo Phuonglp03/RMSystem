@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const inventorySchema = new mongoose.Schema(
   {
@@ -6,7 +6,7 @@ const inventorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Ingredient',
       required: [true, 'ID Nguyên liệu là bắt buộc'],
-      unique: true, 
+      unique: true,
     },
     currentQuantity: {
       type: Number,
@@ -15,17 +15,17 @@ const inventorySchema = new mongoose.Schema(
       min: [0, 'Số lượng không thể âm'],
     },
     minimumThreshold: {
-      type: Number, 
+      type: Number,
       default: 0,
       min: [0, 'Ngưỡng tối thiểu không thể âm'],
     },
     unitPrice: {
-      type: Number, 
+      type: Number,
       min: [0, 'Đơn giá không thể âm'],
-      
+
     },
     expiryDate: {
-      type: Date, 
+      type: Date,
     },
     lastRestockedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,4 +43,4 @@ const inventorySchema = new mongoose.Schema(
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
 
-export default Inventory;
+module.exports = Inventory;

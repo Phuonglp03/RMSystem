@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const ingredientSchema = new mongoose.Schema(
   {
@@ -9,7 +9,7 @@ const ingredientSchema = new mongoose.Schema(
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'IngredientCategory', 
+      ref: 'IngredientCategory',
       required: [true, 'Danh mục nguyên liệu là bắt buộc'],
     },
     unit: {
@@ -21,10 +21,10 @@ const ingredientSchema = new mongoose.Schema(
 
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
 const Ingredient = mongoose.model('Ingredient', ingredientSchema);
 
-export default Ingredient;
+module.exports = Ingredient;

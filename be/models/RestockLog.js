@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const restockLogSchema = new mongoose.Schema(
   {
@@ -37,4 +37,4 @@ const restockLogSchema = new mongoose.Schema(
 
 const RestockLog = mongoose.model('RestockLog', restockLogSchema);
 
-export default RestockLog;
+module.exports = RestockLog;

@@ -27,7 +27,8 @@ const Table = require('./models/Table');
 const TableOrder = require('./models/TableOrder');
 
 
-const dotenv = require('dotenv');
+
+const  dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
 
 // Connect Database

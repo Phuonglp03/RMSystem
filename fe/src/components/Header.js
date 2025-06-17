@@ -44,7 +44,7 @@ const Header = () => {
             justifyContent: 'space-between',
             padding: '5px 40px'
         }}>
-            <MainLogo  />        
+            <MainLogo />
             <Menu
                 mode="horizontal"
                 defaultSelectedKeys={['1']}

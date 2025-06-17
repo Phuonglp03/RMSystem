@@ -1,24 +1,24 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const tableOrderSchema = new mongoose.Schema(
   {
     tableId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Table', 
+      ref: 'Table',
       required: [true, 'ID bàn ăn là bắt buộc'],
     },
     reservationId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Reservation', 
+      ref: 'Reservation',
     },
     foods: [
       {
         foodId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Food',
-            required: true
-          },
-          quantity: { type: Number, default: 1 },
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Food',
+          required: true
+        },
+        quantity: { type: Number, default: 1 },
       },
     ],
     status: {
@@ -37,9 +37,9 @@ const tableOrderSchema = new mongoose.Schema(
       trim: true,
     },
     completedAt: {
-      type: Date, 
+      type: Date,
     },
-    
+
   },
   {
     timestamps: true,
@@ -49,4 +49,4 @@ const tableOrderSchema = new mongoose.Schema(
 
 const TableOrder = mongoose.model('TableOrder', tableOrderSchema);
 
-export default TableOrder;
+module.exports = TableOrder;

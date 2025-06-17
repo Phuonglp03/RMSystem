@@ -1,17 +1,17 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const servantSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', 
+      ref: 'User',
       required: true,
-      unique: true, 
+      unique: true,
     },
     assignedTables: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Table', 
+        ref: 'Table',
       },
     ],
     status: [
@@ -34,4 +34,4 @@ const servantSchema = new mongoose.Schema(
 
 const Servant = mongoose.model('Servant', servantSchema);
 
-export default Servant;
+module.exports = Servant;

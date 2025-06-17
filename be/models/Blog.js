@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const blogSchema = new mongoose.Schema(
   {
     authorId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Servant', 
+      ref: 'Servant',
       required: true,
     },
     title: {
@@ -18,7 +18,7 @@ const blogSchema = new mongoose.Schema(
     },
     images: [
       {
-        type: String, 
+        type: String,
         trim: true,
       },
     ],
@@ -33,13 +33,13 @@ const blogSchema = new mongoose.Schema(
       default: false,
     },
     publishedAt: {
-      type: Date, 
+      type: Date,
       default: null,
     },
 
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
@@ -56,4 +56,4 @@ blogSchema.pre('save', function (next) {
 
 const Blog = mongoose.model('Blog', blogSchema);
 
-export default Blog;
+module.exports = Blog;

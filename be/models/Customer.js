@@ -1,40 +1,40 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const customerSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', 
+      ref: 'User',
       required: true,
-      unique: true, 
+      unique: true,
     },
     coupons: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Coupon', 
+        ref: 'Coupon',
       },
     ],
     points: {
       type: Number,
       default: 0,
-      min: 0, 
+      min: 0,
     },
     feedback: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Feedback', 
+        ref: 'Feedback',
       },
     ],
     reservationHistory: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Reservation', 
+        ref: 'Reservation',
       },
     ],
-    
+
   }
 );
 
 const Customer = mongoose.model('Customer', customerSchema);
 
-export default Customer;
+module.exports = Customer;
