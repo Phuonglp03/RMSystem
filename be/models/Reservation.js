@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const reservationSchema = new mongoose.Schema(
   {
@@ -11,17 +11,17 @@ const reservationSchema = new mongoose.Schema(
     ],
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Customer', 
+      ref: 'User',
       required: true,
     },
     servantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Servant', 
+      ref: 'User',
     },
     reservationCode: {
       type: String,
       required: true,
-      unique: true, 
+      unique: true,
       trim: true,
     },
     startTime: {
@@ -36,13 +36,13 @@ const reservationSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      enum: ['pending', 'confirmed', 'cancelled', 'completed', 'no-show'], 
+      enum: ['pending', 'confirmed', 'cancelled', 'completed', 'no-show'],
       default: 'pending',
     },
     numberOfPeople: {
       type: Number,
       required: true,
-      min: 1, 
+      min: 1,
     },
     note: {
       type: String,
@@ -50,12 +50,12 @@ const reservationSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: Boolean,
-      default: false, 
+      default: false,
     },
-   
+
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
@@ -70,4 +70,4 @@ reservationSchema.pre('save', function (next) {
 
 const Reservation = mongoose.model('Reservation', reservationSchema);
 
-export default Reservation;
+module.exports = Reservation;

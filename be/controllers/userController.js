@@ -1,6 +1,6 @@
-import { StatusCodes } from 'http-status-code'
-import ms from 'ms'
-import { JWTProvider } from '../providers/JwtProvider.js'
+const { StatusCodes } = require('http-status-code')
+const ms = require('ms')
+const { JWTProvider } = require('../providers/JwtProvider')
 
 export const login = async (req, res) => {
     try {

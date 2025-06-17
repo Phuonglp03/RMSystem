@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -47,7 +47,7 @@ const notificationSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt
-                      // createdAt sẽ khớp với Created_At trong sơ đồ của bạn.
+    // createdAt sẽ khớp với Created_At trong sơ đồ của bạn.
   }
 );
 
@@ -57,4 +57,4 @@ const notificationSchema = new mongoose.Schema(
 
 const Notification = mongoose.model('Notification', notificationSchema);
 
-export default Notification;
+module.exports = Notification;

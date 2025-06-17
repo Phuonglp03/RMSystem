@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const foodSchema = new mongoose.Schema(
   {
@@ -9,7 +9,7 @@ const foodSchema = new mongoose.Schema(
     },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Food_Category', 
+      ref: 'Food_Category',
       required: [true, 'Danh mục món ăn là bắt buộc'],
     },
     description: {
@@ -23,7 +23,7 @@ const foodSchema = new mongoose.Schema(
     },
     images: [
       {
-        type: String, 
+        type: String,
         trim: true,
       },
     ],
@@ -35,7 +35,7 @@ const foodSchema = new mongoose.Schema(
     ],
     isAvailable: {
       type: Boolean,
-      default: true, 
+      default: true,
     },
 
   },
@@ -46,4 +46,4 @@ const foodSchema = new mongoose.Schema(
 
 const Food = mongoose.model('Food', foodSchema);
 
-export default Food;
+module.exports = Food;

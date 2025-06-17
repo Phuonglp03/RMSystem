@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const ingredientCategorySchema = new mongoose.Schema(
   {
@@ -6,13 +6,13 @@ const ingredientCategorySchema = new mongoose.Schema(
       type: String,
       required: [true, 'Tên danh mục nguyên liệu là bắt buộc'],
       trim: true,
-      unique: true, 
+      unique: true,
     },
     description: {
       type: String,
       trim: true,
     },
-  
+
   }
 );
 
@@ -22,4 +22,4 @@ const IngredientCategory = mongoose.model(
   ingredientCategorySchema
 );
 
-export default IngredientCategory;
+module.exports = IngredientCategory;

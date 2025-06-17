@@ -1,17 +1,17 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const adminSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', 
+      ref: 'User',
       required: true,
-      unique: true, 
+      unique: true,
     },
-    
+
   }
 );
 
 const Admin = mongoose.model('Admin', adminSchema);
 
-export default Admin;
+module.exports = Admin;

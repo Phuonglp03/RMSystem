@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,17 +36,17 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
-      enum: ['male', 'female', 'other'], 
+      enum: ['male', 'female', 'other'],
     },
     role: {
       type: String,
-      enum: ['customer', 'admin', 'servant', 'chef'], 
+      enum: ['customer', 'admin', 'servant', 'chef'],
       default: 'customer',
     },
     notifications: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Notification', 
+        ref: 'Notification',
       },
     ],
     verified: {
@@ -65,10 +65,10 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
 const User = mongoose.model('User', userSchema);
 
-export default User;
+module.exports = User;

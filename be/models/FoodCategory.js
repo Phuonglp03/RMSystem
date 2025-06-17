@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const foodCategorySchema = new mongoose.Schema(
   {
@@ -6,7 +6,7 @@ const foodCategorySchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true, 
+      unique: true,
     },
     description: {
       type: String,
@@ -21,4 +21,4 @@ const foodCategorySchema = new mongoose.Schema(
 const FoodCategory = mongoose.model('Food_Category', foodCategorySchema);
 
 
-export default FoodCategory;
+module.exports = FoodCategory;

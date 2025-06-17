@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const comboItemSchema = new mongoose.Schema(
   {
@@ -6,14 +6,14 @@ const comboItemSchema = new mongoose.Schema(
     comboId: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Combo', 
+        ref: 'Combo',
       },
     ],
 
     foodId: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Food', 
+        ref: 'Food',
       },
     ],
     quantity: {
@@ -23,10 +23,10 @@ const comboItemSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
 const ComboItem = mongoose.model('ComboItem', comboItemSchema);
 
-export default ComboItem; 
+module.exports = ComboItem; 
