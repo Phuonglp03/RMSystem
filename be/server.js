@@ -25,6 +25,8 @@ const RestockLog = require('./models/RestockLog');
 const Servant = require('./models/Servant');
 const Table = require('./models/Table');
 const TableOrder = require('./models/TableOrder');
+const foodRoutes = require('../be/routes/foodroutes');
+
 
 const reservationRoutes = require('./routes/reservationRoutes');
 
@@ -44,6 +46,8 @@ app.use(express.json());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
+app.use('/api/foods', foodRoutes);
+app.use('/api/food-categories', require('../be/routes/foodcategoryroutes'));
 
 app.use('/api/reservations', reservationRoutes);
 
