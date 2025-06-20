@@ -5,6 +5,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import HomePage from '../pages/Home';
 import Signup from '../pages/SignUp';
 import Login from '../pages/LogIn';
+import TableOrderTest from '../pages/Manage_Reservations/TableOrderTest';
+
 const AppRoutes = () => (
     <BrowserRouter>
         <Routes>
@@ -13,7 +15,7 @@ const AppRoutes = () => (
             </Route>   
         <Route path='/signup' element={<Signup />} />
         <Route path='/login' element={<Login />} />
-
+        <Route path='/test-table-order' element={<TableOrderTest />} />
         </Routes>
     </BrowserRouter>
 );
