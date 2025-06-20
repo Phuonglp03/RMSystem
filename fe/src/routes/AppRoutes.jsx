@@ -9,6 +9,7 @@ import Servant_Dashboard from '../pages/Servant_Dashboard';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
 import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Reservation_History from '../pages/Reservation_History';
+import ServantLayout from '../layouts/ServantLayout';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -16,7 +17,7 @@ const AppRoutes = () => (
             <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
             </Route>
-            <Route path="/servant" element={<Servant_Dashboard />} >
+            <Route path="/servant" element={<ServantLayout />} >
                 <Route path="manage-reservation" element={<Servant_Manage_Reservation />} />
                 <Route path="reservation-statistics" element={<Reservation_Statistics />} />
                 <Route path="reservation-history" element={<Reservation_History />} />

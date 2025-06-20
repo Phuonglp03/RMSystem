@@ -1,5 +1,5 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const {
     getUnAssignedReservations,
     getCustomerReservationByServantId,
@@ -7,24 +7,27 @@ const {
     updateReservationStatus,
     confirmCustomerArrival,
     getDailyReservationStatistics,
-    servantCreateReservation
-} = require('../controllers/reservationController');
+    servantCreateReservation,
+    confirmCustomerNotArrival
+} = require('../controllers/reservationController')
 
-const { authMiddleware } = require('../middleware/authMiddleware');
-/* /api/reservations/unassigned */
-router.get('/unassigned', authMiddleware, getUnAssignedReservations);
-/* /api/reservations/customer */
-router.get('/customer', authMiddleware, getCustomerReservationByServantId);
-/* /api/reservations/confirm-reject */
-router.post('/confirm-reject', authMiddleware, confirmOrRejectReservation);
-/* /api/reservations/update-status */
-router.post('/update-status', authMiddleware, updateReservationStatus);
-/* /api/reservations/confirm-arrival */
-router.post('/confirm-arrival', authMiddleware, confirmCustomerArrival);
-/* /api/reservations/daily-statistics */
-router.get('/daily-statistics', authMiddleware, getDailyReservationStatistics);
-/* /api/reservations/servant/create */
-router.post('/servant/create', authMiddleware, servantCreateReservation);
+const { authMiddleware } = require('../middleware/authMiddleware')
+/* http://localhost:9999/api/reservations/servant/unassigned */
+router.get('/servant/unassigned', authMiddleware, getUnAssignedReservations)
+/* http://localhost:9999/api/reservations/servant/customer */
+router.get('/servant/customer', authMiddleware, getCustomerReservationByServantId)
+/* http://localhost:9999/api/reservations/servant/confirm-reject */
+router.post('/servant/confirm-reject', authMiddleware, confirmOrRejectReservation)
+/* http://localhost:9999/api/reservations/servant/update-status */
+router.post('/servant/update-status', authMiddleware, updateReservationStatus)
+/* http://localhost:9999/api/reservations/servant/confirm-arrival */
+router.post('/servant/confirm-arrival', authMiddleware, confirmCustomerArrival)
+/* http://localhost:9999/api/reservations/servant/daily-statistics */
+router.get('/servant/daily-statistics', authMiddleware, getDailyReservationStatistics)
+/* http://localhost:9999/api/reservations/servant/create */
+router.post('/servant/create', authMiddleware, servantCreateReservation)
+/* http://localhost:9999/api/reservations//servant/confirm-not-arrive */
+router.post('/servant/confirm-not-arrive', authMiddleware, confirmCustomerNotArrival)
 
 
 module.exports = router;

@@ -25,7 +25,12 @@ const getUnAssignedReservations = async (req, res) => {
                 email: reservation.customerId.email,
                 phone: reservation.customerId.phone,
                 dateOfBirth: reservation.customerId.dateOfBirth,
-            }
+            },
+            table: [{
+                tableNumber: reservation.bookedTable?.tableNumber,
+                capacity: reservation.bookedTable?.capacity,
+                status: reservation.bookedTable?.status,
+            }]
         }))
 
         res.status(200).json({
@@ -70,11 +75,11 @@ const getCustomerReservationByServantId = async (req, res) => {
                 bookingTime: reservation.bookingTime,
                 note: reservation.note || null,
 
-                table: {
+                table: [{
                     tableNumber: reservation.bookedTable?.tableNumber,
                     capacity: reservation.bookedTable?.capacity,
                     status: reservation.bookedTable?.status,
-                },
+                }],
 
                 customer: {
                     id: reservation.customerId._id,
@@ -165,10 +170,18 @@ const updateReservationStatus = async (req, res) => {
 //Xac nhan khach hang da den
 const confirmCustomerArrival = async (req, res) => {
     try {
-        const { reservationId } = req.body;
+        const { reservationCode } = req.body;
         const servantId = req.user.id;
 
-        const reservation = await Reservation.findById(reservationId);
+        const reservation = await Reservation.findOne({ reservationCode: reservationCode })
+            .populate({
+                path: 'bookedTable',
+                select: 'tableNumber capacity status'
+            })
+            .populate({
+                path: 'customerId',
+                select: 'fullname email phone avatar'
+            });
         if (!reservation) {
             return res.status(404).json({ success: false, message: 'Đặt bàn không tồn tại' });
         }
@@ -180,9 +193,79 @@ const confirmCustomerArrival = async (req, res) => {
         reservation.status = 'completed';
         await reservation.save();
 
-        res.status(200).json({ success: true, message: 'Xác nhận khách hàng đã đến thành công', reservation });
+        const formattedReservations = reservation.map(resv => ({
+            id: resv._id,
+            start: resv.startTime,
+            end: resv.endTime,
+            numberOfPeople: resv.numberOfPeople,
+            table: [{
+                number: resv.bookedTable.tableNumber,
+                capacity: resv.bookedTable.capacity,
+                status: resv.bookedTable.status
+            }],
+            customer: {
+                name: resv.customerId.fullname,
+                email: resv.customerId.email,
+                phone: resv.customerId.phone,
+                avatar: resv.customerId.avatar
+            }
+        }))
+
+        res.status(200).json({ success: true, message: 'Xác nhận khách hàng đã đến thành công', reservation: formattedReservations });
     } catch (err) {
-        console.error(`confirmCustomerArrival error: ${err.message}`);
+        console.error(`Lỗi khi xác nhận khách hàng đã tới: ${err.message}`);
+        res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
+    }
+}
+
+//Xac nhan khach hang khong den
+const confirmCustomerNotArrival = async (req, res) => {
+    try {
+        const { reservationCode } = req.body
+        const servantId = req.user.id
+
+        const reservation = await Reservation.findOne({ reservationCode: reservationCode })
+            .populate({
+                path: 'bookedTable',
+                select: 'tableNumber capacity status'
+            })
+            .populate({
+                path: 'customerId',
+                select: 'fullname email phone avatar'
+            });
+
+        if (!reservation) {
+            return res.status(404).json({ success: false, message: 'Đặt bàn không tồn tại' });
+        }
+
+        if (reservation.servantId.toString() !== servantId) {
+            return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
+        }
+        reservation.status = 'no-show';
+        await reservation.save();
+
+        const formattedReservations = reservation.map(resv => ({
+            id: resv._id,
+            start: resv.startTime,
+            end: resv.endTime,
+            numberOfPeople: resv.numberOfPeople,
+            table: [{
+                number: resv.bookedTable.tableNumber,
+                capacity: resv.bookedTable.capacity,
+                status: resv.bookedTable.status
+            }],
+            customer: {
+                name: resv.customerId.fullname,
+                email: resv.customerId.email,
+                phone: resv.customerId.phone,
+                avatar: resv.customerId.avatar
+            }
+        }))
+
+        res.status(200).json({ success: true, message: 'Xác nhận khách hàng không đến thành công', reservation: formattedReservations });
+
+    } catch (err) {
+        console.error(`Lỗi khi xác nhận khách hàng không tới: ${err.message}`);
         res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
     }
 }
@@ -297,5 +380,6 @@ module.exports = {
     confirmCustomerArrival,
     updateReservationStatus,
     confirmOrRejectReservation,
-    servantCreateReservation
+    servantCreateReservation,
+    confirmCustomerNotArrival
 }

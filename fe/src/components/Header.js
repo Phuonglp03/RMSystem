@@ -83,7 +83,7 @@ const Header = () => {
                     Xác nhận món ăn
                 </Menu.Item>
 
-                <Menu.Item key="4" icon={<SettingOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="4" icon={<SettingOutlined />} onClick={() => navigate('/servant/manage-reservation')}>
                     Quản lý đặt bàn
                 </Menu.Item>
 
