@@ -1,5 +1,5 @@
-import { StatusCodes } from 'http-status-code'
-import { JWTProvider } from '../providers/JwtProvider'
+const StatusCodes = require('http-status-code')
+const JWTProvider = require('../providers/JwtProvider')
 
 const authMiddleware = async (req, res, next) => {
     /**

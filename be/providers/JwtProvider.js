@@ -1,4 +1,4 @@
-import JWT from 'jsonwebtoken';
+const JWT = require('jsonwebtoken')
 
 const generateToken = (userInfo, secretSignature, tokenLife) => {
     try {
@@ -15,7 +15,9 @@ const verifyToken = (token, secretSignature,) => {
     }
 }
 
-export const JWTProvider = {
+const JWTProvider = {
     generateToken,
     verifyToken
 }
+
+module.exports = JWTProvider

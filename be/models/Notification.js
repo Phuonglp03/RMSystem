@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const NOTIFICATION_TYPES = require('../constants/notificationTypes')
 
 const notificationSchema = new mongoose.Schema(
   {
@@ -13,7 +14,8 @@ const notificationSchema = new mongoose.Schema(
       trim: true,
     },
     type: {
-      type: String, // Ví dụ: 'new_order', 'system_update', 'mention', etc.
+      type: String,
+      enum: object.values(NOTIFICATION_TYPES), // Sử dụng enum để giới hạn các loại thông báo
       trim: true,
     },
     isRead: {

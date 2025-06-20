@@ -5,14 +5,24 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import HomePage from '../pages/Home';
 import Signup from '../pages/SignUp';
 import Login from '../pages/LogIn';
+import Servant_Dashboard from '../pages/Servant_Dashboard';
+import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
+import Reservation_Statistics from '../pages/Reservation_Statistics';
+import Reservation_History from '../pages/Reservation_History';
+
 const AppRoutes = () => (
     <BrowserRouter>
         <Routes>
             <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
-            </Route>   
-        <Route path='/signup' element={<Signup />} />
-        <Route path='/login' element={<Login />} />
+            </Route>
+            <Route path="/servant" element={<Servant_Dashboard />} >
+                <Route path="manage-reservation" element={<Servant_Manage_Reservation />} />
+                <Route path="reservation-statistics" element={<Reservation_Statistics />} />
+                <Route path="reservation-history" element={<Reservation_History />} />
+            </Route>
+            <Route path='/signup' element={<Signup />} />
+            <Route path='/login' element={<Login />} />
 
         </Routes>
     </BrowserRouter>

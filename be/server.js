@@ -26,9 +26,9 @@ const Servant = require('./models/Servant');
 const Table = require('./models/Table');
 const TableOrder = require('./models/TableOrder');
 
+const reservationRoutes = require('./routes/reservationRoutes');
 
-
-const  dotenv = require('dotenv');
+const dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
 
 // Connect Database
@@ -44,6 +44,8 @@ app.use(express.json());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
+
+app.use('/api/reservations', reservationRoutes);
 
 
 const PORT = process.env.PORT || 9999;
