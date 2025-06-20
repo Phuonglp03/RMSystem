@@ -5,7 +5,7 @@ const Servant = require('../models/Servant');
 const Customer = require('../models/Customer');
 
 //Lay tat ca danh sach dat ban cua khach hang phia servant
-export const getUnAssignedReservations = async (req, res) => {
+ const getUnAssignedReservations = async (req, res) => {
     try {
         const reservations = await Reservation.find({ servantId: null })
             .populate('bookedTable', 'tableNumber capacity status ')
@@ -41,7 +41,7 @@ export const getUnAssignedReservations = async (req, res) => {
 }
 
 //Lay danh sach dat ban cua khach hang phia servant
-export const getCustomerReservationByServantId = async (req, res) => {
+ const getCustomerReservationByServantId = async (req, res) => {
     try {
         const servantId = req.user.id; // Lấy ID của servant từ token
         const servant = await Servant.findOne({ userId: servantId });
@@ -67,7 +67,7 @@ export const getCustomerReservationByServantId = async (req, res) => {
 }
 
 //Xac nhan/Tu choi yeu cau dat ban
-export const confirmOrRejectReservation = async (req, res) => {
+ const confirmOrRejectReservation = async (req, res) => {
     try {
         const { reservationId, action } = req.body; // action: 'confirm' or 'reject'
         const servantId = req.user.id;
@@ -99,7 +99,7 @@ export const confirmOrRejectReservation = async (req, res) => {
 
 
 //Cap nhat thong tin dat ban
-export const updateReservationStatus = async (req, res) => {
+ const updateReservationStatus = async (req, res) => {
     try {
 
     } catch (err) {
@@ -109,7 +109,7 @@ export const updateReservationStatus = async (req, res) => {
 }
 
 //Xac nhan khach hang da den
-export const confirmCustomerArrival = async (req, res) => {
+ const confirmCustomerArrival = async (req, res) => {
     try {
         const { reservationId } = req.body;
         const servantId = req.user.id;
@@ -135,7 +135,7 @@ export const confirmCustomerArrival = async (req, res) => {
 
 
 //Xem thong ke dat ban (theo ngay, theo thang, theo nam) cua moi servant
-export const getReservationStatistics = async (req, res) => {
+ const getReservationStatistics = async (req, res) => {
     try {
 
     } catch (err) {

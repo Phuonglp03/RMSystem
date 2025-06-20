@@ -1,14 +1,7 @@
 const Food = require('../models/Food');
 const mongoose = require('mongoose');
-const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-
-// Cloudinary configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const { uploadImages } = require('../services/UploadService');
 
 // Multer configuration
 const storage = multer.memoryStorage();
@@ -27,33 +20,12 @@ const upload = multer({
 // Create a new food item
 exports.createFood = async (req, res) => {
   try {
-    console.log('Request Body:', req.body);
-    console.log('Request Files:', req.files); // Debug: Kiểm tra file nhận được
     const { name, categoryId, description, price, isAvailable } = req.body;
     let images = [];
 
     // Handle multiple image uploads
     if (req.files && req.files.length > 0) {
-      console.log('Uploading files to Cloudinary:', req.files.length); // Debug
-      const uploadPromises = req.files.map(file =>
-        new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { resource_type: 'image', folder: 'foods' },
-            (error, result) => {
-              if (error) {
-                console.error('Cloudinary Upload Error:', error); // Debug
-                return reject(error);
-              }
-              console.log('Uploaded Image URL:', result.secure_url); // Debug
-              resolve(result.secure_url);
-            }
-          ).end(file.buffer);
-        })
-      );
-
-      images = await Promise.all(uploadPromises);
-    } else {
-      console.log('No files uploaded'); // Debug
+      images = await uploadImages(req.files, 'foods');
     }
 
     const food = new Food({
@@ -71,7 +43,6 @@ exports.createFood = async (req, res) => {
       data: savedFood,
     });
   } catch (error) {
-    console.error('Create Food Error:', error); // Debug
     res.status(400).json({
       status: 'fail',
       message: error.message,
@@ -82,8 +53,6 @@ exports.createFood = async (req, res) => {
 // Update a food item
 exports.updateFood = async (req, res) => {
   try {
-    console.log('Request Body:', req.body);
-    console.log('Request Files:', req.files); // Debug: Kiểm tra file nhận được
     const foodId = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(foodId)) {
       return res.status(400).json({
@@ -93,29 +62,9 @@ exports.updateFood = async (req, res) => {
     }
 
     const updateData = { ...req.body };
-    
     // Handle image uploads if present
     if (req.files && req.files.length > 0) {
-      console.log('Uploading files to Cloudinary:', req.files.length); // Debug
-      const uploadPromises = req.files.map(file =>
-        new Promise((resolve, reject) => {
-          cloudinary.uploader.upload_stream(
-            { resource_type: 'image', folder: 'foods' },
-            (error, result) => {
-              if (error) {
-                console.error('Cloudinary Upload Error:', error); // Debug
-                return reject(error);
-              }
-              console.log('Uploaded Image URL:', result.secure_url); // Debug
-              resolve(result.secure_url);
-            }
-          ).end(file.buffer);
-        })
-      );
-
-      updateData.images = await Promise.all(uploadPromises);
-    } else {
-      console.log('No files uploaded for update'); // Debug
+      updateData.images = await uploadImages(req.files, 'foods');
     }
 
     const updatedFood = await Food.findByIdAndUpdate(foodId, updateData, {
@@ -135,7 +84,6 @@ exports.updateFood = async (req, res) => {
       data: updatedFood,
     });
   } catch (error) {
-    console.error('Update Food Error:', error); // Debug
     res.status(400).json({
       status: 'fail',
       message: error.message,
