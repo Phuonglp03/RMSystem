@@ -45,6 +45,8 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
+app.use('/api/reservations', require('./routes/reservation.routes'));
+app.use('/api/tables', require('./routes/table.routes'));
 
 const PORT = process.env.PORT || 9999;
 
