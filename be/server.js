@@ -48,6 +48,10 @@ app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use('/api/foods', foodRoutes);
 app.use('/api/food-categories', require('../be/routes/foodcategoryroutes'));
+app.use('/api/combos', require('../be/routes/comboroutes'));
+app.use('/api/combo-items', require('../be/routes/comboitemroutes'));
+app.use('/api/table-orders', require('../be/routes/tableorderroutes'));
+
 
 app.use('/api/reservations', reservationRoutes);
 

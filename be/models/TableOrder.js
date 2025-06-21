@@ -21,6 +21,12 @@ const tableOrderSchema = new mongoose.Schema(
         quantity: { type: Number, default: 1 },
       },
     ],
+    combos: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ComboItem',
+      },
+    ],
     status: {
       type: String,
       required: true,

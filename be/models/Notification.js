@@ -15,7 +15,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: object.values(NOTIFICATION_TYPES), // Sử dụng enum để giới hạn các loại thông báo
+      enum: Object.values(NOTIFICATION_TYPES), // Sử dụng enum để giới hạn các loại thông báo
       trim: true,
     },
     isRead: {
