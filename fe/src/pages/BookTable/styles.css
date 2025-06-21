@@ -1,0 +1,575 @@
+.table-booking-layout {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.content {
+  padding: 24px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.steps-content {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.steps-action {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.table-legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+/* New modern table card design */
+.restaurant-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.table-item {
+  background: linear-gradient(145deg, #4a90e2, #357abd);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.table-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(145deg, #5ba0f2, #4080cd);
+}
+
+.table-item::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+}
+
+.table-item:hover::before {
+  animation: shine 0.8s ease-in-out;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.table-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+  position: relative;
+}
+
+.table-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  width: 100%;
+  z-index: 1;
+  position: relative;
+}
+
+.table-capacity {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+  position: relative;
+}
+
+.price {
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.status {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Different status colors - synchronized with map */
+.table-item.occupied {
+  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+  cursor: not-allowed;
+}
+
+.table-item.available {
+  background: linear-gradient(145deg, #2ecc71, #27ae60);
+  cursor: pointer;
+}
+
+.table-item.available:hover {
+  background: linear-gradient(145deg, #27ae60, #219a52);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.table-item.reserved {
+  background: linear-gradient(145deg, #f39c12, #d68910);
+}
+
+.table-item.empty {
+  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+  opacity: 0.6;
+}
+
+.table-item.selected {
+  background: linear-gradient(145deg, #ff4d4f, #d4380d);
+  border: 3px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 20px rgba(255, 77, 79, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+.booking-summary {
+  margin-top: 16px;
+}
+
+
+.theater-layout {
+  padding: 24px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background-color: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.screen {
+  width: 80%;
+  height: 30px;
+  background: linear-gradient(to bottom, #d5d5d5, #f0f0f0);
+  border-radius: 6px;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.screen-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.section-header {
+  width: 100%;
+  text-align: center;
+  margin: 20px 0 10px;
+}
+
+.tables-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.table-section {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.table-seat {
+  width: 45px;
+  height: 45px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+  font-weight: bold;
+  margin: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.table-seat:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.table-seat.selected {
+  border: 2px solid #fff;
+  box-shadow: 0 0 10px rgba(255, 77, 79, 0.8);
+}
+
+.table-seat.booked {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.table-seat-number {
+  font-size: 14px;
+}
+
+.time-display {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+
+@media (max-width: 768px) {
+  .restaurant-layout {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+  }
+  
+  .table-item {
+    padding: 15px;
+    min-height: 100px;
+  }
+  
+  .table-number {
+    font-size: 20px;
+  }
+  
+  .screen {
+    width: 90%;
+  }
+  
+  .table-seat {
+    width: 40px;
+    height: 40px;
+    margin: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .restaurant-layout {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    padding: 15px;
+  }
+  
+  .table-item {
+    padding: 10px;
+    min-height: 80px;
+  }
+  
+  .table-number {
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+  
+  .table-info {
+    font-size: 12px;
+  }
+  
+  .theater-layout {
+    padding: 16px 8px;
+  }
+  
+  .screen {
+    width: 95%;
+  }
+  
+  .table-seat {
+    width: 35px;
+    height: 35px;
+    margin: 3px;
+  }
+  
+  .table-legend {
+    flex-direction: column;
+  }
+  
+  .table-legend > div {
+    margin-bottom: 10px;
+  }
+}
+
+.restaurant-map-card {
+  height: fit-content;
+  margin-top: 0;
+}
+
+.restaurant-map {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  min-height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-entrance {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.entrance-door {
+  background: linear-gradient(145deg, #8e44ad, #9b59b6);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 12px;
+  display: inline-block;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dining-area {
+  margin-bottom: 20px;
+}
+
+.table-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.center-aisle {
+  height: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.aisle-space {
+  width: 80%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #bdc3c7, transparent);
+  border-radius: 1px;
+}
+
+.map-table {
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 12px;
+  position: relative;
+}
+
+.table-number-display {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.table-capacity-display {
+  font-size: 10px;
+  opacity: 0.8;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.map-table:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+
+
+.table-4,
+.table-2,
+.table-6,
+.table-8,
+.map-table {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(145deg, #2ecc71, #27ae60);
+  min-width: 45px;
+  min-height: 45px;
+  max-width: 45px;
+  max-height: 45px;
+}
+
+
+
+.facilities {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.kitchen,
+.restroom,
+.cashier {
+  flex: 1;
+  width: 30%;
+  padding: 8px;
+  margin-bottom: 10px;
+  text-align: center;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 11px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.kitchen {
+  background: linear-gradient(145deg, #e74c3c, #c0392b);
+}
+
+.restroom {
+  background: linear-gradient(145deg, #34495e, #2c3e50);
+}
+
+.cashier {
+  background: linear-gradient(145deg, #16a085, #1abc9c);
+}
+
+/* Map table status highlighting - synchronized with list */
+.map-table.occupied {
+  background: linear-gradient(145deg, #95a5a6, #7f8c8d) !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.map-table.available {
+  background: linear-gradient(145deg, #2ecc71, #27ae60) !important;
+  cursor: pointer;
+}
+
+.map-table.available:hover {
+  background: linear-gradient(145deg, #27ae60, #219a52) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+}
+
+.map-table.selected {
+  background: linear-gradient(145deg, #ff4d4f, #d4380d) !important;
+  border: 2px solid #fff;
+  box-shadow: 0 0 15px rgba(255, 77, 79, 0.6);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.map-table.not-available {
+  background: linear-gradient(145deg, #d9d9d9, #bfbfbf) !important;
+  color: #8c8c8c !important;
+  cursor: not-allowed;
+}
+
+.map-table.not-exist {
+  background: transparent !important;
+  border: 2px dashed #d9d9d9 !important;
+  color: #bfbfbf !important;
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.map-table.empty {
+  background: transparent !important;
+  border: none !important;
+  cursor: default;
+}
+
+.dynamic-tables {
+  width: 100%;
+}
+
+.loading-tables {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+}
+
+@media (max-width: 992px) {
+  .restaurant-map {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .restaurant-map {
+    padding: 15px;
+    min-height: 300px;
+  }
+  
+  .table-row {
+    gap: 10px;
+  }
+  
+  
+  
+  .table-4,
+  .table-2,
+  .table-6,
+  .table-8,
+  .map-table {
+    width: 38px;
+    height: 38px;
+    font-size: 10px;
+    min-width: 38px;
+    min-height: 38px;
+    max-width: 38px;
+    max-height: 38px;
+  }
+  
+  .table-number-display {
+    font-size: 12px;
+  }
+  
+  .table-capacity-display {
+    font-size: 8px;
+  }
+  
+  
+  
+  .facilities {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
