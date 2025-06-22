@@ -1,80 +1,167 @@
-import React, { useState } from 'react';
-import { Button, Col, Form, Row } from 'react-bootstrap';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Button, Col, Form, Row, Alert, Spinner } from 'react-bootstrap';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, clearError } from '../../redux/authSlice';
+import '../Auth.css';
 
 const Login = () => {
-  const [userName, setUserName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validated, setValidated] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted (no API call)");
-    console.log("Username:", userName);
-    console.log("Password:", password);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/'); 
+    }
+  }, [isAuthenticated, navigate]);
+
+  const validateForm = () => {
+    const errors = {};
+    
+    if (!email) {
+      errors.email = 'Email/Username là bắt buộc';
+    }
+    
+    if (!password) {
+      errors.password = 'Password là bắt buộc';
+    } else if (password.length < 6) {
+      errors.password = 'Password phải có ít nhất 6 ký tự';
+    }
+
+    return errors;
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setValidated(true);
+
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    try {
+      await dispatch(loginUser({ email, password })).unwrap();
+      // Navigation sẽ được xử lý bởi useEffect khi isAuthenticated thay đổi
+    } catch (error) {
+      // Error đã được xử lý trong Redux
+      console.error('Login failed:', error);
+    }
+  };
 
   return (
-    <div className="vh-100 vw-100 d-flex">
-      <Row className="m-0 w-100">
-        <Col md={6} className="d-none d-md-block d-flex flex-column justify-content-end align-items-center" style={{ backgroundColor: 'orange', padding: '20px' }}>
-          <img
-            src="https://duckhoi.vn/wp-content/uploads/2023/12/sepia.jpg"
-            alt="Nội thất đẹp"
-            style={{ maxWidth: '100%', height: 'auto', borderRadius: '10px' }}
-          />
-          <p style={{ marginTop: '10px', fontSize: '70px', fontWeight: '500', textAlign: 'center', fontStyle: 'italic' }}>
-            Trải nghiệm không gian sống hoàn hảo cùng chúng tôi!
-          </p>
-        </Col>
-        <Col md={6} className="d-flex align-items-center justify-content-center">
-          <div style={{ width: '60%' }}>
-            <h3 className="mb-4">Welcome back!</h3>
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>Username</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter username"
-                  className="py-2"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                />
-              </Form.Group>
+    <div className="auth-container vh-100 vw-100 d-flex align-items-center">
+      <div className="container">
+        <Row className="justify-content-center">
+          <Col lg={10} xl={8}>
+            <div className="auth-card">
+              <Row className="g-0">
+                <Col md={6} className="auth-image-section d-flex flex-column justify-content-center align-items-center p-4">
+                  <img
+                    src="https://duckhoi.vn/wp-content/uploads/2023/12/sepia.jpg"
+                    alt="Restaurant Interior"
+                    className="auth-image"
+                    style={{ maxWidth: '100%', height: 'auto' }}
+                  />
+                  <p className="welcome-text mt-4 text-center" style={{ fontSize: '48px' }}>
+                    Trải nghiệm không gian ẩm thực hoàn hảo!
+                  </p>
+                </Col>
+                
+                <Col md={6} className="auth-form-section d-flex align-items-center">
+                  <div className="w-100">
+                    <h3 className="auth-title">Chào mừng trở lại!</h3>
+                    
+                    {error && (
+                      <Alert variant="danger" className="auth-alert" dismissible onClose={() => dispatch(clearError())}>
+                        {error}
+                      </Alert>
+                    )}
 
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Enter password"
-                  className="py-2"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </Form.Group>
+                    <Form noValidate validated={validated} onSubmit={handleSubmit} className="auth-form">
+                      <Form.Group className="mb-3">
+                        <Form.Label>Email/Username</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Nhập email hoặc username của bạn"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                          isInvalid={validated && !email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          Email/Username là bắt buộc
+                        </Form.Control.Feedback>
+                      </Form.Group>
 
-              <Button
-                type="submit"
-                variant="outline-danger"
-                className="w-100 mb-3 py-3 fw-bold"
-                style={{
-                  borderColor: '#ff4b4b',
-                  color: '#ff4b4b',
-                  fontSize: '16px'
-                }}
-              >
-                SIGN IN
-              </Button>
-              <div className="text-center mb-3">
-                Forgot Password by Email! <NavLink to='/forgotPass' style={{ color: '#ff4b4b', textDecoration: 'none', fontWeight: 'bold' }}>Forgot Password</NavLink>
-              </div>
-              <div className="text-center mb-3">
-                Don't have an account? <NavLink to='/signup' style={{ color: '#ff4b4b', textDecoration: 'none', fontWeight: 'bold' }}>Sign Up</NavLink>
-              </div>
-            </Form>
-          </div>
-        </Col>
-      </Row>
+                      <Form.Group className="mb-4">
+                        <Form.Label>Mật khẩu</Form.Label>
+                        <Form.Control
+                          type="password"
+                          placeholder="Nhập mật khẩu"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                          minLength={6}
+                          isInvalid={validated && (!password || password.length < 6)}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {!password ? 'Password là bắt buộc' : 'Password phải có ít nhất 6 ký tự'}
+                        </Form.Control.Feedback>
+                      </Form.Group>
+
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        className="auth-btn w-100 mb-3"
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            <Spinner
+                              as="span"
+                              animation="border"
+                              size="sm"
+                              role="status"
+                              aria-hidden="true"
+                              className="me-2 auth-spinner"
+                            />
+                            Đang đăng nhập...
+                          </>
+                        ) : (
+                          'Đăng nhập'
+                        )}
+                      </Button>
+                      
+                      <div className="text-center mb-3">
+                        <NavLink to='/forgotPass' className="auth-link">
+                          Quên mật khẩu?
+                        </NavLink>
+                      </div>
+                      
+                      <div className="text-center">
+                        Chưa có tài khoản?{' '}
+                        <NavLink to='/signup' className="auth-link">
+                          Đăng ký ngay
+                        </NavLink>
+                      </div>
+                    </Form>
+                  </div>
+                </Col>
+              </Row>
+            </div>
+          </Col>
+        </Row>
+      </div>
     </div>
   );
 };

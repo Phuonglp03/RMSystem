@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const { json, urlencoded } = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
+const { corsOptions } = require('./config/corsOption');
 const app = express();
 const Admin = require('./models/Admin');
 const User = require('./models/User');
@@ -38,11 +39,7 @@ dotenv.config(); // Load biến từ .env vào process.env
 connectDB();
 
 // Middleware
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"]
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(json());
 app.use(urlencoded({ extended: true }));
@@ -56,7 +53,7 @@ app.use('/api/table-orders', tableOrderRoutes);
 
 app.use('/api/reservations', require('./routes/reservation.routes'));
 app.use('/api/tables', require('./routes/table.routes'));
-
+app.use('/api/users', require('./routes/user.routes'));
 const PORT = process.env.PORT || 9999;
 
 app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));

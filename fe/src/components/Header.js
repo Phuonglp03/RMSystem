@@ -15,13 +15,24 @@ import {
     TableOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser } from '../redux/authSlice';
 import { MainLogo } from './Logo';
 const { Title } = Typography;
 
 const Header = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUser()).unwrap();
+            navigate('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
 
     const userMenu = (
         <Menu>
@@ -104,30 +115,38 @@ const Header = () => {
             </Menu>
 
             <div style={{ display: 'flex', alignItems: 'center' }}>
-
-                <>
-                    <Button
-                        onClick={() => navigate('/signup')}
-                        style={{ marginRight: 16 }}
-                    >
-                        Đăng ký
-                    </Button>
-                    <Button
-                        type="primary"
-                        onClick={() => navigate('/login')}
-                        style={{ marginRight: 16 }}
-                    >
-                        Đăng nhập
-                    </Button>
-                </>
-
-                <Button
-                    style={{ marginRight: 16 }}
-                    icon={<LoginOutlined />}
-                >
-                    Đăng xuất
-                </Button>
-
+                {!isAuthenticated ? (
+                    // Hiển thị khi chưa đăng nhập
+                    <>
+                        <Button
+                            onClick={() => navigate('/signup')}
+                            style={{ marginRight: 16 }}
+                        >
+                            Đăng ký
+                        </Button>
+                        <Button
+                            type="primary"
+                            onClick={() => navigate('/login')}
+                            style={{ marginRight: 16 }}
+                        >
+                            Đăng nhập
+                        </Button>
+                    </>
+                ) : (
+                    // Hiển thị khi đã đăng nhập
+                    <>
+                        <span style={{ marginRight: 16 }}>
+                            Xin chào, {user?.username || user?.fullname || 'User'}!
+                        </span>
+                        <Button
+                            onClick={handleLogout}
+                            style={{ marginRight: 16 }}
+                            icon={<LoginOutlined />}
+                        >
+                            Đăng xuất
+                        </Button>
+                    </>
+                )}
             </div>
         </header>
     );
