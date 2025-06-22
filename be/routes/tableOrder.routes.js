@@ -14,5 +14,11 @@ router.put('/:id', tableOrderController.updateTableOrder);
 router.delete('/:id', tableOrderController.deleteTableOrder);
 // Lấy TableOrder theo bookingCode
 router.get('/reservation/by-code/:code', tableOrderController.getReservationByCode);
+// Lấy TableOrder theo reservationId
+router.get('/reservation/:reservationId', tableOrderController.getTableOrdersByReservationId);
+// Lấy TableOrder theo customerId
+// router.get('/customer/:customerId', tableOrderController.getTableOrdersByCustomerId);
+// Lấy TableOrder theo userId
+router.get('/user/:userId', tableOrderController.getTableOrdersByUserId);
 
 module.exports = router; 
