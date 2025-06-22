@@ -3,6 +3,7 @@ const Table = require('../models/Table');
 const User = require('../models/User');
 const Servant = require('../models/Servant');
 const Customer = require('../models/Customer');
+const mongoose = require('mongoose')
 
 //Lay tat ca danh sach dat ban cua khach hang phia servant
 const getUnAssignedReservations = async (req, res) => {
@@ -319,50 +320,98 @@ const getDailyReservationStatistics = async (req, res) => {
 
 const servantCreateReservation = async (req, res) => {
     try {
-        const { bookedTableId, startTime, endTime, numberOfPeople, note } = req.body
-        const servantId = req.user.id
+        const { servantId, bookedTableId, startTime, endTime, numberOfPeople, note } = req.body
+        //const servantId = req.user.id
 
         const servant = await Servant.findOne({ userId: servantId })
         if (!servant) {
             return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
         }
-        const bookedTable = await Table.findById(bookedTableId)
-        if (!bookedTable) {
-            return res.status(404).json({ success: false, message: 'Bàn đặt không tồn tại' });
+        const bookedTables = await Table.find({ _id: { $in: bookedTableId } })
+        console.log('bookedTables: ', bookedTables)
+        if (bookedTables.length !== bookedTableId.length) {
+            return res.status(404).json({ success: false, message: 'Có bàn đặt không tồn tại' });
         }
 
-        if (bookedTable.status !== true) {
-            return res.status(400).json({ success: false, message: 'Bàn đã được đặt hoặc không còn sẵn có' });
+        for (let table of bookedTables) {
+            if (!table.status) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Bàn ${table.tableNumber} đã được đặt hoặc không còn sẵn có`
+                });
+            }
+
+            //Kiem tra lich turng tren ban do
+            const conflictingReservation = await Reservation.findOne({
+                bookedTable: table._id,
+                status: { $in: ['pending', 'confirmed'] },
+                //Kiem tra khoang thoi gian
+                $or: [
+                    { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
+                ]
+            });
+
+            if (conflictingReservation) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Bàn ${table.tableNumber} đã được đặt trong khoảng thời gian từ ${startTime} đến ${endTime}`
+                })
+            }
         }
+
+        const tableIds = bookedTableId.map(t => new mongoose.Types.ObjectId(t))
 
         const newReservation = new Reservation({
-            bookedTable: bookedTableId,
+            bookedTable: tableIds,
+            customerId: null,
             startTime,
             endTime,
             numberOfPeople,
             note,
-            servantId: servant.userId._id, // Lưu ID của servant
-            status: 'pending', // Trạng thái ban đầu là 'pending'
-            bookingTime: new Date() // Thời gian đặt bàn
+            servantId,  //servant.userId._id, // Lưu ID của servant
+            status: 'confirmed', // Trạng thái khi servant đặt là 'confirmed'
+            bookingTime: new Date(), // Thời gian đặt bàn
+            reservationCode: `RES${Date.now()}`
         });
 
         await newReservation.save();
-        bookedTable.status = false; // Đánh dấu bàn là không còn sẵn có
-        bookedTable.currentReservation.push(newReservation._id); // Thêm đặt bàn vào danh sách hiện tại của bàn
-        await bookedTable.save();
+
+        for (let table of bookedTables) {
+            // Đánh dấu bàn là không còn sẵn có
+            table.status = false;
+            table.currentReservation = table.currentReservation || [];
+            // Thêm đặt bàn vào danh sách hiện tại của bàn
+            table.currentReservation.push(newReservation._id);
+            await table.save();
+            console.log('table.currentReservation: ', table.currentReservation)
+        }
+
+
+
+        const reservation = await Reservation.findById(newReservation._id)
+            .populate({
+                path: 'servantId',
+                select: 'fullname email phone',
+            })
+
         res.status(201).json({
             success: true,
             message: 'Đặt bàn thành công',
             reservation: {
                 _id: newReservation._id,
-                bookedTable: bookedTable.tableNumber,
+                bookedTable: bookedTables?.map(t => `Bàn số ${t.tableNumber}`),
                 startTime: newReservation.startTime,
                 endTime: newReservation.endTime,
                 numberOfPeople: newReservation.numberOfPeople,
                 note: newReservation.note,
                 status: newReservation.status,
                 bookingTime: newReservation.bookingTime,
-                servant: servant.userId.fullname
+                servant: {
+                    id: reservation?.servantId?._id,
+                    name: reservation?.servantId?.fullname || 'N/A',
+                    email: reservation?.servantId?.email,
+                    phone: reservation?.servantId?.phone
+                }
             },
 
         });
@@ -373,6 +422,90 @@ const servantCreateReservation = async (req, res) => {
     }
 }
 
+const servantDeleteReservation = async (req, res) => {
+    try {
+        const { reservationId } = req.params
+        const { servantId } = req.body; //req.user.id
+
+        const reservation = await Reservation.findOne({
+            _id: reservationId,
+            servantId: servantId
+        }).populate({
+            path: 'servantId',
+            select: 'fullname email phone',
+        });
+
+        if (!reservation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Reservation không tồn tại hoặc bạn không có quyền xóa'
+            })
+        }
+
+        //Tìm cacsc bàn trong reservation
+        const bookedTables = await Table.find({ _id: { $in: reservation.bookedTable } })
+        for (let table of bookedTables) {
+            table.status = true; //Đặt lại trạng thái bạn là true
+            if (Array.isArray(table.currentReservation)) {
+                table.currentReservation = table.currentReservation.filter(
+                    (resId) => resId._id.toString() !== reservation._id.toString()
+                )
+            }
+
+            await table.save()
+
+        }
+
+        await Reservation.findByIdAndDelete(reservation._id)
+
+        res.json({
+            success: true,
+            message: 'Xóa reservation thành công',
+            servant: {
+                id: reservation?.servantId?._id,
+                name: reservation?.servantId?.fullname || 'N/A',
+                email: reservation?.servantId?.email,
+                phone: reservation?.servantId?.phone
+            }
+        })
+
+    } catch (err) {
+        console.error(`Lỗi khi servant xóa reservation: ${err.message}`);
+        res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
+    }
+}
+
+const cleanUpCurrentReservations = async () => {
+    try {
+        const tables = await Table.find();
+        for (let table of tables) {
+            if (!Array.isArray(table.currentReservation) || table.currentReservation.length === 0) {
+                continue;
+            }
+
+            // Kiểm tra id nào còn tồn tại trong Reservation
+            const existingReservations = await Reservation.find({
+                _id: { $in: table.currentReservation },
+            }).select('_id');
+
+            const existingIds = existingReservations.map((r) => r._id.toString());
+
+            // Lọc ra chỉ còn lại ids tồn tại
+            table.currentReservation = table.currentReservation.filter((resId) =>
+                existingIds.includes(resId.toString())
+            );
+
+            await table.save();
+        }
+
+        console.log('✅ Đã dọn dẹp currentReservation thành công!');
+    } catch (error) {
+        console.error('❌ Lỗi khi dọn dẹp currentReservation:', error.message);
+    } finally {
+        mongoose.connection.close();
+    }
+};
+
 module.exports = {
     getUnAssignedReservations,
     getCustomerReservationByServantId,
@@ -381,5 +514,7 @@ module.exports = {
     updateReservationStatus,
     confirmOrRejectReservation,
     servantCreateReservation,
-    confirmCustomerNotArrival
+    confirmCustomerNotArrival,
+    servantDeleteReservation,
+    cleanUpCurrentReservations
 }

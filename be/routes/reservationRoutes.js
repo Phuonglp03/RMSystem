@@ -8,7 +8,9 @@ const {
     confirmCustomerArrival,
     getDailyReservationStatistics,
     servantCreateReservation,
-    confirmCustomerNotArrival
+    confirmCustomerNotArrival,
+    servantDeleteReservation,
+    cleanUpCurrentReservations
 } = require('../controllers/reservationController')
 
 const { authMiddleware } = require('../middleware/authMiddleware')
@@ -25,9 +27,13 @@ router.post('/servant/confirm-arrival', authMiddleware, confirmCustomerArrival)
 /* http://localhost:9999/api/reservations/servant/daily-statistics */
 router.get('/servant/daily-statistics', authMiddleware, getDailyReservationStatistics)
 /* http://localhost:9999/api/reservations/servant/create */
-router.post('/servant/create', authMiddleware, servantCreateReservation)
+router.post('/servant/create', servantCreateReservation)
 /* http://localhost:9999/api/reservations//servant/confirm-not-arrive */
 router.post('/servant/confirm-not-arrive', authMiddleware, confirmCustomerNotArrival)
+/* http://localhost:9999/api/reservations/servant/delete/:reservationId */
+router.delete('/servant/delete/:reservationId', servantDeleteReservation)
+/* http://localhost:9999/api/reservations/servant/clear */
+router.delete('/servant/clear', cleanUpCurrentReservations)
 
 
 module.exports = router;
