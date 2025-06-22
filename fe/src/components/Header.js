@@ -58,11 +58,11 @@ const Header = () => {
                 <Menu.Item key="1" icon={<HomeOutlined />} onClick={() => navigate('/')}>Trang chủ</Menu.Item>
 
 
-                <Menu.Item key="2" icon={<MenuOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="2" icon={<MenuOutlined />} onClick={() => navigate('/menu')}>
                     Thực đơn
                 </Menu.Item>
 
-                <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/test-table-order')}>
                     Đặt bàn
                 </Menu.Item>
                 <Menu.Item key="vouchers" icon={<GiftOutlined />} onClick={() => navigate('/')}>
