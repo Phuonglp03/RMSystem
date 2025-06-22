@@ -2,11 +2,6 @@ import { StatusCodes } from 'http-status-code'
 import { JWTProvider } from '../providers/JwtProvider'
 
 const authMiddleware = async (req, res, next) => {
-    /**
-     * Lay accessToken nam torng request cookie phia client
-     * withCredentials trong file authrizeAxios
-     * credentials torng CORS
-     */
     const accessTokenFromCookie = req?.cookies?.accessTokenFromCookie
 
     if (!accessTokenFromCookie) {

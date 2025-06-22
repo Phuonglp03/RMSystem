@@ -15,7 +15,7 @@ const AppRoutes = () => (
             <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
                 <Route path="/menu" element={<Menu />} />
-                <Route path='/test-table-order' element={<TableOrderTest />} /> 
+                <Route path='/test-table-order' element={<TableOrderTest />} />                
             </Route>   
         <Route path='/signup' element={<Signup />} />
         <Route path='/login' element={<Login />} />

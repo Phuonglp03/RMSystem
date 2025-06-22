@@ -7,15 +7,16 @@ const generateToken = (userInfo, secretSignature, tokenLife) => {
         throw new Error('generateToken err: ', err)
     }
 }
-const verifyToken = (token, secretSignature,) => {
+
+const verifyToken = (token, secretSignature) => {
     try {
         return JWT.verify(token, secretSignature)
     } catch (err) {
-        throw new Error('generateToken err: ', err)
+        throw new Error('verifyToken err: ', err)
     }
 }
 
-export const JWTProvider = {
+export const JwtMiddleware = {
     generateToken,
     verifyToken
-}
+} 

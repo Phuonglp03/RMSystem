@@ -25,10 +25,11 @@ const RestockLog = require('./models/RestockLog');
 const Servant = require('./models/Servant');
 const Table = require('./models/Table');
 const TableOrder = require('./models/TableOrder');
-const foodRoutes = require('../be/routes/foodroutes');
-
-
-
+const foodRoutes = require('./routes/food.routes');
+const foodCategoryRoutes = require('./routes/foodCategory.routes');
+const comboRoutes = require('./routes/combo.routes');
+const comboItemRoutes = require('./routes/comboItem.routes');
+const tableOrderRoutes = require('./routes/tableOrder.routes');
 
 const  dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
@@ -47,12 +48,14 @@ app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use('/api/foods', foodRoutes);
-app.use('/api/food-categories', require('../be/routes/foodcategoryroutes'));
-app.use('/api/combos', require('../be/routes/comboroutes'));
-app.use('/api/combo-items', require('../be/routes/comboitemroutes'));
-app.use('/api/table-orders', require('../be/routes/tableorderroutes'));
+app.use('/api/food-categories', foodCategoryRoutes);
+app.use('/api/combos', comboRoutes);
+app.use('/api/combo-items', comboItemRoutes);
+app.use('/api/table-orders', tableOrderRoutes);
 
 
+app.use('/api/reservations', require('./routes/reservation.routes'));
+app.use('/api/tables', require('./routes/table.routes'));
 
 const PORT = process.env.PORT || 9999;
 
