@@ -10,6 +10,9 @@ export const loginUser = createAsyncThunk(
       console.log('Login response:', response); 
       if (response.accessToken) {
         localStorage.setItem('token', response.accessToken);
+        if (response.user && response.user._id) {
+          localStorage.setItem('userID', response.user._id);
+        }
       }
       return response;
     } catch (error) {
@@ -37,10 +40,12 @@ export const logoutUser = createAsyncThunk(
     try {
       await authService.logout();
       localStorage.removeItem('token');
+      localStorage.removeItem('userID');
       return {};
     } catch (error) {
       // Ngay cả khi API lỗi, vẫn xóa token và logout
       localStorage.removeItem('token');
+      localStorage.removeItem('userID');
       return {};
     }
   }

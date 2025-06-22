@@ -74,7 +74,7 @@ const Header = () => {
                 </Menu.Item>
 
                 <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/test-table-order')}>
-                    Đặt bàn
+                    Đặt món ăn 
                 </Menu.Item>
                 <Menu.Item key="vouchers" icon={<GiftOutlined />} onClick={() => navigate('/')}>
                     Đổi voucher
@@ -108,8 +108,8 @@ const Header = () => {
                 <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/')}>
                     Tài khoản
                 </Menu.Item>
-                <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/')}>
-                    Kho
+                <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>
+                    Lịch sử đặt đơn 
                 </Menu.Item>
 
             </Menu>

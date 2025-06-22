@@ -166,6 +166,7 @@ const TableOrderTest = () => {
 
     const ordersForAPI = Object.entries(cart).map(([tableId, items]) => ({
       tableId,
+      reservationId: reservation?._id,
       foods: items.filter(item => item.type === 'food').map(item => ({ foodId: item.id, quantity: item.quantity })),
       combos: items.filter(item => item.type === 'combo').map(item => item.id),
       status: 'pending' // Gửi trạng thái mặc định

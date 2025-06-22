@@ -1,5 +1,6 @@
 const TableOrder = require('../models/TableOrder');
 const Reservation = require('../models/Reservation');
+const Customer = require('../models/Customer');
 const mongoose = require('mongoose');
 
 // Tạo nhiều TableOrder cho 1 user với cùng 1 bookingCode
@@ -104,5 +105,49 @@ exports.getReservationByCode = async (req, res) => {
     res.status(200).json({ status: 'success', data: reservation });
   } catch (error) {
     res.status(400).json({ status: 'fail', message: error.message });
+  }
+};
+
+// Lấy danh sách TableOrder theo reservationId
+exports.getTableOrdersByReservationId = async (req, res) => {
+  try {
+    const { reservationId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(reservationId)) {
+      return res.status(400).json({ status: 'fail', message: 'reservationId không hợp lệ' });
+    }
+    const orders = await TableOrder.find({ reservationId })
+      .populate('tableId', 'tableNumber')
+      .populate('reservationId')
+      .populate('foods.foodId', 'name')
+      .populate('combos', 'comboId foodId quantity');
+    res.status(200).json({ status: 'success', data: orders });
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message });
+  }
+};
+
+// Lấy danh sách TableOrder theo userId (truy ngược sang Customer)
+exports.getTableOrdersByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('userId:', userId);
+    const customer = await Customer.findOne({ userId });
+    console.log('customer:', customer);
+    if (!customer) {
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy customer với userId này' });
+    }
+    const reservations = await Reservation.find({ customerId: customer._id }).select('_id');
+    console.log('reservations:', reservations);
+    const reservationIds = reservations.map(r => r._id);
+    const orders = await TableOrder.find({ reservationId: { $in: reservationIds } })
+      .populate('tableId', 'tableNumber')
+      .populate('reservationId')
+      .populate('foods.foodId', 'name')
+      .populate('combos', 'comboId foodId quantity');
+    console.log('orders:', orders);
+    res.status(200).json({ status: 'success', data: orders });
+  } catch (error) {
+    console.error('Error in getTableOrdersByUserId:', error);
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }; 
