@@ -317,7 +317,7 @@ const HomePage = () => {
               />
               <Title style={{ color: '#fff' }}></Title>
               <Title level={3} style={{ color: '#fff', marginTop: 0 }}>Nơi hội tụ tinh hoa ẩm thực</Title>
-              <Button type="primary" size="large" onClick={() => navigate('/booking')}>
+              <Button type="primary" size="large" onClick={() => navigate('/test-table-order')}>
                 Đặt bàn ngay
               </Button>
             </div>
