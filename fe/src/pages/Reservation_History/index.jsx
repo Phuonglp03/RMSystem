@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, Card, Button, Tag, Row, Col, Typography, message, Spin } from 'antd';
 import reservationService from '../../services/reservation.service';
-import './index.css';
 
 const { Title } = Typography;
 

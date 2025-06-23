@@ -8,8 +8,6 @@ import Login from '../pages/LogIn';
 import TableOrderTest from '../pages/BookingFood/TableOrderTest';
 import BookingTable from '../pages/BookTable';
 import Menu from '../pages/Menu';
-
-
 import OrderHistoryByUser from '../pages/BookingFood/OrderHistoryByUser';
 import Servant_Dashboard from '../pages/Servant_Dashboard';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
@@ -17,6 +15,7 @@ import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Reservation_History from '../pages/Reservation_History';
 import ServantLayout from '../layouts/ServantLayout';
 import Reservation_Notification from '../pages/Reservation_Notification';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AppRoutes = () => (
     <BrowserRouter>
