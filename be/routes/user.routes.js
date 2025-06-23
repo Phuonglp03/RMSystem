@@ -13,6 +13,12 @@ router.post('/refresh-token', userController.refreshToken);
 // Protected routes - All authenticated users
 router.get('/profile', authMiddleware, userController.getProfile);
 
+// New profile routes
+router.get('/:userId/profile', authMiddleware, userController.getUserProfile);
+router.put('/:userId/profile', authMiddleware, userController.updateUserProfile);
+router.get('/:userId/loyalty', authMiddleware, userController.getLoyaltyInfo);
+router.get('/:userId/coupons', authMiddleware, userController.getUserCoupons);
+
 // Admin only routes
 router.get('/all', authMiddleware, adminOnly, userController.getAllUsers);
 

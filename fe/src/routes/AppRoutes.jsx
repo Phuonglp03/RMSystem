@@ -11,16 +11,19 @@ import Menu from '../pages/Menu';
 
 
 import OrderHistoryByUser from '../pages/BookingFood/OrderHistoryByUser';
+import UserProfile from '../pages/Profile';
 
 const AppRoutes = () => (
     <BrowserRouter>
         <Routes>
             <Route path="/" element={<MainLayout />}>
                 <Route index element={<HomePage />} />
+
                 <Route path='/menu' element={<Menu />} />
                 <Route path='/book-table' element={<BookingTable />} />
                 <Route path='/test-table-order' element={<TableOrderTest />} />
                 <Route path='/order-history' element={<OrderHistoryByUser />} />
+                <Route path='/profile' element={<UserProfile />} />
             </Route>   
         <Route path='/signup' element={<Signup />} />
         <Route path='/login' element={<Login />} />

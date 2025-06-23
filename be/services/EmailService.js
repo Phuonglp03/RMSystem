@@ -13,7 +13,7 @@ class EmailService {
 
     async sendEmail(to, subject, htmlContent, text) {
         const mailOptions = {
-            from: '"Nhà Hàng " <HẸ HẸ HẸ>',
+            from: '"The Fool Restaurant" <burestaurantsieuvippro@gmail.com>',
             to,
             subject,
             html: htmlContent,
@@ -37,14 +37,14 @@ class EmailService {
 
     createWelcomeEmail(name, email, tempPassword) {
         return {
-            subject: 'Chào mừng đến với Bu Restaurant - Thông tin đặt bàn của bạn',
+            subject: 'Chào mừng đến với The Fool - Thông tin đặt bàn của bạn',
             html: `
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Chào mừng đến với Bu Restaurant</title>
+                <title>Chào mừng đến với The Fool</title>
                 <style>
                     body {
                         font-family: Arial, sans-serif;
@@ -96,12 +96,12 @@ class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>Bu Restaurant</h1>
+                        <h1>The Fool</h1>
                     </div>
                     <div class="content">
                         <p>Xin chào <strong>${name}</strong>,</p>
                         
-                        <p>Cảm ơn bạn đã đặt bàn tại Bu Restaurant. Chúng tôi rất mong được phục vụ bạn!</p>
+                        <p>Cảm ơn bạn đã đặt bàn tại The Fool. Chúng tôi rất mong được phục vụ bạn!</p>
                         
                         <div class="info-box">
                             <p><strong>Thông tin đăng nhập hệ thống của bạn:</strong></p>
@@ -121,10 +121,10 @@ class EmailService {
                         <p>Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với chúng tôi qua email này hoặc gọi số <strong>0904628569</strong>.</p>
                         
                         <p>Trân trọng,<br>
-                        <strong>Bu Restaurant</strong></p>
+                        <strong>The Fool</strong></p>
                     </div>
                     <div class="footer">
-                        <p>© 2025 Bu Restaurant. Tất cả quyền được bảo lưu.</p>
+                        <p>© 2025 The Fool. Tất cả quyền được bảo lưu.</p>
                         <p>Email này được gửi tự động.</p>
                         <p>Để hủy đăng ký nhận email, vui lòng <a href="mailto:burestaurantsieuvippro@gmail.com?subject=Unsubscribe">nhấn vào đây</a>.</p>
                     </div>
@@ -135,7 +135,7 @@ class EmailService {
             text: `
             Xin chào ${name},
 
-            Cảm ơn bạn đã đặt bàn tại Bu Restaurant. Chúng tôi rất mong được phục vụ bạn!
+            Cảm ơn bạn đã đặt bàn tại The Fool. Chúng tôi rất mong được phục vụ bạn!
 
             THÔNG TIN ĐĂNG NHẬP HỆ THỐNG CỦA BẠN:
             Email đăng nhập: ${email}
@@ -151,9 +151,9 @@ class EmailService {
             Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với chúng tôi qua email này hoặc gọi số 0904628569.
 
             Trân trọng,
-            Bu Restaurant
+            The Fool
 
-            © 2025 Bu Restaurant. Tất cả quyền được bảo lưu.
+            © 2025 The Fool. Tất cả quyền được bảo lưu.
             Email này được gửi tự động.
             Để hủy đăng ký nhận email, vui lòng gửi email đến burestaurantsieuvippro@gmail.com với chủ đề "Unsubscribe".
             `
@@ -169,14 +169,14 @@ class EmailService {
         });
         
         return {
-            subject: `Xác nhận đặt bàn #${reservationCode} - Bu Restaurant`,
+            subject: `Xác nhận đặt bàn #${reservationCode} - The Fool`,
             html: `
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Xác nhận đặt bàn - Bu Restaurant</title>
+                <title>Xác nhận đặt bàn - The Fool</title>
                 <style>
                     body {
                         font-family: Arial, sans-serif;
@@ -230,12 +230,12 @@ class EmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>Bu Restaurant - Xác nhận đặt bàn</h1>
+                        <h1>The Fool - Xác nhận đặt bàn</h1>
                     </div>
                     <div class="content">
                         <p>Xin chào <strong>${name}</strong>,</p>
                         
-                        <p>Cảm ơn bạn đã đặt bàn tại Bu Restaurant. Đơn đặt bàn của bạn đã được xác nhận!</p>
+                        <p>Cảm ơn bạn đã đặt bàn tại The Fool. Đơn đặt bàn của bạn đã được xác nhận!</p>
                         
                         <div class="reservation-details">
                             <p><strong>Chi tiết đặt bàn:</strong></p>
@@ -254,13 +254,13 @@ class EmailService {
                             <li>Nếu bạn muốn hủy hoặc thay đổi đặt bàn, vui lòng liên hệ với chúng tôi trước 2 giờ</li>
                         </ul>
                         
-                        <p>Chúng tôi rất mong được phục vụ bạn tại Bu Restaurant!</p>
+                        <p>Chúng tôi rất mong được phục vụ bạn tại The Fool!</p>
                         
                         <p>Trân trọng,<br>
-                        <strong>Bu Restaurant</strong></p>
+                        <strong>The Fool</strong></p>
                     </div>
                     <div class="footer">
-                        <p>© 2025 Bu Restaurant. Tất cả quyền được bảo lưu.</p>
+                        <p>© 2025 The Fool. Tất cả quyền được bảo lưu.</p>
                         <p>Email này được gửi tự động.</p>
                         <p>Để hủy đăng ký nhận email, vui lòng <a href="mailto:burestaurantsieuvippro@gmail.com?subject=Unsubscribe">nhấn vào đây</a>.</p>
                     </div>
@@ -271,7 +271,7 @@ class EmailService {
             text: `
             Xin chào ${name},
 
-            Cảm ơn bạn đã đặt bàn tại Bu Restaurant. Đơn đặt bàn của bạn đã được xác nhận!
+            Cảm ơn bạn đã đặt bàn tại The Fool. Đơn đặt bàn của bạn đã được xác nhận!
 
             CHI TIẾT ĐẶT BÀN:
             Mã đặt bàn: ${reservationCode}
@@ -286,12 +286,12 @@ class EmailService {
             - Đặt bàn của bạn sẽ được giữ trong vòng 15 phút sau giờ đặt
             - Nếu bạn muốn hủy hoặc thay đổi đặt bàn, vui lòng liên hệ với chúng tôi trước 2 giờ
 
-            Chúng tôi rất mong được phục vụ bạn tại Bu Restaurant!
+            Chúng tôi rất mong được phục vụ bạn tại The Fool!
 
             Trân trọng,
-            Bu Restaurant
+            The Fool
 
-            © 2025 Bu Restaurant. Tất cả quyền được bảo lưu.
+            © 2025 The Fool. Tất cả quyền được bảo lưu.
             Email này được gửi tự động.
             Để hủy đăng ký nhận email, vui lòng gửi email đến burestaurantsieuvippro@gmail.com với chủ đề "Unsubscribe".
             `

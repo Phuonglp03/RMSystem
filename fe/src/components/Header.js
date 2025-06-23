@@ -105,7 +105,7 @@ const Header = () => {
                 <Menu.Item key="foodlistmanage" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
                     Quản lý món ăn
                 </Menu.Item>
-                <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/profile')}>
                     Tài khoản
                 </Menu.Item>
                 <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>

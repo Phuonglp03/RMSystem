@@ -1,0 +1,247 @@
+/* Layout */
+.profile-layout {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.profile-sider {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+  position: relative;
+  z-index: 10;
+}
+
+.profile-content {
+  padding: 24px;
+}
+
+/* Sidebar */
+.sider-content {
+  padding: 32px 16px;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-avatar {
+  margin-bottom: 16px;
+  background-color: #1890ff;
+}
+
+.username {
+  margin: 8px 0 4px !important;
+}
+
+.membership-badge {
+  margin-top: 12px;
+  padding: 4px 0;
+}
+
+/* Menu */
+.profile-menu {
+  border-right: none;
+}
+
+.menu-icon {
+  font-size: 18px;
+}
+
+.menu-item {
+  height: 50px;
+  line-height: 50px;
+}
+
+/* Cards */
+.header-card {
+  margin-bottom: 24px;
+}
+
+.header-title {
+  margin-bottom: 8px !important;
+}
+
+.header-subtitle {
+  color: rgba(0, 0, 0, 0.45);
+  margin-bottom: 0 !important;
+}
+
+.stats-row {
+  margin-bottom: 24px;
+}
+
+.stats-card {
+  height: 100%;
+}
+
+.form-card, .loyalty-card, .reservations-card, .coupons-card, .settings-card {
+  margin-bottom: 24px;
+}
+
+/* Form */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.form-title {
+  margin-bottom: 0 !important;
+}
+
+.form-icon {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.form-actions {
+  text-align: right;
+  margin-top: 16px;
+}
+
+/* Alert */
+.profile-alert {
+  margin-bottom: 24px;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Loyalty */
+.membership-info {
+  text-align: center;
+}
+
+.membership-badge-large {
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 12px;
+  color: white;
+}
+
+.loyalty-statistic {
+  text-align: center;
+}
+
+.progress-wrapper {
+  margin-top: 24px;
+}
+
+.benefits-row {
+  margin-top: 24px;
+}
+
+.benefit-card {
+  height: 100%;
+  transition: all 0.3s;
+}
+
+.benefit-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.benefit-card.bronze {
+  border-top: 3px solid #CD7F32;
+}
+
+.benefit-card.silver {
+  border-top: 3px solid #C0C0C0;
+}
+
+.benefit-card.gold {
+  border-top: 3px solid #FFD700;
+}
+
+.benefit-card.platinum {
+  border-top: 3px solid #e5e4e2;
+}
+
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+}
+
+/* Coupons */
+.coupon-item {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(45deg, #fff, #f9f9f9);
+  border-left: 5px solid #1890ff;
+  position: relative;
+  overflow: hidden;
+}
+
+.coupon-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    #fff,
+    #fff 5px,
+    #f0f0f0 5px,
+    #f0f0f0 10px
+  );
+}
+
+.coupon-info {
+  flex: 1;
+}
+
+.coupon-value {
+  font-size: 24px;
+  color: #f5222d;
+  margin: 16px 0;
+}
+
+.coupon-validity {
+  border-top: 1px dashed #d9d9d9;
+  padding-top: 12px;
+}
+
+/* Settings */
+.settings-input {
+  max-width: 400px;
+}
+
+.settings-option {
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-sider {
+    max-width: 80px !important;
+    min-width: 80px !important;
+    width: 80px !important;
+  }
+  
+  .sider-content {
+    padding: 16px 8px;
+  }
+  
+  .username, .membership-badge, .ant-menu-title-content {
+    display: none;
+  }
+  
+  .user-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+    font-size: 18px !important;
+  }
+  
+  .ant-menu-item {
+    padding-left: 24px !important;
+  }
+}
