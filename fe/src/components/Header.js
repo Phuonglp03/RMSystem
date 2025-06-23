@@ -15,13 +15,24 @@ import {
     TableOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutUser } from '../redux/authSlice';
 import { MainLogo } from './Logo';
 const { Title } = Typography;
 
 const Header = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUser()).unwrap();
+            navigate('/');
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
 
     const userMenu = (
         <Menu>
@@ -58,12 +69,12 @@ const Header = () => {
                 <Menu.Item key="1" icon={<HomeOutlined />} onClick={() => navigate('/')}>Trang chủ</Menu.Item>
 
 
-                <Menu.Item key="2" icon={<MenuOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="2" icon={<MenuOutlined />} onClick={() => navigate('/menu')}>
                     Thực đơn
                 </Menu.Item>
 
-                <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/')}>
-                    Đặt bàn
+                <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/test-table-order')}>
+                    Đặt món ăn 
                 </Menu.Item>
                 <Menu.Item key="vouchers" icon={<GiftOutlined />} onClick={() => navigate('/')}>
                     Đổi voucher
@@ -97,37 +108,45 @@ const Header = () => {
                 <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/')}>
                     Tài khoản
                 </Menu.Item>
-                <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/')}>
-                    Kho
+                <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>
+                    Lịch sử đặt đơn 
                 </Menu.Item>
 
             </Menu>
 
             <div style={{ display: 'flex', alignItems: 'center' }}>
-
-                <>
-                    <Button
-                        onClick={() => navigate('/signup')}
-                        style={{ marginRight: 16 }}
-                    >
-                        Đăng ký
-                    </Button>
-                    <Button
-                        type="primary"
-                        onClick={() => navigate('/login')}
-                        style={{ marginRight: 16 }}
-                    >
-                        Đăng nhập
-                    </Button>
-                </>
-
-                <Button
-                    style={{ marginRight: 16 }}
-                    icon={<LoginOutlined />}
-                >
-                    Đăng xuất
-                </Button>
-
+                {!isAuthenticated ? (
+                    // Hiển thị khi chưa đăng nhập
+                    <>
+                        <Button
+                            onClick={() => navigate('/signup')}
+                            style={{ marginRight: 16 }}
+                        >
+                            Đăng ký
+                        </Button>
+                        <Button
+                            type="primary"
+                            onClick={() => navigate('/login')}
+                            style={{ marginRight: 16 }}
+                        >
+                            Đăng nhập
+                        </Button>
+                    </>
+                ) : (
+                    // Hiển thị khi đã đăng nhập
+                    <>
+                        <span style={{ marginRight: 16 }}>
+                            Xin chào, {user?.username || user?.fullname || 'User'}!
+                        </span>
+                        <Button
+                            onClick={handleLogout}
+                            style={{ marginRight: 16 }}
+                            icon={<LoginOutlined />}
+                        >
+                            Đăng xuất
+                        </Button>
+                    </>
+                )}
             </div>
         </header>
     );

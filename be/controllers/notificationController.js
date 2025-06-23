@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 
 const getNotifications = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.jwtDecode.id;
         if (!mongoose.isValidObjectId(userId)) {
             return res.status(400).json({ success: false, message: 'ID người dùng không hợp lệ' });
         }
@@ -44,8 +44,8 @@ const getNotifications = async (req, res) => {
 
 const markNotificationAsRead = async (req, res) => {
     try {
-        const { notificationId } = req.body;
-        const userId = req.user.id;
+        const { notificationId } = req.params;
+        const userId = req.jwtDecode.id;
 
         if (!mongoose.isValidObjectId(notificationId)) {
             return res.status(400).json({ success: false, message: 'ID thông báo không hợp lệ' });
@@ -70,8 +70,8 @@ const markNotificationAsRead = async (req, res) => {
 
 const deleteNotification = async (req, res) => {
     try {
-        const { notificationId } = req.body;
-        const userId = req.user.id;
+        const { notificationId } = req.params;
+        const userId = req.jwtDecode.id;
 
         if (!mongoose.isValidObjectId(notificationId)) {
             return res.status(400).json({ success: false, message: 'ID thông báo không hợp lệ' });
@@ -94,4 +94,10 @@ const deleteNotification = async (req, res) => {
         console.error(`Lỗi khi xóa thông báo: ${err.message}`);
         res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
     }
+}
+
+module.exports = {
+    getNotifications,
+    markNotificationAsRead,
+    deleteNotification
 }

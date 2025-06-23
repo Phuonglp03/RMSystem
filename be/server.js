@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const { json, urlencoded } = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors');
+const { corsOptions } = require('./config/corsOption');
 const app = express();
 const Admin = require('./models/Admin');
 const User = require('./models/User');
@@ -25,37 +26,42 @@ const RestockLog = require('./models/RestockLog');
 const Servant = require('./models/Servant');
 const Table = require('./models/Table');
 const TableOrder = require('./models/TableOrder');
-const foodRoutes = require('../be/routes/foodroutes');
-
-
-const reservationRoutes = require('./routes/reservationRoutes');
+const foodRoutes = require('./routes/food.routes');
+const foodCategoryRoutes = require('./routes/foodCategory.routes');
+const comboRoutes = require('./routes/combo.routes');
+const comboItemRoutes = require('./routes/comboItem.routes');
+const tableOrderRoutes = require('./routes/tableOrder.routes');
 
 const dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
 
 // Connect Database
 connectDB();
+//cookie
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+app.use((req, res, next) => {
+    // console.log('req.cookies: ', req.cookies);
+    next();
+});
 
 // Middleware
-app.use(cors({
-  origin: "http://localhost:3000",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"]
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(json());
 app.use(urlencoded({ extended: true }));
 app.use(morgan('dev'));
 app.use('/api/foods', foodRoutes);
-app.use('/api/food-categories', require('../be/routes/foodcategoryroutes'));
-app.use('/api/combos', require('../be/routes/comboroutes'));
-app.use('/api/combo-items', require('../be/routes/comboitemroutes'));
-app.use('/api/table-orders', require('../be/routes/tableorderroutes'));
-
-
-app.use('/api/reservations', reservationRoutes);
-
-
+app.use('/api/food-categories', foodCategoryRoutes);
+app.use('/api/combos', comboRoutes);
+app.use('/api/combo-items', comboItemRoutes);
+app.use('/api/table-orders', tableOrderRoutes);
+/* servant reservation */
+app.use('/api/reservations/servant', require('./routes/reservationRoutes'))
+app.use('/api/reservations', require('./routes/reservation.routes'));
+app.use('/api/tables', require('./routes/table.routes'));
+app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/notification', require('./routes/notification.routes'))
 const PORT = process.env.PORT || 9999;
 
 app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));

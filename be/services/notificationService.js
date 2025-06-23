@@ -20,7 +20,7 @@ const notificationService = {
         }
     },
 
-    async createReservationNotification(reservation, type) {
+    async createReservationNotification(data, type) {
         try {
             if (!NOTIFICATION_TYPES[type]) {
                 throw new Error('Invalid notification type');
@@ -34,6 +34,18 @@ const notificationService = {
                     title: 'Từ chối đơn đặt bàn',
                     message: `Đơn đặt bàn của bạn đã bị phục vụ từ chối. Bạn hãy tạo đơn đặt bàn khác.`
                 },
+                [NOTIFICATION_TYPES.RESERVATION_CREATED_BY_SERVANT]: {
+                    title: 'Bạn đã tạo đơn đặt bàn mới',
+                    message: `Chúc mừng bạn đã tạo đơn đặt bàn mới cho khách, đây là code: ${data.reservationCode}. Chúc bạn hoàn thành nhiệm vụ thuận lợi.`
+                },
+                [NOTIFICATION_TYPES.RESERVATION_DELETED_BY_SERVANT]: {
+                    title: 'Bạn đã xóa 1 đơn đặt bàn',
+                    message: `Bạn đã xóa 1 đơn đặt bàn có code là: ${data.reservationCode}. Chúc bạn một ngày tốt lành, bạn ${data.servant}.`
+                },
+                [NOTIFICATION_TYPES.RESERVATION_UPDATED_BY_SERVANT]: {
+                    title: 'Cập nhật đơn đặt bàn thành công',
+                    message: `Bạn đã cập nhật thông tin của đơn đặt bàn có mã code:  thành công`
+                }
             }
 
             const notification = messages[type];
@@ -41,7 +53,7 @@ const notificationService = {
                 title: notification.title,
                 message: notification.message,
                 type: type,
-                relatedId: data.reservationId
+                relatedId: data?.reservationId
             };
         } catch (err) {
             console.error(`Lỗi khi tạo thông báo reservation: ${err.message}`);
@@ -71,4 +83,4 @@ const notificationService = {
     }
 }
 
-export default notificationService;
+module.exports = notificationService
