@@ -78,7 +78,6 @@ const Header = () => {
                 </Menu.Item>
                 <Menu.Item key="vouchers" icon={<GiftOutlined />} onClick={() => navigate('/book-table')}>
                     Đặt bàn
-
                 </Menu.Item>
 
 
