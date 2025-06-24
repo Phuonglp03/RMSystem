@@ -272,6 +272,7 @@ const createReservation = async (req, res) => {
       let user = await User.findOne({ email: email });
       let tempPassword = '';
       let isNewUser = false;
+      let customer;
   
       if (!user) {
         isNewUser = true;
@@ -290,11 +291,18 @@ const createReservation = async (req, res) => {
         await user.save();
   
         // Create customer profile
-        const customer = new Customer({
+        customer = new Customer({
           userId: user._id
         });
   
         await customer.save();
+      } else {
+        // Nếu user đã tồn tại, tìm customer theo userId
+        customer = await Customer.findOne({ userId: user._id });
+        if (!customer) {
+          customer = new Customer({ userId: user._id });
+          await customer.save();
+        }
       }
   
       const reservationCode = crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -302,7 +310,7 @@ const createReservation = async (req, res) => {
       const newReservation = new Reservation({
         reservationCode: reservationCode,
         bookedTable: tables,
-        customerId: user._id,
+        customerId: [customer._id], // Lưu customerId là _id của Customer (dạng mảng nếu model là mảng)
         startTime,
         endTime,
         note: note || '',
