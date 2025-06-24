@@ -27,6 +27,30 @@ const reservationAPI = {
 
   getCustomerReservationByServant: () => {
     return axiosClient.get('/api/reservations/servant/customer')
+  },
+
+  servantCreateReservation: () => {
+    return axiosClient.post('/api/reservations/servant/create')
+  },
+
+  servantUpdateReservation: (resvId, updateData) => {
+    return axiosClient.put(`/api/reservations/servant/update/${resvId}`, updateData);
+  },
+
+  getReservationDetailById: (resvId) => {
+    return axiosClient.get(`/api/reservations/servant/view/${resvId}`);
+  },
+
+  servantDeleteReservation: (resvId) => {
+    return axiosClient.delete(`/api/reservations/servant/delete/${resvId}`);
+  },
+
+  confirmOrRejectReservation: (resvId, action) => {
+    return axiosClient.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
+  },
+
+  confirmCustomerArrival: () => {
+    return axiosClient.post(`/api/reservations/servant/confirm-arrival`)
   }
 };
 
@@ -122,6 +146,55 @@ const reservationService = {
     } catch (error) {
       throw error.response ? error.response.data : new Error('Error fetching customer reservations by servant');
     }
+  },
+
+  servantCreateReservation: async () => {
+    try {
+
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error creating reservation for customer by servant');
+    }
+  },
+
+  servantUpdateReservation: async (resvId, updateData) => {
+    try {
+      const response = await reservationAPI.servantUpdateReservation(resvId, updateData);
+      return response;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error updating reservation by servant');
+    }
+  },
+
+  getReservationDetailById: async (resvId) => {
+    try {
+      const response = await reservationAPI.getReservationDetailById(resvId);
+      console.log('response: ', response)
+      return response;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error fetching reservation detail');
+    }
+  },
+
+  servantDeleteReservation: async (resvId) => {
+    try {
+      const response = await reservationAPI.servantDeleteReservation(resvId);
+      return response;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error deleting reservation by servant');
+    }
+  },
+
+  confirmOrRejectReservation: async (resvId, action) => {
+    try {
+      const response = await reservationAPI.confirmOrRejectReservation(resvId, action);
+      return response;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error confirming or rejecting reservation');
+    }
+  },
+
+  confirmCustomerArrival: () => {
+    return reservationAPI.confirmCustomerArrival();
   }
 };
 

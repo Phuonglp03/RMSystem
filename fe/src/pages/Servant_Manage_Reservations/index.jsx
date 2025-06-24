@@ -23,21 +23,21 @@ const Servant_Manage_Reservation = () => {
             title: 'Xác Nhận/Từ Chối',
             description: 'Xác nhận hoặc từ chối đơn đặt bàn',
             icon: '✅',
-            path: '/confirm-reject-reservation',
+            path: '/servant/confirm-reject-reservation',
             colorClass: 'nav-card-green'
         },
         {
-            title: 'Cập Nhật Trạng Thái',
-            description: 'Cập nhật trạng thái đơn đặt bàn',
+            title: 'Tạo đơn đặt bàn',
+            description: 'Tạo đơn đặt bàn mới cho khách',
             icon: '🔄',
-            path: '/update-status',
+            path: '/servant/reservation-create',
             colorClass: 'nav-card-yellow'
         },
         {
             title: 'Xác Nhận Khách Đến',
             description: 'Xác nhận khách đã đến/chưa đến',
             icon: '👥',
-            path: '/confirm-guest-arrive',
+            path: '/servant/confirm-guest-arrive',
             colorClass: 'nav-card-purple'
         },
         {
@@ -103,7 +103,7 @@ const Servant_Manage_Reservation = () => {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="stats-container">
+                {/* <div className="stats-container">
                     <h2 className="stats-title">
                         Thống Kê Nhanh
                     </h2>
@@ -125,7 +125,7 @@ const Servant_Manage_Reservation = () => {
                             <div className="stat-label">Khách chưa đến</div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     )

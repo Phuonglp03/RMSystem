@@ -11,24 +11,27 @@ const notificationService = require('../services/notificationService.js')
 const getUnAssignedReservations = async (req, res) => {
     try {
         const reservations = await Reservation.find({ servantId: null, status: 'pending' })
-            .populate('bookedTable', 'tableNumber capacity status ')
+            .populate({
+                path: 'bookedTable',
+                select: 'tableNumber capacity status '
+            })
             .populate({
                 path: 'customerId',
                 select: 'fullname email phone dateOfBirth gender'
             })
-
+        console.log('reservations: ', reservations)
         const formattedReservations = reservations.map(reservation => ({
             _id: reservation._id,
             startTime: reservation.startTime,
             endTime: reservation.endTime,
             numberOfPeople: reservation.numberOfPeople,
             note: reservation.note,
-            customer: {
-                fullname: reservation.customerId.fullname,
-                email: reservation.customerId.email,
-                phone: reservation.customerId.phone,
-                dateOfBirth: reservation.customerId.dateOfBirth,
-            },
+            customer: reservation.customerId ? {
+                fullname: reservation?.customerId.fullname,
+                email: reservation?.customerId.email,
+                phone: reservation?.customerId.phone,
+                dateOfBirth: reservation?.customerId.dateOfBirth,
+            } : null,
             table: [{
                 tableNumber: reservation.bookedTable?.tableNumber,
                 capacity: reservation.bookedTable?.capacity,
@@ -121,19 +124,22 @@ const confirmOrRejectReservation = async (req, res) => {
     try {
         const { reservationId } = req.params
         const { action } = req.body; // action: 'confirm' or 'reject'
-        const servantId = req.jwtDecode.id;
-
+        console.log('action: ', action)
+        const servantId = req.jwtDecode.id
+        console.log('servantId: ', servantId)
         const reservation = await Reservation.findById(reservationId);
+        console.log('reservation: ', reservation)
         if (!reservation) {
             return res.status(404).json({ success: false, message: 'Đặt bàn không tồn tại' });
         }
 
-        if (reservation.servantId.toString() !== servantId) {
-            return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
-        }
+        // if (reservation.servantId.toString() !== servantId) {
+        //     return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
+        // }
 
         if (action === 'confirm') {
             reservation.status = 'confirmed';
+            reservation.servantId = servantId
         } else if (action === 'reject') {
             reservation.status = 'cancelled';
         } else {
@@ -155,7 +161,7 @@ const confirmCustomerArrival = async (req, res) => {
         const { reservationCode } = req.body;
         const servantId = req.jwtDecode.id;
 
-        const reservation = await Reservation.findOne({ reservationCode: reservationCode })
+        const reservation = await Reservation.findOne({ reservationCode })
             .populate({
                 path: 'bookedTable',
                 select: 'tableNumber capacity status'
@@ -175,23 +181,24 @@ const confirmCustomerArrival = async (req, res) => {
         reservation.status = 'completed';
         await reservation.save();
 
-        const formattedReservations = reservation.map(resv => ({
-            id: resv._id,
-            start: resv.startTime,
-            end: resv.endTime,
-            numberOfPeople: resv.numberOfPeople,
+        const formattedReservations = {
+            id: reservation._id,
+            start: reservation.startTime,
+            end: reservation.endTime,
+            numberOfPeople: reservation.numberOfPeople,
+            status: reservation.status,
             table: [{
-                number: resv.bookedTable.tableNumber,
-                capacity: resv.bookedTable.capacity,
-                status: resv.bookedTable.status
+                number: reservation.bookedTable.tableNumber,
+                capacity: reservation.bookedTable.capacity,
+                status: reservation.bookedTable.status
             }],
-            customer: {
-                name: resv.customerId.fullname,
-                email: resv.customerId.email,
-                phone: resv.customerId.phone,
-                avatar: resv.customerId.avatar
-            }
-        }))
+            customer: reservation.customerId ? {
+                name: reservation.customerId.fullname,
+                email: reservation.customerId.email,
+                phone: reservation.customerId.phone,
+                avatar: reservation.customerId.avatar
+            } : null,
+        }
 
         res.status(200).json({ success: true, message: 'Xác nhận khách hàng đã đến thành công', reservation: formattedReservations });
     } catch (err) {
@@ -482,6 +489,10 @@ const getReservationDetailById = async (req, res) => {
                 status: reservation.status,
                 bookingTime: reservation.bookingTime,
                 note: reservation.note || null,
+                numberOfPeople: reservation.numberOfPeople,
+                startTime: reservation.startTime,
+                endTime: reservation.endTime,
+                reservationCode: reservation.reservationCode,
                 table: (reservation.bookedTable || []).map(t => ({
                     tableNumber: t?.tableNumber,
                     capacity: t?.capacity,

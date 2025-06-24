@@ -1,0 +1,134 @@
+.resv-his-container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 24px 8px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+.resv-his-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+.resv-his-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.resv-his-tabs button {
+  background: #f5f5f5;
+  border: none;
+  border-radius: 7px 7px 0 0;
+  padding: 8px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #888;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  outline: none;
+}
+.resv-his-tabs button.active {
+  background: #fffbe6;
+  color: #faad14;
+  box-shadow: 0 2px 8px #f5f5f5;
+}
+.resv-his-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.resv-his-card {
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 2px 12px #f5f5f5, 0 1.5px 6px #f5f5f5;
+  padding: 18px 18px 12px 18px;
+  cursor: pointer;
+  border: 1px solid #f0f0f0;
+  transition: box-shadow 0.18s, border 0.18s, background 0.18s;
+  position: relative;
+  min-height: 60px;
+}
+.resv-his-card:hover {
+  box-shadow: 0 4px 24px #ffe58f, 0 1.5px 6px #f5f5f5;
+  border: 1.5px solid #faad14;
+  background: #fffbe6;
+}
+.resv-his-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.resv-his-customer {
+  font-weight: 600;
+  font-size: 1.08rem;
+  color: #222;
+}
+.resv-his-status {
+  font-size: 0.98rem;
+  font-weight: 600;
+  padding: 2px 14px;
+  border-radius: 12px;
+  margin-left: 8px;
+  text-transform: capitalize;
+  display: inline-block;
+}
+.resv-his-info {
+  color: #888;
+  font-size: 0.98rem;
+  display: flex;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+.resv-his-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+.resv-his-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 5px 16px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  outline: none;
+}
+.resv-his-btn.accept { background: #13c2c2; color: #fff; }
+.resv-his-btn.accept:hover { background: #08979c; }
+.resv-his-btn.reject { background: #ff7875; color: #fff; }
+.resv-his-btn.reject:hover { background: #d9363e; }
+.resv-his-btn.detail { background: #faad14; color: #fff; }
+.resv-his-btn.detail:hover { background: #d48806; }
+.resv-his-loading, .resv-his-empty {
+  text-align: center;
+  color: #faad14;
+  font-size: 1.1rem;
+  margin-top: 40px;
+}
+.resv-his-empty { color: #aaa; }
+@media (max-width: 600px) {
+  .resv-his-container {
+    max-width: 100vw;
+    padding: 0 2vw;
+  }
+  .resv-his-title {
+    font-size: 1.1rem;
+  }
+  .resv-his-card {
+    padding: 10px 6vw 8px 6vw;
+    min-height: 48px;
+  }
+  .resv-his-info {
+    font-size: 0.93rem;
+    gap: 8px;
+  }
+  .resv-his-btn {
+    font-size: 0.93rem;
+    padding: 4px 8px;
+  }
+}
