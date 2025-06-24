@@ -10,7 +10,7 @@ const statusMap = {
 };
 
 const Reservation_History = () => {
-  const [activeTab, setActiveTab] = useState('unassigned');
+  const [activeTab, setActiveTab] = useState('assigned');
   const [unassignedReservations, setUnassignedReservations] = useState([]);
   const [assignedReservations, setAssignedReservations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -58,11 +58,11 @@ const Reservation_History = () => {
       onClick={() => handleViewDetail(resv._id || resv.reservationId)}
     >
       <div className="resv-his-card-row">
-        <div className="resv-his-customer">{resv.customer?.fullname || resv.customer?.name}</div>
+        <div className="resv-his-customer">{resv.customer?.fullname || 'Do bạn tạo'}</div>
         {renderStatus(resv.status)}
       </div>
       <div className="resv-his-info">
-        <span>Thời gian: <b>{resv.startTime || resv.bookingTime}</b></span>
+        <span>Thời gian: <b>{new Date(resv.startTime).toLocaleString('vi-VN')}</b></span>
         <span>Số người: <b>{resv.numberOfPeople}</b></span>
       </div>
       <div className="resv-his-actions">

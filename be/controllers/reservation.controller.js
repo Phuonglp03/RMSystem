@@ -169,7 +169,7 @@ const createReservation = async (req, res) => {
       startTime,
       endTime,
       note: note || '',
-      status: 'confirmed',
+      status: 'pending',
       numberOfPeople: guests
     });
 

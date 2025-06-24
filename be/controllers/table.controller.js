@@ -1,4 +1,5 @@
 const Table = require('../models/Table');
+const Reservation = require('../models/Reservation')
 
 // Lấy tất cả các bàn
 const getAllTables = async (req, res) => {
@@ -15,9 +16,9 @@ const getAllTables = async (req, res) => {
         });
     } catch (err) {
         console.error(`getAllTables error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
@@ -42,9 +43,9 @@ const getTableById = async (req, res) => {
         });
     } catch (err) {
         console.error(`getTableById error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
@@ -78,9 +79,9 @@ const createTable = async (req, res) => {
         });
     } catch (err) {
         console.error(`createTable error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
@@ -93,7 +94,7 @@ const updateTable = async (req, res) => {
 
         // Nếu cập nhật số bàn, kiểm tra xem số bàn mới có trùng không
         if (updateData.tableNumber) {
-            const existingTable = await Table.findOne({ 
+            const existingTable = await Table.findOne({
                 tableNumber: updateData.tableNumber,
                 _id: { $ne: id }
             });
@@ -125,9 +126,9 @@ const updateTable = async (req, res) => {
         });
     } catch (err) {
         console.error(`updateTable error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
@@ -161,9 +162,9 @@ const deleteTable = async (req, res) => {
         });
     } catch (err) {
         console.error(`deleteTable error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
@@ -192,9 +193,9 @@ const getTablesByCapacity = async (req, res) => {
         });
     } catch (err) {
         console.error(`getTablesByCapacity error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
@@ -213,14 +214,62 @@ const getActiveTables = async (req, res) => {
         });
     } catch (err) {
         console.error(`getActiveTables error: ${err.message}`);
-        res.status(500).json({ 
-            success: false, 
-            message: `Lỗi máy chủ: ${err.message}` 
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${err.message}`
         });
     }
 };
 
+// Lấy các bạn cón trống dựa vào thời gian đặt bàn để thực hiện thao tác đặt bàn
+const getAvailableTableForCreateReservation = async (req, res) => {
+    try {
+        console.log('req.body: ', req.body)
+        const { startTime, endTime } = req.body
+
+        if (!startTime || !endTime) {
+            return res.status(400).json({ success: false, message: 'Cần truyền đủ startTime và endTime.' });
+        }
+        const tables = await Table.find({})
+        const reservations = await Reservation.find({
+            status: { $in: ['pending', 'confirmed'] },
+            startTime: { $lt: endTime },
+            endTime: { $gt: startTime }
+        })
+
+        // Gom ra ids bàn không còn trống
+        const unavailableTableIds = new Set();
+        reservations.forEach(r => {
+            r.bookedTable?.forEach(tableId => {
+                unavailableTableIds.add(tableId.toString());
+            });
+        });
+        // Kiểm tra trạng thái bàn
+        const results = tables.map(table => {
+            return {
+                id: table._id,
+                tableNumber: table.tableNumber,
+                capacity: table.capacity,
+                status: unavailableTableIds.has(table._id.toString())
+                    ? 'unavailable'
+                    : 'available',
+            };
+        });
+
+        res.json({ success: true, tables: results });
+
+    } catch (error) {
+        console.error(`getAvailableTable error: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${error.message}`
+        });
+    }
+}
+
 module.exports = {
     getAllTables,
-    
+    getTablesByCapacity,
+    getActiveTables,
+    getAvailableTableForCreateReservation
 };

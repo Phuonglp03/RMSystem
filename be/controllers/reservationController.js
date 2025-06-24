@@ -84,7 +84,9 @@ const getCustomerReservationByServantId = async (req, res) => {
                 status: reservation.status,
                 bookingTime: reservation.bookingTime,
                 note: reservation.note || null,
-
+                numberOfPeople: reservation.numberOfPeople,
+                startTime: reservation.startTime,
+                endTime: reservation.endTime,
                 table: (reservation.bookedTable || []).map(t => ({
                     tableNumber: t?.tableNumber,
                     capacity: t?.capacity,
@@ -306,17 +308,38 @@ const getDailyReservationStatistics = async (req, res) => {
     }
 };
 
+const MS_PER_HOUR = 60 * 60 * 1000;
+
 const servantCreateReservation = async (req, res) => {
     try {
 
         const { bookedTableId, startTime, endTime, numberOfPeople, note } = req.body
         const servantId = req.jwtDecode.id
-        console.log('servantId: ', servantId);
 
         const servant = await Servant.findOne({ userId: servantId })
         if (!servant) {
             return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
         }
+
+        //Kiem tra khoang thoi gian
+        const start = new Date(startTime)
+        const end = new Date(endTime)
+        const diff = end.getTime() - start.getTime();
+
+        if (diff < MS_PER_HOUR) {
+            return res.status(400).json({
+                success: false,
+                message: 'Thời gian đặt bàn tối thiểu 1 giờ.'
+            });
+        }
+
+        if (diff > 3 * MS_PER_HOUR) {
+            return res.status(400).json({
+                success: false,
+                message: 'Thời gian đặt bàn tối đa 3 giờ.'
+            });
+        }
+
         const bookedTables = await Table.find({ _id: { $in: bookedTableId } })
         console.log('bookedTables: ', bookedTables)
         if (bookedTables.length !== bookedTableId.length) {
@@ -324,19 +347,12 @@ const servantCreateReservation = async (req, res) => {
         }
 
         for (let table of bookedTables) {
-            if (!table.status) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Bàn ${table.tableNumber} đã được đặt hoặc không còn sẵn có`
-                });
-            }
-
             //Kiem tra lich turng tren ban do
             const conflictingReservation = await Reservation.findOne({
                 bookedTable: table._id,
                 status: { $in: ['pending', 'confirmed'] },
                 //Kiem tra khoang thoi gian
-                $or: [
+                $and: [
                     { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
                 ]
             });
@@ -466,7 +482,7 @@ const getReservationDetailById = async (req, res) => {
 
         const servantId = req.jwtDecode.id;
 
-        const reservation = await Reservation.findOne({ _id: reservationId, servantId: servantId })
+        const reservation = await Reservation.findOne({ _id: reservationId })
             .populate('bookedTable', 'tableNumber capacity status')
             .populate({
                 path: 'customerId',
@@ -480,6 +496,8 @@ const getReservationDetailById = async (req, res) => {
         if (!reservation) {
             return res.status(404).json({ success: false, message: 'Đơn đặt bàn không tồn tại hoặc bạn không có quyền xem' });
         }
+
+        console.log('customerId: ', reservation.customerId)
 
         res.status(200).json({
             success: true,
@@ -498,20 +516,30 @@ const getReservationDetailById = async (req, res) => {
                     capacity: t?.capacity,
                     status: t?.status,
                 })),
-                customer: reservation.customerId
-                    ? {
-                        id: reservation.customerId._id,
-                        name: reservation.customerId.fullname,
-                        email: reservation.customerId.email,
-                        phone: reservation.customerId.phone,
-                        dateOfBirth: reservation.customerId.dateOfBirth,
-                        gender: reservation.customerId.gender,
-                    } : null,
-                servant: {
+                customer: Array.isArray(reservation.customerId)
+                    ? reservation.customerId.map((c) => ({
+                        id: c._id,
+                        name: c.fullname,
+                        email: c.email,
+                        phone: c.phone,
+                        dateOfBirth: c.dateOfBirth,
+                        gender: c.gender,
+                    }))
+                    : reservation.customerId
+                        ? {
+                            id: reservation.customerId._id,
+                            name: reservation.customerId.fullname,
+                            email: reservation.customerId.email,
+                            phone: reservation.customerId.phone,
+                            dateOfBirth: reservation.customerId.dateOfBirth,
+                            gender: reservation.customerId.gender,
+                        }
+                        : null,
+                servant: reservation.servantId ? {
                     id: reservation.servantId._id,
                     name: reservation.servantId.fullname,
                     phone: reservation.servantId.phone,
-                }
+                } : null
             }
         });
     } catch (err) {

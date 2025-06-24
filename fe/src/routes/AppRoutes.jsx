@@ -10,6 +10,13 @@ import BookingTable from '../pages/BookTable';
 import Menu from '../pages/Menu';
 import OrderHistoryByUser from '../pages/BookingFood/OrderHistoryByUser';
 import UserProfile from '../pages/Profile';
+import ServantLayout from '../layouts/ServantLayout'
+import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations'
+import Reservation_Statistics from '../pages/Reservation_Statistics'
+import Reservation_History from '../pages/Reservation_History'
+import Reservation_Notification from '../pages/Reservation_Notification'
+import Reservation_Detail from '../pages/Reservation_Detail'
+import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant'
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -22,9 +29,9 @@ const AppRoutes = () => (
                 <Route path='/test-table-order' element={<TableOrderTest />} />
                 <Route path='/order-history' element={<OrderHistoryByUser />} />
                 <Route path='/profile' element={<UserProfile />} />
-            </Route>   
-        <Route path='/signup' element={<Signup />} />
-        <Route path='/login' element={<Login />} />
+            </Route>
+            <Route path='/signup' element={<Signup />} />
+            <Route path='/login' element={<Login />} />
 
             <Route path='/order-history' element={<OrderHistoryByUser />} />
             <Route path="/servant" element={<ServantLayout />} >

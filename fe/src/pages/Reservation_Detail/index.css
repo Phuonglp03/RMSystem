@@ -1,25 +1,31 @@
 /* =========================== Container =========================== */
 .resv-detail-container {
-  max-width: 480px;
-  margin: 60px auto;
-  padding: 0 10px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 /* =========================== Main Card =========================== */
 .resv-detail-card {
-  background: linear-gradient(135deg, #ffffff, #fafafa);
-  border-radius: 18px;
-  box-shadow: 0px 4px 32px rgba(0, 0, 0, 0.08), 0px 1.5px 6px rgba(0, 0, 0, 0.04);
-  padding: 32px 24px 24px 24px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15), 0 1.5px 6px #f5f5f5;
+  padding: 38px 32px 28px 32px;
   margin: 0 auto;
+  max-width: 520px;
+  width: 100%;
   position: relative;
   transition: transform 0.3s cubic-bezier(.4, 1.4, .6, 1), box-shadow 0.3s;
+  animation: fadeIn 0.7s cubic-bezier(.4, 1.4, .6, 1) 1;
 }
 
 .resv-detail-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0px 8px 40px rgba(0, 0, 0, 0.12), 0px 3px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.18), 0 3px 12px rgba(0, 0, 0, 0.06);
 }
 
 @keyframes fadeIn {
@@ -27,15 +33,10 @@
     opacity: 0;
     transform: translateY(30px);
   }
-
   to {
     opacity: 1;
     transform: none;
   }
-}
-
-.resv-detail-card {
-  animation: fadeIn 0.7s cubic-bezier(.4, 1.4, .6, 1) 1;
 }
 
 /* =========================== Header =========================== */
@@ -43,31 +44,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .resv-detail-title {
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   font-weight: 800;
-  color: #222;
+  color: #4a4a4a;
   letter-spacing: 0.5px;
+  text-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
 }
 
 .resv-detail-status {
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 5px 16px;
-  border-radius: 16px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding: 7px 20px;
+  border-radius: 18px;
   text-transform: capitalize;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   transition: all 0.25s ease;
 }
 
 .resv-detail-status::before {
   content: '●';
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .status-pending {
@@ -99,10 +101,10 @@
 .resv-detail-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  font-size: 1.1rem;
+  gap: 14px;
+  font-size: 1.13rem;
   color: #333;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .resv-detail-section b {
@@ -112,102 +114,104 @@
 
 .resv-detail-input,
 .resv-detail-section select {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 5px 12px;
-  font-size: 1rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 1.08rem;
   margin-left: 8px;
   margin-right: 2px;
   outline: none;
-  background: #fafafa;
-  transition: border 0.25s ease, box-shadow 0.25s ease;
+  background: #f7fafd;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(102, 126, 234, 0.04);
 }
 
 .resv-detail-input:focus,
 .resv-detail-section select:focus {
-  border: 1px solid #1890ff;
+  border: 1.5px solid #667eea;
   background: #fff;
-  box-shadow: 0px 0px 8px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
 }
 
 /* =========================== Buttons =========================== */
 .resv-detail-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: flex-end;
-  margin-top: 12px;
+  margin-top: 18px;
 }
 
 .resv-btn {
   border: none;
-  border-radius: 7px;
-  padding: 8px 18px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 1.13rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.25s, color 0.25s, box-shadow 0.25s, transform 0.1s;
-  box-shadow: 0px 1.5px 6px rgba(0, 0, 0, 0.08);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.12);
   outline: none;
+  letter-spacing: 0.5px;
 }
 
 .resv-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0px 3px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.18);
 }
 
 .resv-btn.accept {
-  background: #13c2c2;
+  background: linear-gradient(145deg, #13c2c2, #52c41a);
   color: #fff;
 }
 
 .resv-btn.accept:hover {
-  background: #08979c;
+  background: linear-gradient(145deg, #52c41a, #13c2c2);
 }
 
 .resv-btn.reject {
-  background: #ff7875;
+  background: linear-gradient(145deg, #ff7875, #ff4d4f);
   color: #fff;
 }
 
 .resv-btn.reject:hover {
-  background: #d9363e;
+  background: linear-gradient(145deg, #d9363e, #ff7875);
 }
 
 .resv-btn.edit {
-  background: #faad14;
+  background: linear-gradient(145deg, #faad14, #ffd666);
   color: #fff;
 }
 
 .resv-btn.edit:hover {
-  background: #d48806;
+  background: linear-gradient(145deg, #ffd666, #faad14);
 }
 
 .resv-btn.save {
-  background: #52c41a;
+  background: linear-gradient(145deg, #52c41a, #13c2c2);
   color: #fff;
 }
 
 .resv-btn.save:hover {
-  background: #389e0d;
+  background: linear-gradient(145deg, #13c2c2, #52c41a);
 }
 
 .resv-btn.cancel {
-  background: #bfbfbf;
+  background: linear-gradient(145deg, #bfbfbf, #8c8c8c);
   color: #fff;
 }
 
 .resv-btn.cancel:hover {
-  background: #8c8c8c;
+  background: linear-gradient(145deg, #8c8c8c, #bfbfbf);
 }
 
 .resv-btn.delete {
-  background: #fff1f0;
+  background: linear-gradient(145deg, #fff1f0, #ffccc7);
   color: #ff4d4f;
-  border: 1px solid #ffccc7;
+  border: 1.5px solid #ffccc7;
 }
 
 .resv-btn.delete:hover {
-  background: #ffccc7;
+  background: linear-gradient(145deg, #ffccc7, #fff1f0);
   color: #a8071a;
 }
 
@@ -238,21 +242,26 @@
     max-width: 100vw;
     padding: 0 3vw;
   }
-
   .resv-detail-card {
     padding: 18px 4vw 14px 4vw;
+    max-width: 99vw;
   }
-
   .resv-detail-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
   }
-
   .resv-detail-section {
     font-size: 1rem;
+    gap: 8px;
   }
-
+  .resv-detail-input,
+  .resv-detail-section select {
+    font-size: 0.97rem;
+    padding: 7px 8px;
+    border-radius: 8px;
+  }
   .resv-btn {
-    font-size: 0.95rem;
-    padding: 7px 12px;
+    font-size: 0.97rem;
+    padding: 9px 0;
+    border-radius: 8px;
   }
 }

@@ -9,11 +9,11 @@ const reservationSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    customerId: {
+    customerId: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: false,
-    },
+    }],
     servantId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
