@@ -48,6 +48,7 @@ const login = async (req, res) => {
             {
                 id: user._id,
                 email: user.email,
+                username: user.username,
                 role: user.role
             },
             process.env.ACCESS_TOKEN_SECRET_SIGNATURE,
@@ -58,6 +59,7 @@ const login = async (req, res) => {
             {
                 id: user._id,
                 email: user.email,
+                username: user.username,
                 role: user.role
             },
             process.env.REFRESH_TOKEN_SECRET_SIGNATURE,
@@ -249,6 +251,7 @@ const refreshToken = async (req, res) => {
             {
                 id: user._id,
                 email: user.email,
+                username: user.username,
                 role: user.role
             },
             process.env.ACCESS_TOKEN_SECRET_SIGNATURE,
@@ -309,6 +312,248 @@ const getProfile = async (req, res) => {
         })
     }
 }
+
+// New API: Get detailed user profile with role-specific data
+const getUserProfile = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.jwtDecode.id;
+        
+        const user = await User.findById(userId).select('-password');
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User không tồn tại'
+            });
+        }
+
+        let roleData = null;
+        if (user.role === 'customer') {
+            roleData = await Customer.findOne({ userId }).populate('coupons');
+        }
+
+        const profileData = {
+            ...user.toObject(),
+            cumulativePoint: roleData?.points || 0,
+            couponId: roleData?.coupons || []
+        };
+
+        res.status(200).json({
+            success: true,
+            message: 'Lấy thông tin profile thành công',
+            data: profileData
+        });
+
+    } catch (err) {
+        console.error('Get user profile error:', err);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi lấy thông tin profile',
+            error: err.message
+        });
+    }
+};
+
+// New API: Update user profile
+const updateUserProfile = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.jwtDecode.id;
+        const { fullname, username, phone, dateOfBirth, gender, avatar } = req.body;
+
+        // Check if user exists
+        const existingUser = await User.findById(userId);
+        if (!existingUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User không tồn tại'
+            });
+        }
+
+        // Check if username is already taken by another user
+        if (username && username !== existingUser.username) {
+            const userWithSameUsername = await User.findOne({ 
+                username: username.toLowerCase(),
+                _id: { $ne: userId }
+            });
+            if (userWithSameUsername) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Username đã tồn tại'
+                });
+            }
+        }
+
+        const updateData = {};
+        if (fullname !== undefined) updateData.fullname = fullname;
+        if (username !== undefined) updateData.username = username.toLowerCase();
+        if (phone !== undefined) updateData.phone = phone;
+        if (dateOfBirth !== undefined) updateData.dateOfBirth = new Date(dateOfBirth);
+        if (gender !== undefined) updateData.gender = gender;
+        if (avatar !== undefined) updateData.avatar = avatar;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        // Get role-specific data
+        let roleData = null;
+        if (updatedUser.role === 'customer') {
+            roleData = await Customer.findOne({ userId: updatedUser._id }).populate('coupons');
+        }
+
+        const profileData = {
+            ...updatedUser.toObject(),
+            cumulativePoint: roleData?.points || 0,
+            couponId: roleData?.coupons || []
+        };
+
+        res.status(200).json({
+            success: true,
+            message: 'Cập nhật profile thành công',
+            data: profileData
+        });
+
+    } catch (err) {
+        console.error('Update user profile error:', err);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi cập nhật profile',
+            error: err.message
+        });
+    }
+};
+
+// New API: Get loyalty information
+const getLoyaltyInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.jwtDecode.id;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User không tồn tại'
+            });
+        }
+
+        if (user.role !== 'customer') {
+            return res.status(403).json({
+                success: false,
+                message: 'Chỉ khách hàng mới có thông tin tích điểm'
+            });
+        }
+
+        const customer = await Customer.findOne({ userId });
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Thông tin khách hàng không tồn tại'
+            });
+        }
+
+        const points = customer.points;
+        
+        // Define membership levels
+        const membershipLevels = [
+            { name: 'Đồng', color: '#CD7F32', minPoints: 0, maxPoints: 499 },
+            { name: 'Bạc', color: '#C0C0C0', minPoints: 500, maxPoints: 1499 },
+            { name: 'Vàng', color: '#FFD700', minPoints: 1500, maxPoints: 2999 },
+            { name: 'Bạch Kim', color: '#e5e4e2', minPoints: 3000, maxPoints: Infinity }
+        ];
+
+        // Determine current membership level
+        const currentLevel = membershipLevels.find(level => 
+            points >= level.minPoints && points <= level.maxPoints
+        );
+
+        // Determine next level
+        const nextLevel = membershipLevels.find(level => 
+            level.minPoints > points
+        );
+
+        let progressPercentage = 100;
+        if (nextLevel) {
+            const currentLevelMin = currentLevel.minPoints;
+            const nextLevelMin = nextLevel.minPoints;
+            const pointsInCurrentLevel = points - currentLevelMin;
+            const totalPointsNeeded = nextLevelMin - currentLevelMin;
+            progressPercentage = Math.round((pointsInCurrentLevel / totalPointsNeeded) * 100);
+        }
+
+        const loyaltyData = {
+            points,
+            membershipLevel: {
+                name: currentLevel.name,
+                color: currentLevel.color
+            },
+            nextLevel: nextLevel ? {
+                name: nextLevel.name,
+                points: nextLevel.minPoints,
+                pointsToNext: nextLevel.minPoints - points
+            } : null,
+            progressPercentage
+        };
+
+        res.status(200).json({
+            success: true,
+            message: 'Lấy thông tin tích điểm thành công',
+            data: loyaltyData
+        });
+
+    } catch (err) {
+        console.error('Get loyalty info error:', err);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi lấy thông tin tích điểm',
+            error: err.message
+        });
+    }
+};
+
+// New API: Get user coupons
+const getUserCoupons = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.jwtDecode.id;
+        
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User không tồn tại'
+            });
+        }
+
+        if (user.role !== 'customer') {
+            return res.status(403).json({
+                success: false,
+                message: 'Chỉ khách hàng mới có mã giảm giá'
+            });
+        }
+
+        const customer = await Customer.findOne({ userId }).populate('coupons');
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Thông tin khách hàng không tồn tại'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Lấy danh sách mã giảm giá thành công',
+            data: customer.coupons || []
+        });
+
+    } catch (err) {
+        console.error('Get user coupons error:', err);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi lấy danh sách mã giảm giá',
+            error: err.message
+        });
+    }
+};
 
 const getAllUsers = async (req, res) => {
     try {
@@ -372,6 +617,10 @@ module.exports = {
     logout,
     refreshToken,
     getProfile,
+    getUserProfile,
+    updateUserProfile,
+    getLoyaltyInfo,
+    getUserCoupons,
     getAllUsers,
     getStaffUsers
 }

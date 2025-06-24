@@ -13,6 +13,7 @@ const Certification = require('./models/Certification');
 const Chef = require('./models/Chef');
 const Combo = require('./models/Combo');
 const ComboItem = require('./models/ComboItem');
+const Coupon = require('./models/Coupon');
 const Customer = require('./models/Customer');
 const Feedback = require('./models/Feedback');
 const Food = require('./models/Food');
@@ -50,7 +51,9 @@ app.use('/api/food-categories', foodCategoryRoutes);
 app.use('/api/combos', comboRoutes);
 app.use('/api/combo-items', comboItemRoutes);
 app.use('/api/table-orders', tableOrderRoutes);
+
 app.use('/api/coupons', couponRoutes);
+
 
 app.use('/api/reservations', require('./routes/reservation.routes'));
 app.use('/api/tables', require('./routes/table.routes'));
