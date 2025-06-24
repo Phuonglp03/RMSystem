@@ -1,4 +1,4 @@
-const StatusCodes = require('http-status-code');
+const StatusCodes = require('http-status-codes');
 const { JWTProvider } = require('./JwtMiddleware');
 
 const authMiddleware = async (req, res, next) => {

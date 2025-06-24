@@ -74,19 +74,14 @@ const Header = () => {
                 </Menu.Item>
 
                 <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/test-table-order')}>
-                    Đặt món ăn 
+                    Đặt món ăn
                 </Menu.Item>
                 <Menu.Item key="vouchers" icon={<GiftOutlined />} onClick={() => navigate('/book-table')}>
-<<<<<<< Updated upstream
-                    Đặt bàn 
-
-=======
                     Đặt bàn
->>>>>>> Stashed changes
                 </Menu.Item>
 
 
-                {/* <Menu.Item key="foodmanager" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="foodmanager" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
                     Quản lý món ăn
                 </Menu.Item>
 
@@ -97,9 +92,9 @@ const Header = () => {
 
                 <Menu.Item key="orderconfirmation" icon={<CheckCircleOutlined />} onClick={() => navigate('/')}>
                     Xác nhận món ăn
-                </Menu.Item> */}
-{/* 
-                <Menu.Item key="4" icon={<SettingOutlined />} onClick={() => navigate('/')}>
+                </Menu.Item>
+
+                <Menu.Item key="4" icon={<SettingOutlined />} onClick={() => navigate('/servant/manage-reservation')}>
                     Quản lý đặt bàn
                 </Menu.Item>
 
@@ -109,21 +104,17 @@ const Header = () => {
 
                 <Menu.Item key="foodlistmanage" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
                     Quản lý món ăn
-<<<<<<< Updated upstream
                 </Menu.Item>
 
                 <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/coupon-exchange')}>
                     Đổi voucher
-
-=======
-                </Menu.Item> */}
->>>>>>> Stashed changes
+                </Menu.Item>
                 <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/profile')}>
                     Tài khoản
 
                 </Menu.Item>
                 <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>
-                    Lịch sử đặt đơn 
+                    Lịch sử đặt đơn
                 </Menu.Item>
 
             </Menu>
@@ -165,5 +156,6 @@ const Header = () => {
         </header>
     );
 };
+
 
 export default Header;
