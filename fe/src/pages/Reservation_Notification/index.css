@@ -32,25 +32,26 @@
 .noti-item {
   display: flex;
   align-items: flex-start;
-  background: linear-gradient(145deg, #4a90e2, #357abd);
+  background: #fff;
   border-radius: 16px;
   padding: 18px 20px;
   cursor: pointer;
-  border: 2px solid transparent;
-  box-shadow: 0 8px 24px rgba(52, 122, 189, 0.10);
-  transition: all 0.2s;
+  border: 1.5px solid #e0e0e0;
+  box-shadow: 0 4px 16px rgba(52, 122, 189, 0.06);
+  transition: background 0.18s, box-shadow 0.18s, color 0.18s;
   position: relative;
   min-height: 70px;
-  color: #fff;
+  color: #222;
 }
 .noti-item.read {
-  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
-  color: #eaeaea;
-  opacity: 0.8;
+  background: #f7f7f7;
+  color: #bfbfbf;
+  opacity: 0.7;
 }
 .noti-item:hover {
-  background: linear-gradient(145deg, #5ba0f2, #4080cd);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  background: #e6f7ff;
+  box-shadow: 0 8px 24px rgba(52, 122, 189, 0.10);
+  color: #222;
 }
 .noti-icon {
   margin-right: 16px;
@@ -83,12 +84,12 @@
 .noti-title-text {
   font-weight: 700;
   font-size: 16px;
-  color: #fff;
+  color: #222;
   margin-left: 2px;
   white-space: pre-line;
 }
 .noti-message {
-  color: #f3f3f3;
+  color: #444;
   font-size: 14px;
   margin-bottom: 2px;
   margin-top: 2px;
@@ -96,7 +97,7 @@
 }
 .noti-time {
   font-size: 12px;
-  color: #e0e0e0;
+  color: #888;
   margin-top: 2px;
 }
 .noti-delete {

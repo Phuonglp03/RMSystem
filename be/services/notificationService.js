@@ -53,7 +53,7 @@ const notificationService = {
                 title: notification.title,
                 message: notification.message,
                 type: type,
-                relatedId: data?.reservationId
+                relatedEntityId: data?.reservationId
             };
         } catch (err) {
             console.error(`Lỗi khi tạo thông báo reservation: ${err.message}`);

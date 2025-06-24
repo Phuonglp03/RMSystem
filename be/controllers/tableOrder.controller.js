@@ -94,60 +94,47 @@ exports.deleteTableOrder = async (req, res) => {
   }
 };
 
-// Lấy reservation theo reservationCode (chuyển từ reservationController sang đây)
-exports.getReservationByCode = async (req, res) => {
-  try {
-    const { code } = req.params;
-    const reservation = await Reservation.findOne({ reservationCode: code }).populate('bookedTable', 'tableNumber capacity status');
-    if (!reservation) {
-      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy reservation với code này' });
-    }
-    res.status(200).json({ status: 'success', data: reservation });
-  } catch (error) {
-    res.status(400).json({ status: 'fail', message: error.message });
-  }
-};
 
-// Lấy danh sách TableOrder theo reservationId
-exports.getTableOrdersByReservationId = async (req, res) => {
-  try {
-    const { reservationId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(reservationId)) {
-      return res.status(400).json({ status: 'fail', message: 'reservationId không hợp lệ' });
-    }
-    const orders = await TableOrder.find({ reservationId })
-      .populate('tableId', 'tableNumber')
-      .populate('reservationId')
-      .populate('foods.foodId', 'name')
-      .populate('combos', 'comboId foodId quantity');
-    res.status(200).json({ status: 'success', data: orders });
-  } catch (error) {
-    res.status(400).json({ status: 'fail', message: error.message });
-  }
-};
+
 
 // Lấy danh sách TableOrder theo userId (truy ngược sang Customer)
 exports.getTableOrdersByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log('userId:', userId);
+    console.log('[DEBUG] userId:', userId);
     const customer = await Customer.findOne({ userId });
-    console.log('customer:', customer);
+    console.log('[DEBUG] customer:', customer);
     if (!customer) {
       return res.status(404).json({ status: 'fail', message: 'Không tìm thấy customer với userId này' });
     }
-    const reservations = await Reservation.find({ customerId: customer._id }).select('_id');
-    console.log('reservations:', reservations);
+    const reservations = await Reservation.find({ customerId: { $in: [customer._id] } }).select('_id customerId');
+    console.log('[DEBUG] reservations:', reservations);
     const reservationIds = reservations.map(r => r._id);
+    console.log('[DEBUG] reservationIds:', reservationIds);
     const orders = await TableOrder.find({ reservationId: { $in: reservationIds } })
       .populate('tableId', 'tableNumber')
       .populate('reservationId')
       .populate('foods.foodId', 'name')
       .populate('combos', 'comboId foodId quantity');
-    console.log('orders:', orders);
-    res.status(200).json({ status: 'success', data: orders });
+    console.log('[DEBUG] orders:', orders);
+
+    // Group orders by reservationId
+    const grouped = {};
+    orders.forEach(order => {
+      const rid = order.reservationId?._id?.toString() || order.reservationId?.toString();
+      if (!grouped[rid]) {
+        grouped[rid] = {
+          reservationId: rid,
+          reservationInfo: order.reservationId,
+          orders: []
+        };
+      }
+      grouped[rid].orders.push(order);
+    });
+    const result = Object.values(grouped);
+    res.status(200).json({ status: 'success', data: result });
   } catch (error) {
-    console.error('Error in getTableOrdersByUserId:', error);
+    console.error('[DEBUG] Error in getTableOrdersByUserId:', error);
     res.status(500).json({ status: 'fail', message: error.message });
   }
 }; 

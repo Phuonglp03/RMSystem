@@ -94,128 +94,136 @@ const getAvailableTables = async (req, res) => {
 
 // Tạo đặt bàn mới
 const createReservation = async (req, res) => {
-  try {
-    const { tables, date, time, name, phone, email, note, guests } = req.body;
-
-    if (!tables || !tables.length || !date || !time || !name || !phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng cung cấp đầy đủ thông tin đặt bàn'
-      });
-    }
-
-    const startTime = new Date(date);
-    const [hours, minutes] = time.split(':');
-    startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-    const endTime = new Date(startTime);
-    endTime.setHours(startTime.getHours() + 2);
-
-    const existingReservations = await Reservation.find({
-      bookedTable: { $in: tables },
-      status: { $ne: 'cancelled' },
-      $or: [
-        { startTime: { $lt: endTime, $gte: startTime } },
-        { endTime: { $gt: startTime, $lte: endTime } },
-        { startTime: { $lte: startTime }, endTime: { $gte: endTime } }
-      ]
-    });
-
-    if (existingReservations.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: 'Một hoặc nhiều bàn đã được đặt trong thời gian này hoặc quá gần với đặt bàn hiện có'
-      });
-    }
-
-    // Lấy thông tin số bàn để gửi email
-    const tableDetails = await Table.find({ _id: { $in: tables } });
-    const tableNumbers = tableDetails.map(table => table.tableNumber).join(', ');
-
-    let user = await User.findOne({ email: email });
-    let tempPassword = '';
-    let isNewUser = false;
-
-    if (!user) {
-      isNewUser = true;
-      tempPassword = Math.random().toString(36).slice(-8);
-
-      // Create new user
-      user = new User({
-        fullname: name,
-        username: email.split('@')[0], // Using email prefix as username
-        email: email,
-        phone: phone,
-        password: tempPassword,
-        role: 'customer'
-      });
-
-      await user.save();
-
-      // Create customer profile
-      const customer = new Customer({
-        userId: user._id
-      });
-
-      await customer.save();
-    }
-
-    const reservationCode = crypto.randomBytes(4).toString('hex').toUpperCase();
-
-    const newReservation = new Reservation({
-      reservationCode: reservationCode,
-      bookedTable: tables,
-      customerId: user._id,
-      startTime,
-      endTime,
-      note: note || '',
-      status: 'pending',
-      numberOfPeople: guests
-    });
-
-    await newReservation.save();
-
-    // Gửi email xác nhận đặt bàn
-    if (email) {
-      // Gửi email chào mừng và thông tin tài khoản nếu là người dùng mới
-      if (isNewUser) {
-        const welcomeEmailData = emailService.createWelcomeEmail(name, email, tempPassword);
-        await emailService.sendEmail(email, welcomeEmailData.subject, welcomeEmailData.html, welcomeEmailData.text);
+    try {
+      const { tables, date, time, name, phone, email, note, guests } = req.body;
+  
+      if (!tables || !tables.length || !date || !time || !name || !phone) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng cung cấp đầy đủ thông tin đặt bàn'
+        });
       }
-
+  
+      const startTime = new Date(date);
+      const [hours, minutes] = time.split(':');
+      startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  
+      const endTime = new Date(startTime);
+      endTime.setHours(startTime.getHours() + 2);
+  
+      const existingReservations = await Reservation.find({
+        bookedTable: { $in: tables },
+        status: { $ne: 'cancelled' },
+        $or: [
+          { startTime: { $lt: endTime, $gte: startTime } },
+          { endTime: { $gt: startTime, $lte: endTime } },
+          { startTime: { $lte: startTime }, endTime: { $gte: endTime } }
+        ]
+      });
+  
+      if (existingReservations.length > 0) {
+        return res.status(409).json({
+          success: false,
+          message: 'Một hoặc nhiều bàn đã được đặt trong thời gian này hoặc quá gần với đặt bàn hiện có'
+        });
+      }
+  
+      // Lấy thông tin số bàn để gửi email
+      const tableDetails = await Table.find({ _id: { $in: tables } });
+      const tableNumbers = tableDetails.map(table => table.tableNumber).join(', ');
+  
+      let user = await User.findOne({ email: email });
+      let tempPassword = '';
+      let isNewUser = false;
+      let customer;
+  
+      if (!user) {
+        isNewUser = true;
+        tempPassword = Math.random().toString(36).slice(-8);
+        
+        // Create new user
+        user = new User({
+          fullname: name,
+          username: email.split('@')[0], // Using email prefix as username
+          email: email,
+          phone: phone,
+          password: tempPassword,
+          role: 'customer'
+        });
+  
+        await user.save();
+  
+        // Create customer profile
+        customer = new Customer({
+          userId: user._id
+        });
+  
+        await customer.save();
+      } else {
+        // Nếu user đã tồn tại, tìm customer theo userId
+        customer = await Customer.findOne({ userId: user._id });
+        if (!customer) {
+          customer = new Customer({ userId: user._id });
+          await customer.save();
+        }
+      }
+  
+      const reservationCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+  
+      const newReservation = new Reservation({
+        reservationCode: reservationCode,
+        bookedTable: tables,
+        customerId: [customer._id], // Lưu customerId là _id của Customer (dạng mảng nếu model là mảng)
+        startTime,
+        endTime,
+        note: note || '',
+        status: 'confirmed',
+        numberOfPeople: guests
+      });
+  
+      await newReservation.save();
+  
       // Gửi email xác nhận đặt bàn
-      const confirmationEmailData = emailService.createReservationConfirmation(
-        name,
-        reservationCode,
-        date,
-        time,
-        tableNumbers,
-        guests
-      );
-      await emailService.sendEmail(email, confirmationEmailData.subject, confirmationEmailData.html, confirmationEmailData.text);
-    }
-
-    return res.status(201).json({
-      success: true,
-      message: 'Đặt bàn thành công',
-      data: {
-        reservationCode: newReservation.reservationCode,
-        startTime: newReservation.startTime,
-        endTime: newReservation.endTime,
-        status: newReservation.status
+      if (email) {
+        // Gửi email chào mừng và thông tin tài khoản nếu là người dùng mới
+        if (isNewUser) {
+          const welcomeEmailData = emailService.createWelcomeEmail(name, email, tempPassword);
+          await emailService.sendEmail(email, welcomeEmailData.subject, welcomeEmailData.html, welcomeEmailData.text);
+        }
+  
+        // Gửi email xác nhận đặt bàn
+        const confirmationEmailData = emailService.createReservationConfirmation(
+          name,
+          reservationCode,
+          date,
+          time,
+          tableNumbers,
+          guests
+        );
+        await emailService.sendEmail(email, confirmationEmailData.subject, confirmationEmailData.html, confirmationEmailData.text);
       }
-    });
-  } catch (error) {
-    console.error('Error creating reservation:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Đã xảy ra lỗi khi tạo đặt bàn',
-      error: error.message
-    });
-  }
-};
-
-// Lấy thông tin đặt bàn
+  
+      return res.status(201).json({
+        success: true,
+        message: 'Đặt bàn thành công',
+        data: {
+          reservationCode: newReservation.reservationCode,
+          startTime: newReservation.startTime,
+          endTime: newReservation.endTime,
+          status: newReservation.status
+        }
+      });
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Đã xảy ra lỗi khi tạo đặt bàn',
+        error: error.message
+      });
+    }
+  };
+  
+  // Lấy thông tin đặt bàn
 const getReservation = async (req, res) => {
   try {
     const { code } = req.params;

@@ -26,7 +26,8 @@ const getNotifications = async (req, res) => {
             message: n.message,
             type: n.type,
             isRead: n.isRead,
-            createdAt: n.createdAt
+            relatedEntityId: n.relatedEntityId,
+            createdAt: n.createdAt,
         }))
 
         res.status(200).json({

@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const couponSchema = new mongoose.Schema(
@@ -91,3 +92,4 @@ couponSchema.virtual('isValid').get(function() {
 const Coupon = mongoose.model('Coupon', couponSchema);
 
 module.exports = Coupon; 
+

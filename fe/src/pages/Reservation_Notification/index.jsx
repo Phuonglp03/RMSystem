@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import notificationService from '../../services/notification.service';
 import { ToastContainer, toast } from 'react-toastify';
 import './index.css';
+import { useNavigate } from 'react-router-dom';
 
 const typeLabel = {
     RESERVATION_CREATED_BY_CUSTOMER: 'Khách đặt bàn',
@@ -26,12 +27,14 @@ const Reservation_Notification = () => {
     const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchNotifications = async () => {
             setLoading(true);
             try {
                 const res = await notificationService.getNotifications();
+                console.log('res: ', res)
                 setNotifications(res.notifications || []);
             } catch (err) {
                 toast.error('Lỗi khi tải thông báo: ' + (err?.message || err));
@@ -65,6 +68,16 @@ const Reservation_Notification = () => {
         }
     };
 
+    // Khi click vào noti, nếu có reservationId thì chuyển hướng, nếu chưa đọc thì đánh dấu đã đọc
+    const handleNotificationClick = async (item) => {
+        if (!item.isRead) {
+            await handleMarkAsRead(item.id, false);
+        }
+        if (item.relatedEntityId) {
+            navigate(`/servant/reservation-detail/${item.relatedEntityId}`);
+        }
+    };
+
     return (
         <div className="noti-container">
             <ToastContainer position="top-right" autoClose={3000} />
@@ -81,7 +94,7 @@ const Reservation_Notification = () => {
                         <div
                             key={item.id}
                             className={`noti-item${item.isRead ? ' read' : ''}`}
-                            onClick={() => handleMarkAsRead(item.id, item.isRead)}
+                            onClick={() => handleNotificationClick(item)}
                         >
                             <div className="noti-icon">
                                 <span role="img" aria-label="bell">🔔</span>
