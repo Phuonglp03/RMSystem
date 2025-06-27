@@ -20,10 +20,10 @@ const Servant_Manage_Reservation = () => {
             colorClass: 'nav-card-orange'
         },
         {
-            title: 'Xác Nhận/Từ Chối',
-            description: 'Xác nhận hoặc từ chối đơn đặt bàn',
+            title: 'Bàn đã nhận',
+            description: 'Xem danh sách bàn đã nhận từ những đơn đặt bàn trước',
             icon: '✅',
-            path: '/servant/confirm-reject-reservation',
+            path: '/servant/assigned-tables',
             colorClass: 'nav-card-green'
         },
         {

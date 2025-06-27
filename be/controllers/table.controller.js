@@ -1,5 +1,6 @@
 const Table = require('../models/Table');
-const Reservation = require('../models/Reservation')
+const Reservation = require('../models/Reservation');
+const Servant = require('../models/Servant');
 
 // Lấy tất cả các bàn
 const getAllTables = async (req, res) => {
@@ -267,9 +268,66 @@ const getAvailableTableForCreateReservation = async (req, res) => {
     }
 }
 
+const getAssignedTableByServant = async (req, res) => {
+    try {
+        const servantId = req.jwtDecode.id
+
+        const servant = await Servant.findOne({ userId: servantId })
+            .populate({
+                path: 'assignedTables.tableId',
+                select: 'tableNumber capacity status'
+            })
+            .populate({
+                path: 'assignedTables.reservationId',
+                select: 'customerId reservationCode startTime endTime status numberOfPeople note paymentStatus',
+                populate: {
+                    path: 'customerId',
+                    select: 'fullname email phone'
+                }
+            })
+        if (!servant) {
+            return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
+        }
+
+        const assignedTableDetails = servant.assignedTables.map(entry => {
+            return {
+                tableNumber: entry.tableId?.tableNumber,
+                tableCapacity: entry.tableId?.capacity,
+                tableStatus: entry.tableId?.status,
+                reservationCode: entry.reservationId?.reservationCode,
+                reservationStatus: entry.reservationId?.status,
+                numberOfPeople: entry.reservationId?.numberOfPeople,
+                reservationNote: entry.reservationId?.note,
+                paymentStatus: entry.reservation?.paymentStatus,
+                customer: entry.reservationId?.customerId ? {
+                    name: entry.reservationId.customerId.fullname,
+                    email: entry.reservationId.customerId.email,
+                    phone: entry.reservationId.customerId.phone,
+                } : null,
+                startTime: entry.reservationId?.startTime,
+                endTime: entry.reservationId?.endTime
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Lấy danh sách bàn được đăng ký thành công',
+            assignedTables: assignedTableDetails
+        });
+
+    } catch (error) {
+        console.error(`getAssignedTableByServant error: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: `Lỗi máy chủ: ${error.message}`
+        });
+    }
+}
+
 module.exports = {
     getAllTables,
     getTablesByCapacity,
     getActiveTables,
-    getAvailableTableForCreateReservation
+    getAvailableTableForCreateReservation,
+    getAssignedTableByServant
 };

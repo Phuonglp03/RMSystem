@@ -10,8 +10,24 @@ const servantSchema = new mongoose.Schema(
     },
     assignedTables: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Table',
+        tableId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Table',
+          required: true,
+        },
+        reservationId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Reservation',
+          required: true,
+        },
+        startTime: {
+          type: Date,
+          required: true,
+        },
+        endTime: {
+          type: Date,
+          required: true,
+        },
       },
     ],
     status: [

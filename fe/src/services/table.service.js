@@ -7,6 +7,10 @@ const tableAPI = {
 
   getAvailableTableForCreateReservation: (data) => {
     return axiosClient.post('/api/tables/available', data)
+  },
+
+  getAssignedTableByServant: () => {
+    return axiosClient.get('/api/tables/servant/assigned')
   }
 };
 
@@ -47,6 +51,17 @@ const tableService = {
     } catch (error) {
       console.error("Error fetching available tables:", error);
       throw error.response ? error.response.data : new Error('Error fetching available tables');
+    }
+  },
+
+  getAssignedTableByServant: async () => {
+    try {
+      const res = tableAPI.getAssignedTableByServant()
+      console.log('getAssignedTable: ', res)
+      return res
+    } catch (error) {
+      console.error("Error fetching assigned tables:", error);
+      throw error.response ? error.response.data : new Error('Error fetching assigned tables');
     }
   }
 };
