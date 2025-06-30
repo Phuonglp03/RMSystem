@@ -142,8 +142,8 @@ exports.deleteFood = async (req, res) => {
 exports.getAllFoods = async (req, res) => {
   try {
     const foods = await Food.find()
-      .populate('categoryId', 'name')
-      .populate('ingredients', 'name');
+      .populate('categoryId', 'title')
+      .populate('ingredients', 'title');
     
     res.status(200).json({
       status: 'success',
@@ -171,7 +171,7 @@ exports.getFoodById = async (req, res) => {
     }
 
     const food = await Food.findById(foodId)
-      .populate('categoryId', 'name')
+      .populate('categoryId', 'title')
       .populate('ingredients', 'name');
 
     if (!food) {
