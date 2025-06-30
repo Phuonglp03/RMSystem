@@ -1,6 +1,14 @@
 import React from 'react'
 import './index.css'
 import { useNavigate } from 'react-router-dom'
+import {
+    ProfileOutlined,
+    BellOutlined,
+    CheckCircleOutlined,
+    PlusCircleOutlined,
+    TeamOutlined,
+    BarChartOutlined
+} from '@ant-design/icons';
 
 const Servant_Manage_Reservation = () => {
     const navigate = useNavigate()
@@ -8,51 +16,48 @@ const Servant_Manage_Reservation = () => {
         {
             title: 'Lịch Sử Đặt Bàn',
             description: 'Xem lịch sử tất cả đơn đặt bàn',
-            icon: '📋',
+            icon: <ProfileOutlined />,
             path: '/servant/reservation-history',
             colorClass: 'nav-card-blue'
         },
         {
             title: 'Thông Báo Đặt Bàn',
             description: 'Xem thông báo đặt bàn mới',
-            icon: '🔔',
+            icon: <BellOutlined />,
             path: '/servant/reservation-notification',
             colorClass: 'nav-card-orange'
         },
         {
             title: 'Bàn đã nhận',
             description: 'Xem danh sách bàn đã nhận từ những đơn đặt bàn trước',
-            icon: '✅',
+            icon: <CheckCircleOutlined />,
             path: '/servant/assigned-tables',
             colorClass: 'nav-card-green'
         },
         {
             title: 'Tạo đơn đặt bàn',
             description: 'Tạo đơn đặt bàn mới cho khách',
-            icon: '🔄',
+            icon: <PlusCircleOutlined />,
             path: '/servant/reservation-create',
             colorClass: 'nav-card-yellow'
         },
         {
             title: 'Xác Nhận Khách Đến',
             description: 'Xác nhận khách đã đến/chưa đến',
-            icon: '👥',
+            icon: <TeamOutlined />,
             path: '/servant/confirm-guest-arrive',
             colorClass: 'nav-card-purple'
         },
         {
             title: 'Thống Kê Cá Nhân',
             description: 'Xem thống kê đơn đặt bàn của từng người',
-            icon: '📊',
+            icon: <BarChartOutlined />,
             path: '/servant/reservation-statistics',
             colorClass: 'nav-card-indigo'
         }
     ]
 
     const handleNavigation = (path) => {
-
-        console.log('Navigating to:', path)
-
         navigate(path)
     }
 
@@ -80,7 +85,7 @@ const Servant_Manage_Reservation = () => {
                             <div className="nav-card-content">
                                 {/* Icon */}
                                 <div className="nav-icon-container">
-                                    <div className="nav-icon">
+                                    <div className="nav-icon" style={{ fontSize: 28 }}>
                                         {item.icon}
                                     </div>
                                 </div>

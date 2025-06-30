@@ -18,6 +18,7 @@ import Reservation_Notification from '../pages/Reservation_Notification'
 import Reservation_Detail from '../pages/Reservation_Detail'
 import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant'
 import Assigned_Table_By_Servant from '../pages/Assigned_Table_By_Servant';
+import Confirm_Customer_Arrived from '../pages/Confirm_Customer_Arrived';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -43,6 +44,7 @@ const AppRoutes = () => (
                 <Route path="reservation-detail/:id" element={<Reservation_Detail />} />
                 <Route path="reservation-create" element={<Reservation_Create_By_Servant />} />
                 <Route path="assigned-tables" element={<Assigned_Table_By_Servant />} />
+                <Route path="confirm-guest-arrive" element={<Confirm_Customer_Arrived />} />
             </Route>
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />

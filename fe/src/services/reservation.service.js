@@ -51,6 +51,14 @@ const reservationAPI = {
 
   confirmCustomerArrival: () => {
     return axiosClient.post(`/api/reservations/servant/confirm-arrival`)
+  },
+
+  getDailyStatistics: (queryParams) => {
+    return axiosClient.get(`/api/reservations/servant/daily-statistics${queryParams}`);
+  },
+
+  confirmCustomerArrival: (reservationCode) => {
+    return axiosClient.post(`/api/reservations/servant/confirm-arrival`, { reservationCode });
   }
 };
 
@@ -195,7 +203,33 @@ const reservationService = {
 
   confirmCustomerArrival: () => {
     return reservationAPI.confirmCustomerArrival();
-  }
+  },
+
+  getDailyStatistics: async ({ period, startDate, endDate }) => {
+    try {
+      let queryParams = '';
+      if (period) {
+        queryParams = `?period=${period}`;
+      } else if (startDate && endDate) {
+        queryParams = `?startDate=${startDate}&endDate=${endDate}`;
+      }
+
+      const response = await reservationAPI.getDailyStatistics(queryParams);
+      return response;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error fetching daily statistics');
+    }
+  },
+
+  confirmCustomerArrival: async (reservationCode) => {
+    try {
+      const response = await reservationAPI.confirmCustomerArrival(reservationCode);
+      return response;
+    } catch (error) {
+      console.error("Error confirming customer arrival:", error);
+      throw error.response ? error.response.data : new Error('Error confirming customer arrival');
+    }
+  },
 };
 
 export default reservationService;

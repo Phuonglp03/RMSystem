@@ -11,12 +11,12 @@ import {
     Tooltip,
     Legend,
 } from 'chart.js';
-// import './index.css';
+import './index.css';
+import reservationService from '../../services/reservation.service';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend);
 
 const { Title } = Typography;
-const { RangePicker } = DatePicker;
 
 const Reservation_Statistics = () => {
     const [mode, setMode] = useState('day'); // 'day' | 'month' | 'year'
@@ -24,46 +24,41 @@ const Reservation_Statistics = () => {
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState(null);
 
-    const fetchStats = async (startDate, endDate) => {
+    const fetchStats = async (selectedDate) => {
         setLoading(true);
         try {
-            // Thay URL này bằng URL thực tế của bạn
-            const token = localStorage.getItem('token');
-            const res = await fetch(`http:localhost:9999/api/reservations/servant/daily-statistics?startDate=${startDate}&endDate=${endDate}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            if (data.success) {
-                setStats(data.statistics);
-            } else {
-                setStats(null);
-                message.error(data.message || 'Lỗi lấy dữ liệu');
+            let params = {};
+            if (mode === 'day') {
+                params.startDate = selectedDate.startOf('day').toISOString();
+                params.endDate = selectedDate.endOf('day').toISOString();
+            } else if (mode === 'month') {
+                params.startDate = selectedDate.startOf('month').toISOString();
+                params.endDate = selectedDate.endOf('month').toISOString();
+            } else if (mode === 'year') {
+                params.startDate = selectedDate.startOf('year').toISOString();
+                params.endDate = selectedDate.endOf('year').toISOString();
             }
+
+            const data = await reservationService.getDailyStatistics(params);
+            setStats(data.statistics);
         } catch (err) {
+            console.error('Error fetching stats:', err);
             setStats(null);
-            message.error('Lỗi kết nối máy chủ');
+            message.error(err.message || 'Lỗi lấy dữ liệu');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleDateChange = (value) => {
         setDate(value);
-        if (!value) return;
-        let start, end;
-        if (mode === 'day') {
-            start = value.startOf('day').toISOString();
-            end = value.endOf('day').toISOString();
-        } else if (mode === 'month') {
-            start = value.startOf('month').toISOString();
-            end = value.endOf('month').toISOString();
-        } else if (mode === 'year') {
-            start = value.startOf('year').toISOString();
-            end = value.endOf('year').toISOString();
+        setStats(null);
+        if (value) {
+            fetchStats(value);
         }
-        fetchStats(start, end);
     };
 
-    // Chuẩn bị dữ liệu cho Bar chart
+    // Bar chart data
     const barData = {
         labels: ['Tổng số đơn', 'Đã nhận', 'Đã hủy', 'Hoàn thành', 'Không đến'],
         datasets: [
@@ -77,11 +72,7 @@ const Reservation_Statistics = () => {
                     stats.noShow,
                 ] : [0, 0, 0, 0, 0],
                 backgroundColor: [
-                    '#1890ff', // Tổng số đơn
-                    '#52c41a', // Đã nhận
-                    '#f5222d', // Đã hủy
-                    '#13c2c2', // Hoàn thành
-                    '#faad14', // Không đến
+                    '#1890ff', '#52c41a', '#f5222d', '#13c2c2', '#faad14'
                 ],
                 borderRadius: 8,
                 maxBarThickness: 48,
@@ -93,7 +84,6 @@ const Reservation_Statistics = () => {
         responsive: true,
         plugins: {
             legend: { display: false },
-            title: { display: false },
             tooltip: { enabled: true },
         },
         scales: {
@@ -111,72 +101,61 @@ const Reservation_Statistics = () => {
     };
 
     return (
-        <div style={{ maxWidth: 600, margin: '40px auto', padding: '32px 8px' }}>
-            <Title level={3} style={{ textAlign: 'center', marginBottom: 24 }}>Báo cáo Đặt Bàn</Title>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20, gap: 12 }}>
-                <Radio.Group value={mode} onChange={e => { setMode(e.target.value); setDate(null); setStats(null); }}>
+        <div className="statistics-container">
+            <Title level={3} className="statistics-title">Báo cáo Đặt Bàn</Title>
+            <div className="statistics-controls">
+                <Radio.Group
+                    value={mode}
+                    onChange={e => {
+                        setMode(e.target.value);
+                        setDate(null);
+                        setStats(null);
+                    }}
+                >
                     <Radio.Button value="day">Theo ngày</Radio.Button>
                     <Radio.Button value="month">Theo tháng</Radio.Button>
                     <Radio.Button value="year">Theo năm</Radio.Button>
                 </Radio.Group>
                 {mode === 'day' && (
-                    <DatePicker
-                        value={date}
-                        onChange={handleDateChange}
-                        allowClear
-                        placeholder="Chọn ngày"
-                        style={{ minWidth: 120 }}
-                    />
+                    <DatePicker value={date} onChange={handleDateChange} allowClear placeholder="Chọn ngày" />
                 )}
                 {mode === 'month' && (
-                    <DatePicker.MonthPicker
-                        value={date}
-                        onChange={handleDateChange}
-                        allowClear
-                        placeholder="Chọn tháng"
-                        style={{ minWidth: 120 }}
-                    />
+                    <DatePicker picker="month" value={date} onChange={handleDateChange} allowClear placeholder="Chọn tháng" />
                 )}
                 {mode === 'year' && (
-                    <DatePicker.YearPicker
-                        value={date}
-                        onChange={handleDateChange}
-                        allowClear
-                        placeholder="Chọn năm"
-                        style={{ minWidth: 120 }}
-                    />
+                    <DatePicker picker="year" value={date} onChange={handleDateChange} allowClear placeholder="Chọn năm" />
                 )}
             </div>
             {stats && (
                 <>
-                    <Row gutter={[16, 16]} justify="center">
-                        <Col xs={24} sm={12} md={8}>
+                    <Row gutter={[16, 16]} justify="center" className="statistics-row">
+                        <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
                                 <Statistic title="Tổng số đơn" value={stats.totalReservations} valueStyle={{ color: '#1890ff' }} />
                             </Card>
                         </Col>
-                        <Col xs={24} sm={12} md={8}>
+                        <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
                                 <Statistic title="Đã nhận" value={stats.confirmed} valueStyle={{ color: '#52c41a' }} />
                             </Card>
                         </Col>
-                        <Col xs={24} sm={12} md={8}>
+                        <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
                                 <Statistic title="Đã hủy" value={stats.cancelled} valueStyle={{ color: '#f5222d' }} />
                             </Card>
                         </Col>
-                        <Col xs={24} sm={12} md={8}>
+                        <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
                                 <Statistic title="Hoàn thành" value={stats.completed} valueStyle={{ color: '#13c2c2' }} />
                             </Card>
                         </Col>
-                        <Col xs={24} sm={12} md={8}>
+                        <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
                                 <Statistic title="Không đến" value={stats.noShow} valueStyle={{ color: '#faad14' }} />
                             </Card>
                         </Col>
                     </Row>
-                    <div style={{ marginTop: 32 }}>
+                    <div className="statistics-chart">
                         <Bar data={barData} options={barOptions} height={300} />
                     </div>
                 </>

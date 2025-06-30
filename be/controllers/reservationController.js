@@ -6,6 +6,7 @@ const Customer = require('../models/Customer')
 const mongoose = require('mongoose')
 const NOTIFICATION_TYPES = require('../constants/notificationTypes.js')
 const notificationService = require('../services/notificationService.js')
+const crypto = require('crypto');
 
 //Lay tat ca danh sach dat ban cua khach hang phia servant
 const getUnAssignedReservations = async (req, res) => {
@@ -210,6 +211,28 @@ const confirmCustomerArrival = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
         }
 
+        //Kiem tra thoi gian thuc te
+        const now = new Date()
+        const startTime = new Date(reservation.startTime)
+        const endTime = new Date(reservation.endTime)
+
+        //Cho phep khach check-in truoc 30p
+        const earliest = new Date(startTime.getTime() - 30 * 60000)
+
+        if (now < earliest) {
+            return res.status(400).json({
+                success: false,
+                message: `Khách đến quá sớm. Có thể xác nhận từ ${earliest.toLocaleTimeString()}`
+            });
+        }
+
+        if (now > endTime) {
+            return res.status(400).json({
+                success: false,
+                message: `Đặt bàn đã quá hạn từ ${endTime.toLocaleTimeString()}`
+            });
+        }
+
         reservation.status = 'completed';
         await reservation.save();
 
@@ -296,10 +319,45 @@ const confirmCustomerNotArrival = async (req, res) => {
 const getDailyReservationStatistics = async (req, res) => {
     try {
         const servantUserId = req.jwtDecode.id;
-        const { startDate, endDate } = req.query;
+        let { startDate, endDate, period } = req.query;
 
-        if (!startDate || !endDate) {
-            return res.status(400).json({ success: false, message: 'Thiếu thông tin cần thiết' });
+        const today = new Date();
+
+        if (period) {
+            switch (period) {
+                case 'today':
+                    startDate = new Date(today.setHours(0, 0, 0, 0));
+                    endDate = new Date(today.setHours(23, 59, 59, 999));
+                    break;
+                case 'week': {
+                    const first = today.getDate() - today.getDay();
+                    startDate = new Date(today.setDate(first));
+                    startDate.setHours(0, 0, 0, 0);
+                    endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                }
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+                    break;
+                case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    endDate = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+                    break;
+                default:
+                    return res.status(400).json({ success: false, message: 'Period không hợp lệ' });
+            }
+        } else if (startDate && endDate) {
+            startDate = new Date(startDate);
+            endDate = new Date(endDate);
+        } else {
+            return res.status(400).json({ success: false, message: 'Thiếu startDate/endDate hoặc period' });
+        }
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return res.status(400).json({ success: false, message: 'Ngày không hợp lệ' });
         }
 
         const servant = await Servant.findOne({ userId: servantUserId });
@@ -307,13 +365,10 @@ const getDailyReservationStatistics = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
         }
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
         const reservations = await Reservation.find({
             servantId: servantUserId,
-            bookingTime: { $gte: start, $lte: end }
-        });
+            bookingTime: { $gte: startDate, $lte: endDate }
+        }, { status: 1 });
 
         const totalReservations = reservations.length;
         const confirmed = reservations.filter(r => r.status === 'confirmed').length;
@@ -325,6 +380,7 @@ const getDailyReservationStatistics = async (req, res) => {
             success: true,
             message: 'Thống kê đặt bàn thành công',
             statistics: {
+                period: period || `${startDate.toISOString()} -> ${endDate.toISOString()}`,
                 totalReservations,
                 confirmed,
                 cancelled,
@@ -332,11 +388,13 @@ const getDailyReservationStatistics = async (req, res) => {
                 noShow
             }
         });
+
     } catch (err) {
         console.error(`getDailyReservationStatistics error: ${err.message}`);
         res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
     }
 };
+
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 
@@ -389,7 +447,7 @@ const servantCreateReservation = async (req, res) => {
 
         const tableIds = bookedTableId.map(t => new mongoose.Types.ObjectId(t))
         const timeStamp = start.getTime().toString()
-        const code = `RESV${timeStamp.slice(-6)}`
+        const code = crypto.randomBytes(4).toString('hex').toUpperCase()
 
         const newReservation = new Reservation({
             bookedTable: tableIds,

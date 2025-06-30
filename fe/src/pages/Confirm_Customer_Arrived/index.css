@@ -1,0 +1,38 @@
+.confirm-container {
+    max-width: 500px;
+    margin: 36px auto;
+    padding: 8px;
+}
+
+.confirm-card {
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+    background: #fff;
+}
+
+.reservation-info {
+    margin-top: 18px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 14px 12px 10px 12px;
+    font-size: 15px;
+}
+
+.table-card {
+    min-width: 110px;
+    border-radius: 7px;
+    background: #fafbfc;
+    border: 1px solid #e0e0e0;
+    box-shadow: none;
+    padding: 10px 8px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    transition: border 0.2s, background 0.2s;
+}
+
+.table-card:hover {
+    background: #e6f7ff;
+    border-color: #91d5ff;
+    cursor: pointer;
+}

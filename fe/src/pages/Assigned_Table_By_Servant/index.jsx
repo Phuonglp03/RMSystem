@@ -2,6 +2,15 @@ import React, { useEffect, useState } from 'react';
 import tableService from '../../services/table.service';
 import './index.css';
 import { ToastContainer, toast } from 'react-toastify';
+import {
+  TableOutlined,
+  UserOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  ClockCircleOutlined,
+  InfoCircleOutlined,
+  CalendarOutlined
+} from '@ant-design/icons';
 
 const Assigned_Table_By_Servant = () => {
     const [assignedTables, setAssignedTables] = useState([]);
@@ -35,7 +44,10 @@ const Assigned_Table_By_Servant = () => {
     return (
         <div className="assigned-container">
             <ToastContainer />
-            <h2 className="assigned-title">🪑 Bàn đã được giao</h2>
+            <h2 className="assigned-title">
+                <TableOutlined style={{ marginRight: 8, color: '#2b4c7e' }} />
+                Bàn được giao
+            </h2>
             {loading ? (
                 <p className="assigned-loading">Đang tải dữ liệu...</p>
             ) : assignedTables.length === 0 ? (
@@ -44,19 +56,48 @@ const Assigned_Table_By_Servant = () => {
                 <div className="assigned-grid">
                     {assignedTables.map((item, idx) => (
                         <div key={idx} className="assigned-card">
-                            <h3 className="assigned-table-number">Bàn #{item.tableNumber}</h3>
-                            <p><strong>Sức chứa:</strong> {item.tableCapacity} người</p>
-                            <p><strong>Trạng thái bàn:</strong> {item.tableStatus}</p>
-                            <p><strong>📝 Mã đơn:</strong> {item.reservationCode || 'N/A'}</p>
-                            <p><strong>⏱ Trạng thái đơn:</strong> {item.reservationStatus}</p>
-                            <p><strong>👥 Số người:</strong> {item.numberOfPeople}</p>
-                            {item.reservationNote && <p><strong>🗒 Ghi chú:</strong> {item.reservationNote}</p>}
-                            <p><strong>📅 Thời gian:</strong><br /> {formatDateTime(item.startTime)} → {formatDateTime(item.endTime)}</p>
+                            <div className="assigned-table-number">
+                                <TableOutlined style={{ marginRight: 6, color: '#0e7ccf' }} />
+                                Bàn #{item.tableNumber}
+                            </div>
+                            <div className="assigned-info-row">
+                                <TeamOutlined style={{ marginRight: 6 }} />
+                                <span>Sức chứa: <b>{item.tableCapacity}</b> người</span>
+                            </div>
+                            <div className="assigned-info-row">
+                                <InfoCircleOutlined style={{ marginRight: 6 }} />
+                                <span>Trạng thái bàn: <b>{item.tableStatus}</b></span>
+                            </div>
+                            <div className="assigned-info-row">
+                                <FileTextOutlined style={{ marginRight: 6 }} />
+                                <span>Mã đơn: <b>{item.reservationCode || 'N/A'}</b></span>
+                            </div>
+                            <div className="assigned-info-row">
+                                <ClockCircleOutlined style={{ marginRight: 6 }} />
+                                <span>Trạng thái đơn: <b>{item.reservationStatus}</b></span>
+                            </div>
+                            <div className="assigned-info-row">
+                                <UserOutlined style={{ marginRight: 6 }} />
+                                <span>Số người: <b>{item.numberOfPeople}</b></span>
+                            </div>
+                            {item.reservationNote && (
+                                <div className="assigned-info-row">
+                                    <InfoCircleOutlined style={{ marginRight: 6 }} />
+                                    <span>Ghi chú: <b>{item.reservationNote}</b></span>
+                                </div>
+                            )}
+                            <div className="assigned-info-row">
+                                <CalendarOutlined style={{ marginRight: 6 }} />
+                                <span>Thời gian:<br />
+                                    <b>{formatDateTime(item.startTime)}</b> → <b>{formatDateTime(item.endTime)}</b>
+                                </span>
+                            </div>
                             <div className="assigned-customer">
-                                <strong>👤 Khách:</strong><br />
+                                <UserOutlined style={{ marginRight: 6 }} />
+                                <span>Khách:</span><br />
                                 {item.customer ? (
                                     <>
-                                        {item.customer.name}<br />
+                                        <b>{item.customer.name}</b><br />
                                         {item.customer.phone}<br />
                                         {item.customer.email}
                                     </>
