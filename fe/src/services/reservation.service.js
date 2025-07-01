@@ -49,10 +49,6 @@ const reservationAPI = {
     return axiosClient.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
   },
 
-  confirmCustomerArrival: () => {
-    return axiosClient.post(`/api/reservations/servant/confirm-arrival`)
-  },
-
   getDailyStatistics: (queryParams) => {
     return axiosClient.get(`/api/reservations/servant/daily-statistics${queryParams}`);
   },
@@ -199,10 +195,6 @@ const reservationService = {
     } catch (error) {
       throw error.response ? error.response.data : new Error('Error confirming or rejecting reservation');
     }
-  },
-
-  confirmCustomerArrival: () => {
-    return reservationAPI.confirmCustomerArrival();
   },
 
   getDailyStatistics: async ({ period, startDate, endDate }) => {

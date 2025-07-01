@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 exports.createTableOrders = async (req, res) => {
   try {
     const { bookingCode, orders } = req.body;
-    // orders: [{ tableId, reservationId, foods, combos, status }]
+    // orders: [{ tableId, foods, combos, status }]
     if (!orders || !Array.isArray(orders) || orders.length === 0) {
       return res.status(400).json({ status: 'fail', message: 'orders phải là mảng và không được rỗng' });
     }
@@ -137,4 +137,169 @@ exports.getTableOrdersByUserId = async (req, res) => {
     console.error('[DEBUG] Error in getTableOrdersByUserId:', error);
     res.status(500).json({ status: 'fail', message: error.message });
   }
-}; 
+};
+
+/* Servant quản lý table order */
+/* Nhận đơn đặt món từ customer, theo đơn đặt bàn do servant quản lý */
+exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
+  try {
+    const servantId = req.jwtDecode.id
+    const { reservationCode } = req.body
+    const reservation = Reservation.findOne({ reservationCode })
+
+    if (!reservation) {
+      return res.status(404).json({
+        success: false,
+        message: `Không tìm thấy đặt bàn với mã ${reservationCode}`
+      })
+    }
+
+    const tableOrder = TableOrder.find({ reservationId: reservation._id })
+      .populate({
+        path: 'foods.foodId',
+        select: 'name price'
+      })
+      .populate({
+        path: 'tableId',
+        select: 'tableNumber capacity'
+      })
+      .populate({
+        path: 'combos',
+        select: 'comboId foodId quantity'
+      });
+
+    return res.json({
+      status: success,
+      message: `Lấy danh sách đặt món theo ${reservationCode} thành công`,
+      tableOrder
+    })
+
+
+  } catch (error) {
+    console.error('[DEBUG] Error in getTableOrderFromCustomerByReservationCode:', error);
+    res.status(500).json({ status: false, message: error.message });
+  }
+}
+
+/* Tạo đơn đặt món cho customer */
+exports.servantCreateTableOrderForCustomer = async (req, res) => {
+  try {
+    const servantId = req.jwtDecode.id
+    const { reservationCode, orders } = req.body
+    // orders: [{ tableId, foods, combos, status }]
+    if (!orders || !Array.isArray(orders) || orders.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: 'orders phải là mảng và không được rỗng'
+      });
+    }
+
+    const reservation = await Reservation.findOne({ reservationCode, servantId });
+    if (!reservation) {
+      return res.status(404).json({
+        status: false,
+        message: `Không tìm thấy đặt bàn với mã ${reservationCode}`
+      });
+    }
+
+    const createdOrders = await TableOrder.insertMany(
+      orders.map(order => ({
+        ...order,
+        reservationId: reservation._id,
+        status: 'preparing'
+      }))
+    );
+    return res.status(201).json({
+      status: true,
+      message: 'Tạo đơn đặt món thành công',
+      createdOrders
+    });
+  } catch (error) {
+    console.error('[DEBUG] Error in servantCreateTableOrderForCustomer:', error);
+    res.status(500).json({ status: false, message: error.message });
+  }
+}
+
+/* Cập nhật đơn đặt món */
+exports.servantUpdateTableOrder = async (req, res) => {
+  try {
+    const servantId = req.jwtDecode.id
+    const { orderId } = req.params
+
+    const tableOrder = await TableOrder.findOne({ _id: orderId }).populate('reservationId')
+    if (!tableOrder) {
+      return res.status(404).json({ status: false, message: 'Không tìm thấy TableOrder' });
+    }
+    if (tableOrder.reservationId.servantId.toString() !== servantId) {
+      return res.status(403).json({ status: false, message: 'Bạn không có quyền sửa đơn này' });
+    }
+    const updateData = { ...req.body };
+    const updatedOrder = await TableOrder.findByIdAndUpdate(orderId, updateData, { new: true, runValidators: true })
+      .populate('foods.foodId', 'name price')
+      .populate('tableId', 'tableNumber capacity')
+      .populate('combos', 'comboId foodId quantity');
+
+    return res.json({
+      status: true,
+      message: 'Cập nhật đơn đặt món thành công',
+      updatedOrder
+    });
+
+  } catch (error) {
+    console.error('[DEBUG] Error in servantUpdateTableOrder:', error);
+    res.status(500).json({ status: false, message: error.message });
+  }
+}
+
+/* Gửi đơn đặt món cho Chef */
+exports.servantSendTableOrderToChef = async (req, res) => {
+  try {
+    const servantId = req.jwtDecode.id
+    const { orderId } = req.params
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+    }
+
+    const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
+    if (!tableOrder) {
+      return res.status(404).json({ status: false, message: 'Không tìm thấy TableOrder' });
+    }
+
+    if (tableOrder.reservationId.servantId.toString() !== servantId) {
+      return res.status(403).json({ status: false, message: 'Bạn không có quyền gửi đơn này' });
+    }
+
+    tableOrder.status = 'preparing'; //Gui toi cho chef
+    await tableOrder.save();
+  } catch (error) {
+    console.error('[DEBUG] Error in servantSendTableOrderToChef:', error);
+    res.status(500).json({ status: false, message: error.message });
+  }
+}
+
+/* Servant xoa don dat mon */
+exports.servantDeleteTableOrder = async (req, res) => {
+  try {
+    const servantId = req.jwtDecode.id
+    const { orderId } = req.params
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+    }
+
+    const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
+    if (!tableOrder) {
+      return res.status(404).json({ status: false, message: 'Không tìm thấy TableOrder' });
+    }
+
+    if (tableOrder.reservationId.servantId.toString() !== servantId) {
+      return res.status(403).json({ status: false, message: 'Bạn không có quyền xóa đơn này' });
+    }
+
+    await TableOrder.findByIdAndDelete(orderId);
+    return res.status(204).json({ status: true, message: 'Xóa đơn đặt món thành công', tableOrder });
+
+  } catch (error) {
+    console.error('[DEBUG] Error in servantDeleteTableOrder:', error);
+    res.status(500).json({ status: false, message: error.message });
+  }
+}

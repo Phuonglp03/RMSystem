@@ -98,7 +98,7 @@ const Header = () => {
                     Quản lý đặt bàn
                 </Menu.Item>
 
-                {/* <Menu.Item key="5" icon={<BarChartOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="5" icon={<BarChartOutlined />} onClick={() => navigate('/')}>
                     Thống kê
                 </Menu.Item>
 
@@ -115,7 +115,7 @@ const Header = () => {
                 </Menu.Item>
                 <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>
                     Lịch sử đặt đơn
-                </Menu.Item> */}
+                </Menu.Item>
 
             </Menu>
 
