@@ -12,7 +12,7 @@ const Blog = require('./models/Blog');
 const Certification = require('./models/Certification');
 const Chef = require('./models/Chef');
 const Combo = require('./models/Combo');
-const ComboItem = require('./models/ComboItem');
+
 const Coupon = require('./models/Coupon');
 const Customer = require('./models/Customer');
 const Feedback = require('./models/Feedback');
@@ -30,7 +30,7 @@ const TableOrder = require('./models/TableOrder');
 const foodRoutes = require('./routes/food.routes');
 const foodCategoryRoutes = require('./routes/foodCategory.routes');
 const comboRoutes = require('./routes/combo.routes');
-const comboItemRoutes = require('./routes/comboItem.routes');
+
 const tableOrderRoutes = require('./routes/tableOrder.routes');
 const couponRoutes = require('./routes/coupon.routes');
 
@@ -56,7 +56,7 @@ app.use(morgan('dev'));
 app.use('/api/foods', foodRoutes);
 app.use('/api/food-categories', foodCategoryRoutes);
 app.use('/api/combos', comboRoutes);
-app.use('/api/combo-items', comboItemRoutes);
+
 app.use('/api/table-orders', tableOrderRoutes);
 
 app.use('/api/coupons', couponRoutes);

@@ -1,0 +1,435 @@
+/* Combo Manage Container */
+.combo-manage-container {
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Page Header Card */
+.page-header-card {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #f0f0f0;
+  padding: 32px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  letter-spacing: 0.5px;
+}
+
+.title-icon {
+  color: #3498db;
+  font-size: 40px;
+  filter: drop-shadow(0 4px 8px rgba(52, 152, 219, 0.3));
+}
+
+.page-subtitle {
+  color: #7f8c8d;
+  margin: 8px 0 0 0;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
+  height: 44px !important;
+  padding: 8px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #f7931e 0%, #e8890b 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.5) !important;
+}
+
+/* Table Card */
+.table-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.combo-table .ant-table {
+  background: white;
+  font-size: 15px;
+}
+
+.combo-table .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 3px solid #e9ecef;
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 20px 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.combo-table .ant-table-tbody > tr:hover > td {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  transform: scale(1.01);
+  transition: all 0.3s ease;
+}
+
+.combo-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+  font-size: 15px;
+}
+
+/* Modal Styles */
+.combo-modal .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 24px 32px;
+}
+
+.combo-modal .ant-modal-body {
+  padding: 32px;
+  background: white;
+}
+
+.detail-modal .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 24px 32px;
+}
+
+.detail-modal .ant-modal-body {
+  padding: 32px;
+  background: white;
+}
+
+.item-modal .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 24px 32px;
+}
+
+.item-modal .ant-modal-body {
+  padding: 32px;
+  background: white;
+}
+
+.modal-title {
+  color: white;
+  font-weight: 700;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Form Styles */
+.combo-form .ant-form-item-label > label {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.combo-form .ant-input,
+.combo-form .ant-input-number,
+.combo-form .ant-select-selector {
+  border-radius: 10px;
+  border: 2px solid #e1e8ed;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  height: 48px;
+  font-size: 15px;
+  padding: 12px 16px;
+}
+
+.combo-form .ant-input:focus,
+.combo-form .ant-input-number:focus,
+.combo-form .ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  transform: translateY(-1px);
+}
+
+.combo-form .ant-form-item {
+  margin-bottom: 28px;
+}
+
+.combo-form .ant-btn {
+  height: 48px;
+  padding: 8px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.combo-form .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.combo-form .ant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.upload-area {
+  padding: 20px;
+  text-align: center;
+  color: #7f8c8d;
+  border: 2px dashed #e1e8ed;
+  border-radius: 8px;
+  background: #fafbfc;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #3498db;
+  background: #f8f9fa;
+}
+
+.items-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.items-section-header label {
+  font-weight: 500;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.form-actions {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+  text-align: right;
+}
+
+/* Detail Modal Styles */
+.combo-detail {
+  background: white;
+}
+
+.combo-detail .ant-descriptions-bordered .ant-descriptions-item-label {
+  background: #fafbfc;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.combo-detail .ant-descriptions-bordered .ant-descriptions-item-content {
+  background: white;
+  color: #495057;
+}
+
+.no-image-placeholder {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.no-image-small {
+  height: 120px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.item-card {
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.item-card .ant-card-body {
+  padding: 12px;
+}
+
+.item-card .ant-card-meta-title {
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.item-card .ant-card-meta-description {
+  color: #7f8c8d;
+  font-size: 12px;
+}
+
+.item-card .ant-card-actions {
+  background: #fafbfc;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .combo-manage-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .combo-table .ant-table-tbody > tr > td {
+    padding: 12px 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .title-icon {
+    font-size: 24px;
+  }
+
+  .combo-form .ant-col {
+    margin-bottom: 8px;
+  }
+}
+
+/* Animation */
+.combo-manage-container {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar */
+.combo-detail::-webkit-scrollbar {
+  width: 6px;
+}
+
+.combo-detail::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 3px;
+}
+
+.combo-detail::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 3px;
+}
+
+.combo-detail::-webkit-scrollbar-thumb:hover {
+  background: #ced4da;
+}
+
+/* Table Action Buttons */
+.combo-table .ant-btn {
+  transition: all 0.3s ease;
+}
+
+.combo-table .ant-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Switch Styles */
+.ant-switch-checked {
+  background-color: #52c41a;
+}
+
+.ant-switch-checked:hover:not(.ant-switch-disabled) {
+  background-color: #73d13d;
+}
+
+/* Tag Styles */
+.ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Pagination */
+.combo-table .ant-pagination {
+  margin: 24px 0 0 0;
+  text-align: center;
+}
+
+.combo-table .ant-pagination-item {
+  border-radius: 6px;
+}
+
+.combo-table .ant-pagination-item-active {
+  background: #ffffff;
+  border-color: #000000;
+}
+
+.combo-table .ant-pagination-item-active a {
+  color: rgb(8, 0, 0);
+}
+
+/* Loading */
+.ant-spin-container {
+  background: white;
+  border-radius: 8px;
+}
+
+/* Empty State */
+.ant-empty {
+  margin: 40px 0;
+}
+
+.ant-empty-description {
+  color: #7f8c8d;
+} 
