@@ -44,12 +44,16 @@ export const foodService = {
   },
 
   // Cập nhật món ăn
-  updateFood: async (id, formData) => {
+  updateFood: async (id, data) => {
     try {
-      const response = await axiosInstance.put(`${API_ENDPOINTS.FOODS}/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      // Tự động phát hiện loại dữ liệu và set header phù hợp
+      const isFormData = data instanceof FormData;
+      const headers = isFormData 
+        ? { 'Content-Type': 'multipart/form-data' }
+        : { 'Content-Type': 'application/json' };
+        
+      const response = await axiosInstance.put(`${API_ENDPOINTS.FOODS}/${id}`, data, {
+        headers,
       });
       return response.data;
     } catch (error) {

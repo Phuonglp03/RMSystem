@@ -27,7 +27,7 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons';
 import foodCategoryService from '../../services/foodCategory.service';
-import './index.css';
+
 
 const { TextArea } = Input;
 const { Title } = Typography;
@@ -158,14 +158,7 @@ const FoodCategoryManage = () => {
       ellipsis: true,
       render: (description) => description || <span style={{ color: '#999' }}>Chưa có mô tả</span>,
     },
-    {
-      title: 'Ngày tạo',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 120,
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-      render: (createdAt) => createdAt ? new Date(createdAt).toLocaleDateString('vi-VN') : '-',
-    },
+    
     {
       title: 'Hành động',
       key: 'actions',
@@ -367,18 +360,7 @@ const FoodCategoryManage = () => {
             <Descriptions.Item label="Mô tả">
               {selectedCategory.description || <span style={{ color: '#999' }}>Chưa có mô tả</span>}
             </Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">
-              {selectedCategory.createdAt 
-                ? new Date(selectedCategory.createdAt).toLocaleString('vi-VN')
-                : 'Không có thông tin'
-              }
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày cập nhật">
-              {selectedCategory.updatedAt 
-                ? new Date(selectedCategory.updatedAt).toLocaleString('vi-VN')
-                : 'Chưa cập nhật'
-              }
-            </Descriptions.Item>
+            
           </Descriptions>
         )}
       </Modal>

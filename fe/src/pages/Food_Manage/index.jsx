@@ -36,7 +36,7 @@ import {
   InfoCircleOutlined
 } from '@ant-design/icons';
 import foodService from '../../services/food.service';
-import './index.css';
+import '../../pages/Food_Manage/index.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -45,6 +45,7 @@ const FoodManage = () => {
   const [foods, setFoods] = useState([]);
   const [foodCategories, setFoodCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editingFood, setEditingFood] = useState(null);
@@ -151,12 +152,29 @@ const FoodManage = () => {
     setSelectedFood(null);
     setFileList([]);
     form.resetFields();
+    setSubmitting(false);
     // Reset modal lock when closing
     modalLockRef.current = false;
   };
 
   const handleSubmit = async (values) => {
+    // Ngăn submit nếu đang xử lý
+    if (submitting) return;
+    
     try {
+      setSubmitting(true);
+      
+      // Kiểm tra trùng tên món ăn
+      const existingFood = foods.find(food => 
+        food.name.toLowerCase() === values.name.toLowerCase() && 
+        food._id !== editingFood?._id
+      );
+      
+      if (existingFood) {
+        message.error(`❌ Tên món ăn "${values.name}" đã tồn tại! Vui lòng chọn tên khác.`);
+        return;
+      }
+      
       const formData = new FormData();
       
       // Thêm các fields cơ bản vào formData
@@ -166,18 +184,30 @@ const FoodManage = () => {
       formData.append('categoryId', values.categoryId || '');
       formData.append('isAvailable', values.isAvailable ?? true);
 
-      // Thêm ảnh mới nếu có
-      const newImages = fileList.filter(file => file.originFileObj);
-      newImages.forEach((file) => {
-        formData.append('images', file.originFileObj);
-      });
-
-      let response;
       if (editingFood) {
-        response = await foodService.updateFood(editingFood._id, formData);
+        // Khi cập nhật: phân biệt ảnh cũ và ảnh mới
+        const oldImages = fileList.filter(file => file.url && !file.originFileObj);
+        const newImages = fileList.filter(file => file.originFileObj);
+        
+        // Gửi danh sách ảnh cũ cần giữ lại
+        const keepOldImages = oldImages.map(file => file.url);
+        formData.append('keepOldImages', JSON.stringify(keepOldImages));
+        
+        // Gửi ảnh mới
+        newImages.forEach((file) => {
+          formData.append('images', file.originFileObj);
+        });
+        
+        const response = await foodService.updateFood(editingFood._id, formData);
         message.success('Cập nhật món ăn thành công!');
       } else {
-        response = await foodService.createFood(formData);
+        // Khi tạo mới: chỉ gửi ảnh mới
+        const newImages = fileList.filter(file => file.originFileObj);
+        newImages.forEach((file) => {
+          formData.append('images', file.originFileObj);
+        });
+        
+        const response = await foodService.createFood(formData);
         message.success('Tạo món ăn thành công!');
       }
 
@@ -189,6 +219,8 @@ const FoodManage = () => {
     } catch (error) {
       console.error('Error submitting form:', error);
       message.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu món ăn');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -205,10 +237,12 @@ const FoodManage = () => {
 
   const handleToggleAvailability = async (foodId, currentStatus) => {
     try {
-      const formData = new FormData();
-      formData.append('isAvailable', !currentStatus);
+      // Chỉ gửi JSON data khi toggle status, không dùng FormData
+      const updateData = {
+        isAvailable: !currentStatus
+      };
       
-      await foodService.updateFood(foodId, formData);
+      const response = await foodService.updateFood(foodId, updateData);
       message.success(`${!currentStatus ? 'Kích hoạt' : 'Vô hiệu hóa'} món ăn thành công!`);
       fetchData();
     } catch (error) {
@@ -225,21 +259,60 @@ const FoodManage = () => {
   };
 
   const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('Chỉ có thể upload file JPG/PNG!');
-      return false;
+    const allowedTypes = [
+      'image/jpeg', 
+      'image/jpg', 
+      'image/png', 
+      'image/gif', 
+      'image/webp'
+    ];
+    const isValidType = allowedTypes.includes(file.type);
+    
+    if (!isValidType) {
+      message.error(`❌ File "${file.name}" không phải là ảnh! Chỉ chấp nhận: JPG, PNG, GIF, WebP`);
+      return false; // Ngăn file được upload
     }
+    
+    // Kiểm tra kích thước file
     const isLt5M = file.size / 1024 / 1024 < 5;
     if (!isLt5M) {
-      message.error('File phải nhỏ hơn 5MB!');
+      message.error(`❌ File "${file.name}" quá lớn! Kích thước phải nhỏ hơn 5MB`);
       return false;
     }
+    
+    // Kiểm tra số lượng file
+    if (fileList.length >= 5) {
+      message.warning('⚠️ Chỉ được tải tối đa 5 ảnh!');
+      return false;
+    }
+    
+    message.success(`✅ File "${file.name}" hợp lệ`);
     return false; // Prevent auto upload
   };
 
   const handleUploadChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList.slice(-5)); // Giới hạn tối đa 5 ảnh
+    // Lọc ra những file hợp lệ
+    const validFiles = newFileList.filter(file => {
+      // Giữ lại file cũ (đã có url)
+      if (file.url) return true;
+      
+      // Kiểm tra file mới
+      if (file.originFileObj) {
+        const allowedTypes = [
+          'image/jpeg', 
+          'image/jpg', 
+          'image/png', 
+          'image/gif', 
+          'image/webp'
+        ];
+        return allowedTypes.includes(file.originFileObj.type) && 
+               file.originFileObj.size / 1024 / 1024 < 5;
+      }
+      
+      return true;
+    });
+    
+    setFileList(validFiles.slice(-5)); // Giới hạn tối đa 5 ảnh
   };
 
   const uploadButton = (
@@ -423,12 +496,13 @@ const FoodManage = () => {
         width={600}
         destroyOnClose
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{ isAvailable: true }}
-        >
+        <Spin spinning={submitting} tip="Đang lưu món ăn...">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+            initialValues={{ isAvailable: true }}
+          >
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -509,22 +583,28 @@ const FoodManage = () => {
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Space>
-              <Button onClick={handleCancel}>
+              <Button onClick={handleCancel} disabled={submitting}>
                 Hủy
               </Button>
               <Button 
                 type="primary" 
                 htmlType="submit"
+                loading={submitting}
+                disabled={submitting}
                 style={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   borderColor: '#667eea'
                 }}
               >
-                {editingFood ? 'Cập nhật' : 'Tạo mới'}
+                {submitting 
+                  ? 'Đang xử lý...' 
+                  : (editingFood ? 'Cập nhật' : 'Tạo mới')
+                }
               </Button>
             </Space>
           </Form.Item>
-        </Form>
+          </Form>
+        </Spin>
       </Modal>
 
       {/* Modal chi tiết món ăn */}

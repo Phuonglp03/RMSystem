@@ -23,11 +23,27 @@ exports.upload = upload;
 
 // Create Combo với Items
 exports.createCombo = async (req, res) => {
+  const startTime = Date.now();
+  console.log(`[${new Date().toISOString()}] 🍱 Creating new combo: ${req.body.name}`);
+  
   const session = await mongoose.startSession();
   session.startTransaction();
   
   try {
     let { name, description, price, isActive, quantity, items } = req.body;
+    
+    // Kiểm tra trùng tên combo
+    const existingCombo = await Combo.findOne({ 
+      name: { $regex: new RegExp(`^${name}$`, 'i') }
+    });
+    
+    if (existingCombo) {
+      console.log(`[${new Date().toISOString()}] ❌ Combo creation failed: Name "${name}" already exists`);
+      return res.status(400).json({
+        status: 'fail',
+        message: `Combo "${name}" đã tồn tại! Vui lòng chọn tên khác.`,
+      });
+    }
     
     if (typeof items === 'string') {
       try {
@@ -98,6 +114,9 @@ exports.createCombo = async (req, res) => {
       .populate('foodId', 'name price images')
       .session(null);
 
+    const endTime = Date.now();
+    console.log(`[${new Date().toISOString()}] ✅ Combo created successfully: ${comboWithItems.name} with ${comboItemsData.length} items (${endTime - startTime}ms)`);
+
     res.status(201).json({ 
       status: 'success', 
       data: {
@@ -107,7 +126,8 @@ exports.createCombo = async (req, res) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    console.error('Error creating combo:', error);
+    const endTime = Date.now();
+    console.error(`[${new Date().toISOString()}] ❌ Combo creation error (${endTime - startTime}ms):`, error.message);
     res.status(400).json({ status: 'fail', message: error.message });
   } finally {
     session.endSession();
@@ -145,6 +165,9 @@ exports.getAllCombos = async (req, res) => {
 
 // Update Combo và Items
 exports.updateCombo = async (req, res) => {
+  const startTime = Date.now();
+  console.log(`[${new Date().toISOString()}] 🔄 Updating combo: ${req.params.id}`);
+  
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -155,6 +178,22 @@ exports.updateCombo = async (req, res) => {
     }
 
     let { name, description, price, isActive, quantity, items } = req.body;
+    
+    // Kiểm tra trùng tên (nếu có thay đổi tên)
+    if (name !== undefined) {
+      const existingCombo = await Combo.findOne({ 
+        name: { $regex: new RegExp(`^${name}$`, 'i') },
+        _id: { $ne: comboId }
+      });
+      
+      if (existingCombo) {
+        console.log(`[${new Date().toISOString()}] ❌ Combo update failed: Name "${name}" already exists`);
+        return res.status(400).json({
+          status: 'fail',
+          message: `Combo "${name}" đã tồn tại! Vui lòng chọn tên khác.`,
+        });
+      }
+    }
     
     // Parse items nếu nó là string (từ FormData)
     if (typeof items === 'string') {
@@ -240,6 +279,9 @@ exports.updateCombo = async (req, res) => {
       .populate('foodId', 'name price images')
       .session(null);
 
+    const endTime = Date.now();
+    console.log(`[${new Date().toISOString()}] ✅ Combo updated successfully: ${updatedCombo.name} with ${comboItemsData.length} items (${endTime - startTime}ms)`);
+
     res.status(200).json({ 
       status: 'success', 
       data: {
@@ -249,7 +291,8 @@ exports.updateCombo = async (req, res) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    console.error('Error updating combo:', error);
+    const endTime = Date.now();
+    console.error(`[${new Date().toISOString()}] ❌ Combo update error (${endTime - startTime}ms):`, error.message);
     res.status(400).json({ status: 'fail', message: error.message });
   } finally {
     session.endSession();
