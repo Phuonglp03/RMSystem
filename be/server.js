@@ -34,6 +34,7 @@ const comboItemRoutes = require('./routes/comboItem.routes');
 const tableOrderRoutes = require('./routes/tableOrder.routes');
 const couponRoutes = require('./routes/coupon.routes');
 
+
 const dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
 
@@ -59,7 +60,6 @@ app.use('/api/combos', comboRoutes);
 app.use('/api/combo-items', comboItemRoutes);
 app.use('/api/table-orders', tableOrderRoutes);
 
-app.use('/api/coupons', couponRoutes);
 
 
 /* servant reservation */
@@ -68,6 +68,8 @@ app.use('/api/reservations', require('./routes/reservation.routes'));
 app.use('/api/tables', require('./routes/table.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/notification', require('./routes/notification.routes'))
+
+
 const PORT = process.env.PORT || 9999;
 
 app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));
