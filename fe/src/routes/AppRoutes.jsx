@@ -18,6 +18,8 @@ import Reservation_Notification from '../pages/Reservation_Notification'
 import Reservation_Detail from '../pages/Reservation_Detail'
 import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant'
 import Assigned_Table_By_Servant from '../pages/Assigned_Table_By_Servant';
+import ChefDashboard from '../pages/Chef/ChefDashboard';
+import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -44,8 +46,19 @@ const AppRoutes = () => (
                 <Route path="reservation-create" element={<Reservation_Create_By_Servant />} />
                 <Route path="assigned-tables" element={<Assigned_Table_By_Servant />} />
             </Route>
+            <Route path="/chef" element={<ChefDashboard />} >
+                {/* <Route path="manage-reservation" element={<Servant_Manage_Reservation />} />
+                <Route path="reservation-statistics" element={<Reservation_Statistics />} />
+                <Route path="reservation-history" element={<Reservation_History />} />
+                <Route path="reservation-notification" element={<Reservation_Notification />} />
+                <Route path="reservation-detail/:id" element={<Reservation_Detail />} />
+                <Route path="reservation-create" element={<Reservation_Create_By_Servant />} />
+                <Route path="assigned-tables" element={<Assigned_Table_By_Servant />} /> */}
+            </Route>
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />
+            <Route path="/inventory" element={<InventoryDashboard />} />
+
 
         </Routes>
     </BrowserRouter>
