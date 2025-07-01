@@ -12,6 +12,8 @@ router.get('/:id', tableOrderController.getTableOrderById);
 router.put('/:id', tableOrderController.updateTableOrder);
 // Xóa TableOrder
 router.delete('/:id', tableOrderController.deleteTableOrder);
+router.get('/reservation/by-code/:code', tableOrderController.getReservationByCode);
+// Lấy TableOrder theo reservationId
 
 // Lấy TableOrder theo userId
 router.get('/user/:userId', tableOrderController.getTableOrdersByUserId);

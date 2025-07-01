@@ -17,6 +17,9 @@ import Reservation_History from '../pages/Reservation_History'
 import Reservation_Notification from '../pages/Reservation_Notification'
 import Reservation_Detail from '../pages/Reservation_Detail'
 import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant'
+import ComboManage from '../pages/Combo_Manage'
+import FoodManage from '../pages/Food_Manage'
+import FoodCategoryManage from '../pages/FoodCategory_Manage'
 import Assigned_Table_By_Servant from '../pages/Assigned_Table_By_Servant';
 import Confirm_Customer_Arrived from '../pages/Confirm_Customer_Arrived';
 
@@ -31,6 +34,9 @@ const AppRoutes = () => (
                 <Route path='/test-table-order' element={<TableOrderTest />} />
                 <Route path='/order-history' element={<OrderHistoryByUser />} />
                 <Route path='/profile' element={<UserProfile />} />
+                <Route path="combo-manage" element={<ComboManage />} />
+                <Route path="food-manage" element={<FoodManage />} />
+                <Route path="food-category-manage" element={<FoodCategoryManage />} />
             </Route>
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />

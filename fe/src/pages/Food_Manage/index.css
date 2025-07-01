@@ -1,0 +1,354 @@
+.food-manage-container {
+  padding: 32px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.food-manage-card {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.food-manage-card .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  padding: 24px 32px;
+}
+
+.food-manage-card .ant-card-head-title {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.food-manage-card .ant-card-extra {
+  color: white;
+}
+
+.food-manage-card .ant-card-extra .ant-btn {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+  height: 40px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.food-manage-card .ant-card-extra .ant-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+/* Table styling */
+.ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  border-bottom: 2px solid #e8e8e8;
+  padding: 16px 20px;
+  font-size: 15px;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background-color: #f0f9ff;
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+}
+
+.ant-table-tbody > tr > td {
+  vertical-align: middle;
+  padding: 16px 20px;
+  font-size: 14px;
+}
+
+/* Image container styling */
+.food-image-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.food-image-placeholder {
+  background: linear-gradient(45deg, #f0f0f0, #e8e8e8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px dashed #d9d9d9;
+}
+
+/* Price styling */
+.food-price {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* Status switch styling */
+.ant-switch-checked {
+  background-color: #52c41a;
+}
+
+.ant-switch-checked .ant-switch-inner {
+  color: white;
+}
+
+/* Modal styling */
+.food-manage-modal .ant-modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: none;
+  padding: 24px 32px;
+}
+
+.food-manage-modal .ant-modal-title {
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.food-manage-modal .ant-modal-close {
+  color: white;
+  font-size: 18px;
+  width: 40px;
+  height: 40px;
+}
+
+.food-manage-modal .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.food-manage-modal .ant-modal-body {
+  padding: 32px;
+}
+
+/* Form styling */
+.food-form .ant-form-item-label > label {
+  font-weight: 600;
+  color: #262626;
+  font-size: 15px;
+}
+
+.food-form .ant-input,
+.food-form .ant-select-selector,
+.food-form .ant-input-number {
+  height: 44px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 2px solid #e1e5e9;
+  padding: 8px 16px;
+}
+
+.food-form .ant-input:focus,
+.food-form .ant-input-focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  transform: translateY(-1px);
+}
+
+.food-form .ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+.food-form .ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.food-form .ant-input-number:focus,
+.food-form .ant-input-number-focused {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.food-form .ant-form-item {
+  margin-bottom: 24px;
+}
+
+.food-form .ant-btn {
+  height: 44px;
+  padding: 8px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.food-form .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.food-form .ant-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* Upload area styling */
+.ant-upload.ant-upload-select-picture-card {
+  background-color: #fafafa;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ant-upload.ant-upload-select-picture-card:hover {
+  border-color: #667eea;
+  background-color: #f0f9ff;
+}
+
+.ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Detail modal styling */
+.food-detail-modal .ant-descriptions-item-label {
+  font-weight: 600;
+  background-color: #fafafa;
+}
+
+.food-detail-modal .ant-descriptions-item-content {
+  background-color: white;
+}
+
+.food-images-gallery {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.food-images-gallery .ant-image {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.food-images-gallery .ant-image:hover {
+  transform: scale(1.05);
+}
+
+/* Action buttons styling */
+.action-buttons .ant-btn-link {
+  padding: 4px 8px;
+  height: auto;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.action-buttons .ant-btn-link:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.action-buttons .ant-btn-link.ant-btn-dangerous:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .food-manage-container {
+    padding: 16px;
+  }
+  
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 8px;
+  }
+  
+  .food-form .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .food-manage-card .ant-card-head-title {
+    font-size: 16px;
+  }
+  
+  .food-manage-card .ant-card-extra .ant-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .ant-table-container {
+    overflow-x: auto;
+  }
+  
+  .food-images-gallery {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Pagination styling */
+.ant-pagination-item-active {
+  background: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+.ant-pagination-item-active a {
+  color: rgb(8, 0, 0) !important;
+}
+
+/* Loading shimmer effect */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Status styling */
+.status-success {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.status-error {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+/* Image count badge */
+.image-count-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Tooltip styling */
+
+
+.ant-tooltip-arrow::before {
+  background-color: #262626;
+} 

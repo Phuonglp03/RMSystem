@@ -45,7 +45,12 @@ const tableOrderSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
     },
-
+    totalprice: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
   },
   {
     timestamps: true,

@@ -24,7 +24,10 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log('Response:', response.status, response.data);
+    // Only log in development mode and for specific debugging
+    if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_DEBUG_API === 'true') {
+      console.log('Response:', response.status, response.data);
+    }
     return response.data;
   },
   async (error) => {

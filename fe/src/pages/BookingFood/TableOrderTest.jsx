@@ -367,7 +367,7 @@ const TableOrderTest = () => {
                                     <Text strong style={{color: '#10b981' }}>Lần đặt #{orderIndex + 1}</Text>
                                     <Tag color={order.status === 'pending' ? 'orange' : 'green'}>{order.status}</Tag>
                                   </div>
-                                  <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: "'✓ '" }}>
+                                  <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: '"✓ "' }}>
                                     {order.items.map((item, itemIndex) => (
                                       <li key={itemIndex} style={{ marginBottom: '4px' }}>
                                         <Text style={{ color: '#555' }}>
@@ -376,6 +376,13 @@ const TableOrderTest = () => {
                                       </li>
                                     ))}
                                   </ul>
+                                  {order.totalprice !== undefined && (
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+                                      <Text strong style={{ color: '#ff4d4f', fontSize: 15 }}>
+                                        Tổng tiền: {order.totalprice.toLocaleString('vi-VN')}đ
+                                      </Text>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
