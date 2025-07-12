@@ -35,8 +35,8 @@ import {
   DollarOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
-import foodService from '../../services/food.service';
-import '../../pages/Food_Manage/index.css';
+import foodService from '../../../services/food.service';
+import './index.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
