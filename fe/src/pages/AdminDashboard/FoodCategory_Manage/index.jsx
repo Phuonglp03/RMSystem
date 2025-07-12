@@ -26,7 +26,7 @@ import {
   TagsOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
-import foodCategoryService from '../../services/foodCategory.service';
+import foodCategoryService from '../../../services/foodCategory.service';
 
 
 const { TextArea } = Input;
