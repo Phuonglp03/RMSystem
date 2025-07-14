@@ -9,7 +9,12 @@ const {
     deactivateStaffAccount,
     activateStaffAccount,
     resetStaffPassword,
-    getStaffById
+    getStaffById,
+    getDashboardStats,
+    getRevenueStats,
+    getReservationStats,
+    getStaffStats,
+    getCustomerStats
 } = require('../controllers/admin.controller')
 
 // Apply auth middleware và admin role check cho tất cả routes
@@ -37,5 +42,25 @@ router.patch('/staff/:userId/activate', activateStaffAccount)
 
 // PATCH /api/admin/staff/:userId/reset-password - Reset password cho staff
 router.patch('/staff/:userId/reset-password', resetStaffPassword)
+
+// Statistics routes
+// GET /api/admin/stats/dashboard - Thống kê tổng quan dashboard
+router.get('/stats/dashboard', getDashboardStats)
+
+// GET /api/admin/stats/revenue - Thống kê doanh thu
+// Query params: ?period=week|month|year&startDate=2024-01-01&endDate=2024-12-31
+router.get('/stats/revenue', getRevenueStats)
+
+// GET /api/admin/stats/reservations - Thống kê đặt bàn
+// Query params: ?period=week|month|year&startDate=2024-01-01&endDate=2024-12-31
+router.get('/stats/reservations', getReservationStats)
+
+// GET /api/admin/stats/staff - Thống kê hiệu suất nhân viên
+// Query params: ?period=week|month|year&startDate=2024-01-01&endDate=2024-12-31
+router.get('/stats/staff', getStaffStats)
+
+// GET /api/admin/stats/customers - Thống kê khách hàng
+// Query params: ?period=week|month|year&startDate=2024-01-01&endDate=2024-12-31
+router.get('/stats/customers', getCustomerStats)
 
 module.exports = router 

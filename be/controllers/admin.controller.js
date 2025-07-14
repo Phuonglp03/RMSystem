@@ -4,6 +4,12 @@ const Customer = require('../models/Customer')
 const Admin = require('../models/Admin')
 const Chef = require('../models/Chef')
 const Servant = require('../models/Servant')
+const Reservation = require('../models/Reservation');
+const TableOrder = require('../models/TableOrder');
+const Table = require('../models/Table');
+const Food = require('../models/Food');
+const Combo = require('../models/Combo');
+const mongoose = require('mongoose');
 
 // Admin tạo tài khoản cho staff (servant, chef) và admin khác
 const createStaffAccount = async (req, res) => {
@@ -425,6 +431,588 @@ const resetStaffPassword = async (req, res) => {
     }
 }
 
+// Admin Statistics - Dashboard Overview
+const getDashboardStats = async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOfYear = new Date(today.getFullYear(), 0, 1);
+
+    // Basic counts
+    const totalUsers = await User.countDocuments();
+    const totalCustomers = await Customer.countDocuments();
+    const totalServants = await Servant.countDocuments();
+    const totalTables = await Table.countDocuments();
+    const totalFoods = await Food.countDocuments();
+    const totalCombos = await Combo.countDocuments();
+
+    // Reservation stats
+    const totalReservations = await Reservation.countDocuments();
+    const todayReservations = await Reservation.countDocuments({
+      startTime: { $gte: startOfToday }
+    });
+    const monthReservations = await Reservation.countDocuments({
+      startTime: { $gte: startOfMonth }
+    });
+
+    // Revenue calculation from TableOrders
+    const totalRevenue = await TableOrder.aggregate([
+      { $group: { _id: null, total: { $sum: "$totalprice" } } }
+    ]);
+
+    const todayRevenue = await TableOrder.aggregate([
+      { $match: { createdAt: { $gte: startOfToday } } },
+      { $group: { _id: null, total: { $sum: "$totalprice" } } }
+    ]);
+
+    const monthRevenue = await TableOrder.aggregate([
+      { $match: { createdAt: { $gte: startOfMonth } } },
+      { $group: { _id: null, total: { $sum: "$totalprice" } } }
+    ]);
+
+    // Status breakdown
+    const reservationsByStatus = await Reservation.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    const tableOrdersByStatus = await TableOrder.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        overview: {
+          totalUsers,
+          totalCustomers,
+          totalServants,
+          totalTables,
+          totalFoods,
+          totalCombos,
+          totalReservations,
+          todayReservations,
+          monthReservations
+        },
+        revenue: {
+          total: totalRevenue[0]?.total || 0,
+          today: todayRevenue[0]?.total || 0,
+          month: monthRevenue[0]?.total || 0
+        },
+        breakdowns: {
+          reservationsByStatus,
+          tableOrdersByStatus
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy thống kê dashboard',
+      error: error.message
+    });
+  }
+};
+
+// Revenue Statistics with time periods
+const getRevenueStats = async (req, res) => {
+  try {
+    const { period = 'month', startDate, endDate } = req.query;
+    let groupBy, dateRange;
+
+    const now = new Date();
+    
+    // Set date range based on period
+    if (startDate && endDate) {
+      dateRange = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    } else {
+      switch (period) {
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          dateRange = { $gte: weekAgo };
+          groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+          break;
+        case 'month':
+          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          dateRange = { $gte: monthAgo };
+          groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+          break;
+        case 'year':
+          const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+          dateRange = { $gte: yearAgo };
+          groupBy = { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+          break;
+        default:
+          const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          dateRange = { $gte: defaultStart };
+          groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+      }
+    }
+
+    // Revenue by time period
+    const revenueByPeriod = await TableOrder.aggregate([
+      { $match: { createdAt: dateRange } },
+      {
+        $group: {
+          _id: groupBy,
+          totalRevenue: { $sum: "$totalprice" },
+          orderCount: { $sum: 1 },
+          averageOrderValue: { $avg: "$totalprice" }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Top performing tables
+    const topTables = await TableOrder.aggregate([
+      { $match: { createdAt: dateRange } },
+      {
+        $lookup: {
+          from: 'tables',
+          localField: 'tableId',
+          foreignField: '_id',
+          as: 'table'
+        }
+      },
+      { $unwind: '$table' },
+      {
+        $group: {
+          _id: '$tableId',
+          tableNumber: { $first: '$table.tableNumber' },
+          totalRevenue: { $sum: '$totalprice' },
+          orderCount: { $sum: 1 }
+        }
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Top performing foods
+    const topFoods = await TableOrder.aggregate([
+      { $match: { createdAt: dateRange } },
+      { $unwind: '$foods' },
+      {
+        $lookup: {
+          from: 'foods',
+          localField: 'foods.foodId',
+          foreignField: '_id',
+          as: 'foodDetail'
+        }
+      },
+      { $unwind: '$foodDetail' },
+      {
+        $group: {
+          _id: '$foods.foodId',
+          name: { $first: '$foodDetail.name' },
+          totalQuantity: { $sum: '$foods.quantity' },
+          totalRevenue: { $sum: { $multiply: ['$foodDetail.price', '$foods.quantity'] } }
+        }
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        period,
+        dateRange: {
+          start: dateRange.$gte || startDate,
+          end: dateRange.$lte || endDate || now
+        },
+        revenueByPeriod,
+        topTables,
+        topFoods
+      }
+    });
+  } catch (error) {
+    console.error('Revenue stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy thống kê doanh thu',
+      error: error.message
+    });
+  }
+};
+
+// Reservation Statistics
+const getReservationStats = async (req, res) => {
+  try {
+    const { period = 'month', startDate, endDate } = req.query;
+    let dateRange, groupBy;
+
+    const now = new Date();
+    
+    if (startDate && endDate) {
+      dateRange = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    } else {
+      switch (period) {
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          dateRange = { $gte: weekAgo };
+          break;
+        case 'month':
+          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          dateRange = { $gte: monthAgo };
+          break;
+        case 'year':
+          const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+          dateRange = { $gte: yearAgo };
+          break;
+        default:
+          const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          dateRange = { $gte: defaultStart };
+      }
+    }
+
+    // Reservations by date
+    const reservationsByDate = await Reservation.aggregate([
+      { $match: { startTime: dateRange } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$startTime" } },
+          count: { $sum: 1 },
+          confirmedCount: { $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] } },
+          cancelledCount: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } },
+          completedCount: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Reservations by status
+    const reservationsByStatus = await Reservation.aggregate([
+      { $match: { startTime: dateRange } },
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    // Reservations by time slot (hour of day)
+    const reservationsByTimeSlot = await Reservation.aggregate([
+      { $match: { startTime: dateRange } },
+      {
+        $group: {
+          _id: { $hour: "$startTime" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Most booked tables
+    const mostBookedTables = await Reservation.aggregate([
+      { $match: { startTime: dateRange } },
+      { $unwind: '$bookedTable' },
+      {
+        $lookup: {
+          from: 'tables',
+          localField: 'bookedTable',
+          foreignField: '_id',
+          as: 'table'
+        }
+      },
+      { $unwind: '$table' },
+      {
+        $group: {
+          _id: '$bookedTable',
+          tableNumber: { $first: '$table.tableNumber' },
+          capacity: { $first: '$table.capacity' },
+          bookingCount: { $sum: 1 }
+        }
+      },
+      { $sort: { bookingCount: -1 } },
+      { $limit: 10 }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        period,
+        reservationsByDate,
+        reservationsByStatus,
+        reservationsByTimeSlot,
+        mostBookedTables
+      }
+    });
+  } catch (error) {
+    console.error('Reservation stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy thống kê đặt bàn',
+      error: error.message
+    });
+  }
+};
+
+// Staff Performance Statistics
+const getStaffStats = async (req, res) => {
+  try {
+    const { period = 'month', startDate, endDate } = req.query;
+    let dateRange;
+
+    const now = new Date();
+    
+    if (startDate && endDate) {
+      dateRange = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    } else {
+      switch (period) {
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          dateRange = { $gte: weekAgo };
+          break;
+        case 'month':
+          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          dateRange = { $gte: monthAgo };
+          break;
+        case 'year':
+          const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+          dateRange = { $gte: yearAgo };
+          break;
+        default:
+          const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          dateRange = { $gte: defaultStart };
+      }
+    }
+
+    // Staff performance based on reservations served
+    const staffPerformance = await Reservation.aggregate([
+      { 
+        $match: { 
+          startTime: dateRange,
+          servantId: { $ne: null }
+        } 
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'servantId',
+          foreignField: '_id',
+          as: 'servant'
+        }
+      },
+      { $unwind: '$servant' },
+      {
+        $group: {
+          _id: '$servantId',
+          servantName: { $first: '$servant.fullname' },
+          servantEmail: { $first: '$servant.email' },
+          totalReservations: { $sum: 1 },
+          confirmedReservations: { $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] } },
+          completedReservations: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
+          cancelledReservations: { $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] } }
+        }
+      },
+      {
+        $addFields: {
+          completionRate: {
+            $cond: [
+              { $eq: ["$totalReservations", 0] },
+              0,
+              { $multiply: [{ $divide: ["$completedReservations", "$totalReservations"] }, 100] }
+            ]
+          }
+        }
+      },
+      { $sort: { totalReservations: -1 } }
+    ]);
+
+    // Calculate revenue per staff member based on their served reservations
+    const staffRevenue = await Reservation.aggregate([
+      { 
+        $match: { 
+          startTime: dateRange,
+          servantId: { $ne: null }
+        } 
+      },
+      {
+        $lookup: {
+          from: 'tableorders',
+          localField: '_id',
+          foreignField: 'reservationId',
+          as: 'orders'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'servantId',
+          foreignField: '_id',
+          as: 'servant'
+        }
+      },
+      { $unwind: '$servant' },
+      {
+        $group: {
+          _id: '$servantId',
+          servantName: { $first: '$servant.fullname' },
+          totalRevenue: { $sum: { $sum: '$orders.totalprice' } },
+          reservationCount: { $sum: 1 }
+        }
+      },
+      {
+        $addFields: {
+          averageRevenuePerReservation: {
+            $cond: [
+              { $eq: ["$reservationCount", 0] },
+              0,
+              { $divide: ["$totalRevenue", "$reservationCount"] }
+            ]
+          }
+        }
+      },
+      { $sort: { totalRevenue: -1 } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        period,
+        staffPerformance,
+        staffRevenue
+      }
+    });
+  } catch (error) {
+    console.error('Staff stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy thống kê nhân viên',
+      error: error.message
+    });
+  }
+};
+
+// Customer Analytics
+const getCustomerStats = async (req, res) => {
+  try {
+    const { period = 'month', startDate, endDate } = req.query;
+    let dateRange;
+
+    const now = new Date();
+    
+    if (startDate && endDate) {
+      dateRange = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    } else {
+      switch (period) {
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          dateRange = { $gte: weekAgo };
+          break;
+        case 'month':
+          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          dateRange = { $gte: monthAgo };
+          break;
+        case 'year':
+          const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+          dateRange = { $gte: yearAgo };
+          break;
+        default:
+          const defaultStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          dateRange = { $gte: defaultStart };
+      }
+    }
+
+    // Top customers by revenue
+    const topCustomers = await Reservation.aggregate([
+      { $match: { startTime: dateRange } },
+      { $unwind: '$customerId' },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'customerId',
+          foreignField: '_id',
+          as: 'customer'
+        }
+      },
+      { $unwind: '$customer' },
+      {
+        $lookup: {
+          from: 'tableorders',
+          localField: '_id',
+          foreignField: 'reservationId',
+          as: 'orders'
+        }
+      },
+      {
+        $group: {
+          _id: '$customerId',
+          customerName: { $first: '$customer.fullname' },
+          customerEmail: { $first: '$customer.email' },
+          customerPhone: { $first: '$customer.phone' },
+          totalReservations: { $sum: 1 },
+          totalRevenue: { $sum: { $sum: '$orders.totalprice' } }
+        }
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 20 }
+    ]);
+
+    // New customers by period
+    const newCustomers = await User.aggregate([
+      { 
+        $match: { 
+          role: 'customer',
+          createdAt: dateRange
+        } 
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Customer retention (customers who made multiple reservations)
+    const customerRetention = await Reservation.aggregate([
+      { $match: { startTime: dateRange } },
+      { $unwind: '$customerId' },
+      {
+        $group: {
+          _id: '$customerId',
+          reservationCount: { $sum: 1 }
+        }
+      },
+      {
+        $group: {
+          _id: '$reservationCount',
+          customerCount: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        period,
+        topCustomers,
+        newCustomers,
+        customerRetention
+      }
+    });
+  } catch (error) {
+    console.error('Customer stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy thống kê khách hàng',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
     createStaffAccount,
     getAllStaff,
@@ -432,5 +1020,10 @@ module.exports = {
     deactivateStaffAccount,
     activateStaffAccount,
     getStaffById,
-    resetStaffPassword
+    resetStaffPassword,
+    getDashboardStats,
+    getRevenueStats,
+    getReservationStats,
+    getStaffStats,
+    getCustomerStats
 } 

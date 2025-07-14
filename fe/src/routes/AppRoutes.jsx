@@ -21,7 +21,7 @@ import Reservation_Detail from '../pages/Reservation_Detail';
 import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant';
 
 // Admin Dashboard Components
-import AdminDashboard from '../pages/AdminDashboard';
+import AdminStatistics from '../pages/AdminDashboard/Statistics';
 import UserManagement from '../pages/AdminDashboard/UserManagement';
 import ComboManage from '../pages/AdminDashboard/Combo_Manage';
 import FoodManage from '../pages/AdminDashboard/Food_Manage';
@@ -57,7 +57,8 @@ const AppRoutes = () => (
                     <AdminLayout />
                 </AdminProtectedRoute>
             }>
-                <Route index element={<AdminDashboard />} />
+                <Route index element={<AdminStatistics />} />
+                <Route path="statistics" element={<AdminStatistics />} />
                 <Route path="users" element={<UserManagement />} />
                 <Route path="food-categories" element={<FoodCategoryManage />} />
                 <Route path="foods" element={<FoodManage />} />
