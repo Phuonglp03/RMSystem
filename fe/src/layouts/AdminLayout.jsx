@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Layout, Menu, theme, Avatar, Dropdown, Space, Typography } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-  DashboardOutlined,
   UserOutlined,
   ShoppingCartOutlined,
   AppstoreOutlined,
@@ -11,6 +10,7 @@ import {
   SettingOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../redux/authSlice';
@@ -32,8 +32,8 @@ const AdminLayout = () => {
   const menuItems = [
     {
       key: '/admin',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
+      icon: <BarChartOutlined />,
+      label: 'Thống kê',
     },
     {
       key: '/admin/users',
@@ -67,19 +67,6 @@ const AdminLayout = () => {
   };
 
   const userMenuItems = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Thông tin cá nhân',
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Cài đặt',
-    },
-    {
-      type: 'divider',
-    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
