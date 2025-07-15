@@ -124,6 +124,14 @@ const register = async (req, res) => {
             })
         }
 
+        // Validate role
+        const validRoles = ['customer', 'admin', 'servant', 'chef']
+        if (!validRoles.includes(role)) {
+            return res.status(400).json({
+                message: 'Role không hợp lệ'
+            })
+        }
+
         // Check if user already exists
         const existingUser = await User.findOne({
             $or: [
@@ -174,14 +182,14 @@ const register = async (req, res) => {
                     userId: savedUser._id,
                     specialties: [],
                     experiencedYear: 0,
-                    status: ['available']
+                    status: 'available'
                 }).save()
                 break
             case 'servant':
                 await new Servant({
                     userId: savedUser._id,
                     assignedTables: [],
-                    status: ['available']
+                    status: 'available'
                 }).save()
                 break
         }
@@ -313,7 +321,7 @@ const getProfile = async (req, res) => {
     }
 }
 
-// New API: Get detailed user profile with role-specific data
+
 const getUserProfile = async (req, res) => {
     try {
         const userId = req.params.userId || req.jwtDecode.id;
@@ -353,7 +361,7 @@ const getUserProfile = async (req, res) => {
     }
 };
 
-// New API: Update user profile
+
 const updateUserProfile = async (req, res) => {
     try {
         const userId = req.params.userId || req.jwtDecode.id;

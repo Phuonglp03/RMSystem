@@ -1,4 +1,4 @@
-const { StatusCodes } = require('http-status-code');
+const { StatusCodes } = require('http-status-codes');
 
 // Middleware để kiểm tra role của user
 const checkRole = (...allowedRoles) => {

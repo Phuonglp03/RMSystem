@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { ConfigProvider } from 'antd';
 import { store, persistor } from './redux/Store';
 import AppRoutes from './routes/AppRoutes';
+import AuthInitializer from './components/AuthInitializer';
 import { PersistGate } from 'redux-persist/integration/react';
 
 import 'antd/dist/reset.css';
@@ -11,7 +12,9 @@ const App = () => (
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
       <ConfigProvider theme={{ token: { colorPrimary: '#1890ff' } }}>
-        <AppRoutes />
+        <AuthInitializer>
+          <AppRoutes />
+        </AuthInitializer>
       </ConfigProvider>
     </PersistGate>
   </Provider>

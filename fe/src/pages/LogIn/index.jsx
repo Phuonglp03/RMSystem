@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Col, Form, Row, Alert, Spinner } from 'react-bootstrap';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, clearError } from '../../redux/authSlice';
 import '../Auth.css';
@@ -12,17 +12,33 @@ const Login = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
+  const location = useLocation();
+  const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(clearError());
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/'); 
+    if (isAuthenticated && user) {
+      // Redirect theo role hoặc về trang đã lưu
+      const from = location.state?.from?.pathname || getDefaultRoute(user.role);
+      navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate, location]);
+
+  const getDefaultRoute = (role) => {
+    switch (role) {
+      case 'admin':
+        return '/admin';
+      case 'servant':
+        return '/';
+      case 'chef':
+        return '/';
+      default:
+        return '/';
+    }
+  };
 
   const validateForm = () => {
     const errors = {};

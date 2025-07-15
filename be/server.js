@@ -59,7 +59,7 @@ app.use('/api/food-categories', foodCategoryRoutes);
 app.use('/api/combos', comboRoutes);
 
 app.use('/api/table-orders', tableOrderRoutes);
-
+app.use('/api/coupons', couponRoutes);
 
 
 /* servant reservation */
@@ -67,6 +67,7 @@ app.use('/api/reservations/servant', require('./routes/reservationRoutes'))
 app.use('/api/reservations', require('./routes/reservation.routes'));
 app.use('/api/tables', require('./routes/table.routes'));
 app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/notification', require('./routes/notification.routes'))
 
 
