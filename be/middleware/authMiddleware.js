@@ -4,7 +4,7 @@ const { JWTProvider } = require('./JwtMiddleware');
 const authMiddleware = async (req, res, next) => {
     // Try to get token from cookie first, then from Authorization header
     let accessToken = req?.cookies?.accessTokenFromCookie;
-    
+
     // If no token in cookie, check Authorization header
     if (!accessToken) {
         const authHeader = req.headers.authorization;
@@ -18,10 +18,10 @@ const authMiddleware = async (req, res, next) => {
             message: 'Unauthorized, access token not found'
         });
     }
-
+    
     try {
         // Remove 'Bearer ' prefix if present
-        const tokenValue = accessToken.startsWith('Bearer ') 
+        const tokenValue = accessToken.startsWith('Bearer ')
             ? accessToken.substring('Bearer '.length)
             : accessToken;
 
@@ -30,7 +30,7 @@ const authMiddleware = async (req, res, next) => {
             tokenValue,
             process.env.ACCESS_TOKEN_SECRET_SIGNATURE
         );
-        
+
         // Save decoded info to request object
         req.jwtDecode = accessTokenDecoded;
 
@@ -38,7 +38,7 @@ const authMiddleware = async (req, res, next) => {
         next();
     } catch (err) {
         console.log('Error from authMiddleware: ', err);
-        
+
         // Case 1: accessToken expired
         if (err?.message?.includes('jwt expired')) {
             return res.status(StatusCodes.GONE).json({

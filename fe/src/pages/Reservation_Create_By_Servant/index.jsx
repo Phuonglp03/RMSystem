@@ -9,17 +9,34 @@ const Reservation_Create_By_Servant = () => {
     const [form, setForm] = useState({
         tableIds: [],
         startTime: '',
-        endTime: '',
         numberOfPeople: '',
-        note: ''
+        note: '',
+        isWalkIn: ''
     });
+    const [endTime, setEndTime] = useState('');
     const [loading, setLoading] = useState(false);
     const [availableTables, setAvailableTables] = useState([])
     const [loadingTables, setLoadingTables] = useState(false)
     const navigate = useNavigate();
 
     const handleChange = e => {
-        setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        setForm(f => {
+            const updatedForm = { ...f, [name]: value };
+            if (name === 'startTime') {
+                const start = new Date(value);
+                const calculatedEnd = new Date(start.getTime() + 3 * 60 * 60 * 1000);
+                const formattedEnd = formatDateTimeLocal(calculatedEnd); // dùng hàm bên trên
+                setEndTime(formattedEnd);
+            }
+            return updatedForm;
+        });
+    };
+
+
+    const formatDateTimeLocal = (date) => {
+        const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return offsetDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
     };
 
     const handleTableCheck = (id) => {
@@ -34,7 +51,7 @@ const Reservation_Create_By_Servant = () => {
     // Khi ngày giờ thay đổi, tự động load bàn trống
     useEffect(() => {
         const loadAvailableTables = async () => {
-            if (!form.startTime || !form.endTime) {
+            if (!form.startTime || !endTime) {
                 setAvailableTables([])
                 return
             }
@@ -44,7 +61,7 @@ const Reservation_Create_By_Servant = () => {
             try {
                 const response = await tableService.getAvailableTableForCreateReservation({
                     startTime: new Date(form.startTime).toISOString(),
-                    endTime: new Date(form.endTime).toISOString()
+                    endTime
                 })
                 setAvailableTables(response.tables.filter(t => t.status === 'available'))
             } catch (error) {
@@ -54,7 +71,7 @@ const Reservation_Create_By_Servant = () => {
             }
         }
         loadAvailableTables()
-    }, [form.startTime, form.endTime])
+    }, [form.startTime, endTime])
 
     const handleSubmit = async e => {
         e.preventDefault();
@@ -62,18 +79,28 @@ const Reservation_Create_By_Servant = () => {
             toast.error('Vui lòng chọn ít nhất 1 bàn!');
             return;
         }
+        if (form.isWalkIn === '') return toast.error('Vui lòng chọn loại đơn!');
+        if (!form.startTime) return toast.error('Vui lòng chọn thời gian bắt đầu');
         setLoading(true);
         try {
             const data = {
                 bookedTableId: form.tableIds,
                 startTime: form.startTime,
-                endTime: form.endTime,
+                endTime,
                 numberOfPeople: Number(form.numberOfPeople),
-                note: form.note
+                note: form.note,
+                isWalkIn: form.isWalkIn === 'true' //convert string to boolean
             };
-            await reservationService.servantCreateReservation(data);
+            console.log('Creating reservation with data:', data);
+            const response = await reservationService.servantCreateReservation(data);
+            console.log('Reservation created:', response);
             toast.success('Tạo đơn thành công!');
-            setTimeout(() => navigate('/servant/reservation-history'), 1200);
+            if (form.isWalkIn === 'true') {
+                // Chuyển ngay sang trang tạo order, truyền reservationCode qua url
+                navigate(`/servant/table-order-create?code=${response.reservationCode}`);
+            } else {
+                setTimeout(() => navigate('/servant/reservation-history'), 1200);
+            }
         } catch (err) {
             toast.error('Lỗi khi tạo đơn: ' + (err?.message || err));
         } finally {
@@ -124,13 +151,35 @@ const Reservation_Create_By_Servant = () => {
                 <div className="resv-create-title">Tạo Đơn Đặt Bàn Mới</div>
                 <form className="resv-create-form" onSubmit={handleSubmit}>
                     <label>
+                        Loại đơn:
+                        <select
+                            name="isWalkIn"
+                            value={form.isWalkIn}
+                            onChange={handleChange}
+                            className="resv-create-input"
+                            required
+                            disabled={loading}
+                        >
+                            <option value="">-- Chọn loại đơn --</option>
+                            <option value="true">Khách dùng ngay</option>
+                            <option value="false">Khách đặt trước</option>
+                        </select>
+                    </label>
+                    <label>
                         Thời gian bắt đầu:
                         <input name="startTime" type="datetime-local" value={form.startTime} onChange={handleChange} className="resv-create-input" required disabled={loading} />
                     </label>
                     <label>
-                        Thời gian kết thúc:
-                        <input name="endTime" type="datetime-local" value={form.endTime} onChange={handleChange} className="resv-create-input" required disabled={loading} />
+                        Kết thúc (tự động sau 3 giờ):
+                        <input
+                            type="datetime-local"
+                            value={endTime ? new Date(endTime).toISOString().slice(0, 16) : ''}
+                            className="resv-create-input"
+                            readOnly
+                            disabled
+                        />
                     </label>
+
                     <div>
                         <div className='resv-create-label'>Chọn bàn: </div>
                         {renderTableGrid()}

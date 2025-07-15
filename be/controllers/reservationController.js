@@ -6,6 +6,7 @@ const Customer = require('../models/Customer')
 const mongoose = require('mongoose')
 const NOTIFICATION_TYPES = require('../constants/notificationTypes.js')
 const notificationService = require('../services/notificationService.js')
+const crypto = require('crypto');
 
 //Lay tat ca danh sach dat ban cua khach hang phia servant
 const getUnAssignedReservations = async (req, res) => {
@@ -126,36 +127,66 @@ const confirmOrRejectReservation = async (req, res) => {
     try {
         const { reservationId } = req.params
         const { action } = req.body; // action: 'confirm' or 'reject'
-        console.log('action: ', action)
         const servantId = req.jwtDecode.id
-        console.log('servantId: ', servantId)
         const reservation = await Reservation.findById(reservationId);
-        console.log('reservation: ', reservation)
         if (!reservation) {
             return res.status(404).json({ success: false, message: 'Đặt bàn không tồn tại' });
         }
 
-        // if (reservation.servantId.toString() !== servantId) {
-        //     return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
-        // }
-
         if (action === 'confirm') {
-            reservation.status = 'confirmed';
+            reservation.status = 'confirmed'
             reservation.servantId = servantId
+            const servant = await Servant.findOne({ userId: servantId })
+            if (!servant) {
+                return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
+            }
+
+            const assignedTableRecords = reservation.bookedTable.map(tableId => ({
+                tableId,
+                reservationId: reservation._id,
+                startTime: reservation.startTime,
+                endTime: reservation.endTime,
+            }));
+
+            for (let record of assignedTableRecords) {
+                const isAlreadyAssigned = servant.assignedTables.some(a =>
+                    a.tableId.toString() === record.tableId.toString() &&
+                    a.reservationId.toString() === record.reservationId.toString()
+                );
+                if (!isAlreadyAssigned) {
+                    servant.assignedTables.push(record);
+                }
+            }
+
+            await servant.save();
+
         } else if (action === 'reject') {
             reservation.status = 'cancelled';
+            // Khi reject có thể remove assignedTables
+            // const servant = await Servant.findOne({ userId: servantId });
+            // if (servant) {
+            //     servant.assignedTables = servant.assignedTables.filter(a =>
+            //         a.reservationId.toString() !== reservation._id.toString()
+            //     );
+            //     await servant.save();
+            // }
         } else {
             return res.status(400).json({ success: false, message: 'Hành động không hợp lệ' });
         }
 
         await reservation.save();
+        //Cap nhat assignedTables
+        const servant = await Servant.findOne({ userId: servantId })
+        const tableIds = reservation.bookedTable.map(table => table._id)
+        servant.assignedTables = [
+            ...new Set([])
+        ]
         res.status(200).json({ success: true, message: 'Cập nhật trạng thái đặt bàn thành công', reservation });
     } catch (err) {
         console.error(`confirmOrRejectReservation error: ${err.message}`);
         res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
     }
 }
-
 
 //Xac nhan khach hang da den
 const confirmCustomerArrival = async (req, res) => {
@@ -178,6 +209,28 @@ const confirmCustomerArrival = async (req, res) => {
 
         if (reservation.servantId.toString() !== servantId) {
             return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
+        }
+
+        //Kiem tra thoi gian thuc te
+        const now = new Date()
+        const startTime = new Date(reservation.startTime)
+        const endTime = new Date(reservation.endTime)
+
+        //Cho phep khach check-in truoc 30p
+        const earliest = new Date(startTime.getTime() - 30 * 60000)
+
+        if (now < earliest) {
+            return res.status(400).json({
+                success: false,
+                message: `Khách đến quá sớm. Có thể xác nhận từ ${earliest.toLocaleTimeString()}`
+            });
+        }
+
+        if (now > endTime) {
+            return res.status(400).json({
+                success: false,
+                message: `Đặt bàn đã quá hạn từ ${endTime.toLocaleTimeString()}`
+            });
         }
 
         reservation.status = 'completed';
@@ -266,10 +319,45 @@ const confirmCustomerNotArrival = async (req, res) => {
 const getDailyReservationStatistics = async (req, res) => {
     try {
         const servantUserId = req.jwtDecode.id;
-        const { startDate, endDate } = req.query;
+        let { startDate, endDate, period } = req.query;
 
-        if (!startDate || !endDate) {
-            return res.status(400).json({ success: false, message: 'Thiếu thông tin cần thiết' });
+        const today = new Date();
+
+        if (period) {
+            switch (period) {
+                case 'today':
+                    startDate = new Date(today.setHours(0, 0, 0, 0));
+                    endDate = new Date(today.setHours(23, 59, 59, 999));
+                    break;
+                case 'week': {
+                    const first = today.getDate() - today.getDay();
+                    startDate = new Date(today.setDate(first));
+                    startDate.setHours(0, 0, 0, 0);
+                    endDate = new Date(startDate);
+                    endDate.setDate(startDate.getDate() + 6);
+                    endDate.setHours(23, 59, 59, 999);
+                    break;
+                }
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+                    break;
+                case 'year':
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    endDate = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+                    break;
+                default:
+                    return res.status(400).json({ success: false, message: 'Period không hợp lệ' });
+            }
+        } else if (startDate && endDate) {
+            startDate = new Date(startDate);
+            endDate = new Date(endDate);
+        } else {
+            return res.status(400).json({ success: false, message: 'Thiếu startDate/endDate hoặc period' });
+        }
+
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return res.status(400).json({ success: false, message: 'Ngày không hợp lệ' });
         }
 
         const servant = await Servant.findOne({ userId: servantUserId });
@@ -277,13 +365,10 @@ const getDailyReservationStatistics = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
         }
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-
         const reservations = await Reservation.find({
             servantId: servantUserId,
-            bookingTime: { $gte: start, $lte: end }
-        });
+            bookingTime: { $gte: startDate, $lte: endDate }
+        }, { status: 1 });
 
         const totalReservations = reservations.length;
         const confirmed = reservations.filter(r => r.status === 'confirmed').length;
@@ -295,6 +380,7 @@ const getDailyReservationStatistics = async (req, res) => {
             success: true,
             message: 'Thống kê đặt bàn thành công',
             statistics: {
+                period: period || `${startDate.toISOString()} -> ${endDate.toISOString()}`,
                 totalReservations,
                 confirmed,
                 cancelled,
@@ -302,18 +388,20 @@ const getDailyReservationStatistics = async (req, res) => {
                 noShow
             }
         });
+
     } catch (err) {
         console.error(`getDailyReservationStatistics error: ${err.message}`);
         res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
     }
 };
 
+
 const MS_PER_HOUR = 60 * 60 * 1000;
 
 const servantCreateReservation = async (req, res) => {
     try {
 
-        const { bookedTableId, startTime, endTime, numberOfPeople, note } = req.body
+        const { bookedTableId, startTime, numberOfPeople, note, isWalkIn } = req.body
         const servantId = req.jwtDecode.id
 
         const servant = await Servant.findOne({ userId: servantId })
@@ -323,21 +411,13 @@ const servantCreateReservation = async (req, res) => {
 
         //Kiem tra khoang thoi gian
         const start = new Date(startTime)
-        const end = new Date(endTime)
-        const diff = end.getTime() - start.getTime();
-
-        if (diff < MS_PER_HOUR) {
-            return res.status(400).json({
-                success: false,
-                message: 'Thời gian đặt bàn tối thiểu 1 giờ.'
-            });
+        if (!startTime) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập thời gian bắt đầu' });
         }
+        const endTime = new Date(start.getTime() + 3 * 60 * 60 * 1000)
 
-        if (diff > 3 * MS_PER_HOUR) {
-            return res.status(400).json({
-                success: false,
-                message: 'Thời gian đặt bàn tối đa 3 giờ.'
-            });
+        if (typeof isWalkIn !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'Vui lòng xác nhận đây là đươn đặt bàn trước hay đơn đặt bàn dùng luôn' });
         }
 
         const bookedTables = await Table.find({ _id: { $in: bookedTableId } })
@@ -366,6 +446,8 @@ const servantCreateReservation = async (req, res) => {
         }
 
         const tableIds = bookedTableId.map(t => new mongoose.Types.ObjectId(t))
+        const timeStamp = start.getTime().toString()
+        const code = crypto.randomBytes(4).toString('hex').toUpperCase()
 
         const newReservation = new Reservation({
             bookedTable: tableIds,
@@ -373,11 +455,11 @@ const servantCreateReservation = async (req, res) => {
             startTime,
             endTime,
             numberOfPeople,
-            note,
+            note: isWalkIn ? (note || 'Khách dùng luôn') : note,
             servantId,  //servant.userId._id, // Lưu ID của servant
-            status: 'confirmed', // Trạng thái khi servant đặt là 'confirmed'
+            status: isWalkIn ? 'completed' : 'confirmed', // Trạng thái khi servant đặt là 'confirmed'
             bookingTime: new Date(), // Thời gian đặt bàn
-            reservationCode: `RES${Date.now()}`
+            reservationCode: code
         });
 
         await newReservation.save();
@@ -392,7 +474,24 @@ const servantCreateReservation = async (req, res) => {
             console.log('table.currentReservation: ', table.currentReservation)
         }
 
+        const assignedTableRecords = bookedTables.map(table => ({
+            tableId: table._id,
+            reservationId: newReservation._id,
+            startTime: newReservation.startTime,
+            endTime: newReservation.endTime
+        }))
 
+        // Push từng record nếu chưa có
+        for (let record of assignedTableRecords) {
+            const isAlreadyAssigned = servant.assignedTables.some(a =>
+                a.tableId.toString() === record.tableId.toString() &&
+                a.reservationId.toString() === record.reservationId.toString()
+            );
+            if (!isAlreadyAssigned) {
+                servant.assignedTables.push(record);
+            }
+        }
+        await servant.save();
 
         const reservation = await Reservation.findById(newReservation._id)
             .populate({
@@ -400,15 +499,17 @@ const servantCreateReservation = async (req, res) => {
                 select: '_id fullname email phone',
             })
 
-        const notificationData = await notificationService.createReservationNotification({
-            reservationId: reservation._id,
-            reservationCode: reservation.reservationCode
-        }, NOTIFICATION_TYPES.RESERVATION_CREATED_BY_SERVANT)
+        if (!isWalkIn) {
+            const notificationData = await notificationService.createReservationNotification({
+                reservationId: reservation._id,
+                reservationCode: reservation.reservationCode
+            }, NOTIFICATION_TYPES.RESERVATION_CREATED_BY_SERVANT)
 
-        await notificationService.addNotification(
-            reservation.servantId._id,
-            notificationData
-        );
+            await notificationService.addNotification(
+                reservation.servantId._id,
+                notificationData
+            );
+        }
 
         res.status(201).json({
             success: true,
@@ -429,7 +530,7 @@ const servantCreateReservation = async (req, res) => {
                     phone: reservation?.servantId?.phone
                 }
             },
-
+            reservationCode: newReservation.reservationCode
         });
 
     } catch (err) {
@@ -465,6 +566,16 @@ const servantUpdateReservationInformation = async (req, res) => {
 
         await reservation.save();
 
+        if (status && ['cancelled', 'no-show'].includes(status)) {
+            const servant = await Servant.findOne({ userId: servantId })
+            if (servant) {
+                servant.assignedTables = servant.assignedTables.filter(a =>
+                    a.reservationId.toString() != reservation._id.toString()
+                )
+                await servant.save()
+            }
+        }
+
         res.status(200).json({
             success: true,
             message: 'Cập nhật trạng thái đặt bàn thành công',
@@ -498,6 +609,16 @@ const getReservationDetailById = async (req, res) => {
         }
 
         console.log('customerId: ', reservation.customerId)
+
+        const notificationData = await notificationService.createReservationNotification({
+            reservationId: reservation._id,
+            reservationCode: reservation.reservationCode
+        }, NOTIFICATION_TYPES.RESERVATION_CREATED_BY_SERVANT)
+
+        await notificationService.addNotification(
+            reservation.servantId._id,
+            notificationData
+        );
 
         res.status(200).json({
             success: true,

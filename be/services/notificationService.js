@@ -61,6 +61,42 @@ const notificationService = {
         }
     },
 
+    async createTableOrderNotification(data, type) {
+        try {
+            if (!NOTIFICATION_TYPES[type]) {
+                throw new Error('Invalid notification type');
+            }
+            const messages = {
+                [NOTIFICATION_TYPES.TABLE_ORDER_CREATED_BY_SERVANT]: {
+                    title: 'Tạo đơn đặt món mới',
+                    message: `Bạn đã tạo đơn đặt món mới cho bàn số ${data.tableNumber || ''}.`
+                },
+                [NOTIFICATION_TYPES.TABLE_ORDER_UPDATED_BY_SERVANT]: {
+                    title: 'Cập nhật đơn đặt món',
+                    message: `Bạn vừa cập nhật đơn đặt món cho bàn số ${data.tableNumber || ''}.`
+                },
+                [NOTIFICATION_TYPES.TABLE_ORDER_TRANSFERRED_TO_CUSTOMER]: {
+                    title: 'Chuyển đơn đặt món cho khách',
+                    message: `Đơn đặt món đã được chuyển cho khách.`
+                },
+                [NOTIFICATION_TYPES.TABLE_ORDER_CONFIRMED_BY_SERVANT]: {
+                    title: 'Xác nhận đơn đặt món',
+                    message: `Đơn đặt món đã được xác nhận.`
+                },
+            }
+            const notification = messages[type];
+            return {
+                title: notification.title,
+                message: notification.message,
+                type: type,
+                relatedEntityId: data?.tableOrderId
+            };
+        } catch (err) {
+            console.error(`Lỗi khi tạo thông báo TableOrder: ${err.message}`);
+            throw new Error('Failed to create TableOrder notification');
+        }
+    },
+
     //Chức năng xóa thông báo cũ
     async deleteOldNotifications() {
         const sevenDaysAgo = new Date();

@@ -11,6 +11,10 @@ const tableOrderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Reservation',
     },
+    servantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     foods: [
       {
         foodId: {
@@ -51,6 +55,10 @@ const tableOrderSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
+
+    paymentMethod: { type: String, enum: ['cash', 'momo', 'vnpay'], default: null },
+    paymentStatus: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
+    paidAt: Date
   },
   {
     timestamps: true,

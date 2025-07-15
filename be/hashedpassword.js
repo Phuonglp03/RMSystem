@@ -15,3 +15,4 @@ bcrypt.hash(passwordToHash, saltRounds).then(hash => {
 });
 
 //VD: node .\hashedpassword.js hashedpassword123
+// haiphongduong69@gmail.com 12345678

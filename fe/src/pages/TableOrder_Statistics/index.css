@@ -1,0 +1,54 @@
+.stats-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.stats-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+.stats-form {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.stats-form select {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    transition: border 0.3s;
+}
+
+.stats-form select:focus {
+    border-color: #3b82f6;
+}
+
+.loading-stats {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1rem;
+    margin-top: 2rem;
+}
+
+.chart-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .stats-container {
+        padding: 1rem;
+    }
+}

@@ -11,7 +11,17 @@ const connectDB = async () => {
 
   } catch (err) {
     console.error(err.message);
-    process.exit(1);
+    try {
+      // Fallback: Kết nối local nếu Atlas lỗi
+      await mongoose.connect(process.env.MONGO_URI_LOCAL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('✅ Connected to local MongoDB:', process.env.MONGO_URI_LOCAL);
+    } catch (localErr) {
+      console.error('❌ Failed to connect to local MongoDB as well.', localErr.message);
+      process.exit(1); // Thoát nếu cả 2 đều lỗi
+    }
   }
 };
 

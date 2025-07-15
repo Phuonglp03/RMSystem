@@ -8,51 +8,51 @@ import {
     PlusCircleOutlined,
     TeamOutlined,
     BarChartOutlined
-} from '@ant-design/icons';
+} from '@ant-design/icons'
 
-const Servant_Manage_Reservation = () => {
+const Servant_Manage_Table_Order = () => {
     const navigate = useNavigate()
     const navigationItems = [
         {
-            title: 'Lịch Sử Đặt Bàn',
-            description: 'Xem lịch sử tất cả đơn đặt bàn',
+            title: 'Lịch Sử Đặt Món của Khách',
+            description: 'Xem lịch sử tất cả đơn đặt món của khách',
             icon: <ProfileOutlined />,
-            path: '/servant/reservation-history',
+            path: '/servant/table-order-history',
             colorClass: 'nav-card-blue'
         },
         {
-            title: 'Thông Báo Đặt Bàn',
-            description: 'Xem thông báo đặt bàn mới',
+            title: 'Thông Báo Đặt Món Mới',
+            description: 'Xem thông báo đặt món mới',
             icon: <BellOutlined />,
-            path: '/servant/reservation-notification',
+            path: '/servant/table-order-notification',
             colorClass: 'nav-card-orange'
         },
         {
-            title: 'Bàn đã nhận',
+            title: 'Đơn đặt món đã nhận',
             description: 'Xem danh sách bàn đã nhận từ những đơn đặt bàn trước',
             icon: <CheckCircleOutlined />,
-            path: '/servant/assigned-tables',
+            path: '/servant/assigned-order',
             colorClass: 'nav-card-green'
         },
         {
-            title: 'Tạo đơn đặt bàn',
+            title: 'Tạo đơn đặt món mới cho khách',
             description: 'Tạo đơn đặt bàn mới cho khách',
             icon: <PlusCircleOutlined />,
-            path: '/servant/reservation-create',
+            path: '/servant/table-order-create',
             colorClass: 'nav-card-yellow'
         },
         {
-            title: 'Xác Nhận Khách Đến',
+            title: 'Tạo đơn thanh toán cho khách',
             description: 'Xác nhận khách đã đến/chưa đến',
             icon: <TeamOutlined />,
-            path: '/servant/confirm-guest-arrive',
+            path: '/servant/table-order-payment',
             colorClass: 'nav-card-purple'
         },
         {
             title: 'Thống Kê Cá Nhân',
-            description: 'Xem thống kê đơn đặt bàn của từng người',
+            description: 'Xem thống kê đơn đặt món của bạn',
             icon: <BarChartOutlined />,
-            path: '/servant/reservation-statistics',
+            path: '/servant/table-order-statistics',
             colorClass: 'nav-card-indigo'
         }
     ]
@@ -60,17 +60,16 @@ const Servant_Manage_Reservation = () => {
     const handleNavigation = (path) => {
         navigate(path)
     }
-
     return (
         <div className="reservation-container">
             <div className="reservation-wrapper">
                 {/* Header */}
                 <div className="reservation-header">
                     <h1 className="reservation-title">
-                        Quản Lý Đặt Bàn
+                        Quản Lý Đơn Đặt Món
                     </h1>
                     <p className="reservation-subtitle">
-                        Chọn chức năng quản lý đặt bàn nhà hàng
+                        Chọn chức năng quản lý đơn đặt món của nhà hàng
                     </p>
                 </div>
 
@@ -136,4 +135,4 @@ const Servant_Manage_Reservation = () => {
     )
 }
 
-export default Servant_Manage_Reservation
+export default Servant_Manage_Table_Order

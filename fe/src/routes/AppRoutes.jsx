@@ -1,33 +1,39 @@
-import React from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
-import AdminLayout from '../layouts/AdminLayout';
-import ServantLayout from '../layouts/ServantLayout';
-import { AdminProtectedRoute, ServantProtectedRoute, AuthProtectedRoute } from '../components/ProtectedRoute';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import HomePage from '../pages/Home';
-import Signup from '../pages/SignUp';
-import Login from '../pages/LogIn';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { AdminProtectedRoute, ServantProtectedRoute } from '../components/ProtectedRoute';
+import AdminLayout from '../layouts/AdminLayout';
+import MainLayout from '../layouts/MainLayout';
+import ServantLayout from '../layouts/ServantLayout';
+import OrderHistoryByUser from '../pages/BookingFood/OrderHistoryByUser';
 import TableOrderTest from '../pages/BookingFood/TableOrderTest';
 import BookingTable from '../pages/BookTable';
+import HomePage from '../pages/Home';
+import Login from '../pages/LogIn';
 import Menu from '../pages/Menu';
-import OrderHistoryByUser from '../pages/BookingFood/OrderHistoryByUser';
 import UserProfile from '../pages/Profile';
-import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
-import Reservation_Statistics from '../pages/Reservation_Statistics';
+import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant';
+import Reservation_Detail from '../pages/Reservation_Detail';
 import Reservation_History from '../pages/Reservation_History';
 import Reservation_Notification from '../pages/Reservation_Notification';
-import Reservation_Detail from '../pages/Reservation_Detail';
-import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant';
+import Reservation_Statistics from '../pages/Reservation_Statistics';
+import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
+import Signup from '../pages/SignUp';
 
 // Admin Dashboard Components
-import AdminStatistics from '../pages/AdminDashboard/Statistics';
-import UserManagement from '../pages/AdminDashboard/UserManagement';
+import NotFound from '../components/NotFound';
+import RootRedirect from '../components/RootRedirect';
 import ComboManage from '../pages/AdminDashboard/Combo_Manage';
 import FoodManage from '../pages/AdminDashboard/Food_Manage';
 import FoodCategoryManage from '../pages/AdminDashboard/FoodCategory_Manage';
-import NotFound from '../components/NotFound';
-import RootRedirect from '../components/RootRedirect';
+import AdminStatistics from '../pages/AdminDashboard/Statistics';
+import UserManagement from '../pages/AdminDashboard/UserManagement';
+import Assigned_Table_By_Servant from '../pages/Assigned_Table_By_Servant';
+import Confirm_Customer_Arrived from '../pages/Confirm_Customer_Arrived';
+import Servant_Manage_Table_Order from '../pages/Servant_Manage_Table_Order';
+import TableOrder_Assigned from '../pages/TableOrder_Assigned';
+import TableOrder_Create_By_Servant from '../pages/TableOrder_Create_By_Servant';
+import TableOrder_History from '../pages/TableOrder_History';
+import TableOrder_Statistics from '../pages/TableOrder_Statistics';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -77,6 +83,13 @@ const AppRoutes = () => (
                 <Route path="reservation-notification" element={<Reservation_Notification />} />
                 <Route path="reservation-detail/:id" element={<Reservation_Detail />} />
                 <Route path="reservation-create" element={<Reservation_Create_By_Servant />} />
+                <Route path="assigned-tables" element={<Assigned_Table_By_Servant />} />
+                <Route path="confirm-guest-arrive" element={<Confirm_Customer_Arrived />} />
+                <Route path="manage-order" element={<Servant_Manage_Table_Order />} />
+                <Route path="table-order-history" element={<TableOrder_History />} />
+                <Route path="assigned-order" element={<TableOrder_Assigned />} />
+                <Route path="table-order-create" element={<TableOrder_Create_By_Servant />} />
+                <Route path="table-order-statistics" element={<TableOrder_Statistics />} />
             </Route>
 
             {/* 404 Route */}

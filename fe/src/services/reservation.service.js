@@ -29,8 +29,8 @@ const reservationAPI = {
     return axiosClient.get('/api/reservations/servant/customer')
   },
 
-  servantCreateReservation: () => {
-    return axiosClient.post('/api/reservations/servant/create')
+  servantCreateReservation: (data) => {
+    return axiosClient.post('/api/reservations/servant/create', data)
   },
 
   servantUpdateReservation: (resvId, updateData) => {
@@ -49,8 +49,12 @@ const reservationAPI = {
     return axiosClient.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
   },
 
-  confirmCustomerArrival: () => {
-    return axiosClient.post(`/api/reservations/servant/confirm-arrival`)
+  getDailyStatistics: (params) => {
+    return axiosClient.get(`/api/reservations/servant/daily-statistics`, { params });
+  },
+
+  confirmCustomerArrival: (reservationCode) => {
+    return axiosClient.post(`/api/reservations/servant/confirm-arrival`, { reservationCode });
   }
 };
 
@@ -148,9 +152,11 @@ const reservationService = {
     }
   },
 
-  servantCreateReservation: async () => {
+  servantCreateReservation: async (data) => {
     try {
-
+      const response = await reservationAPI.servantCreateReservation(data);
+      console.log('response: ', response);
+      return response;
     } catch (error) {
       throw error.response ? error.response.data : new Error('Error creating reservation for customer by servant');
     }
@@ -193,9 +199,34 @@ const reservationService = {
     }
   },
 
-  confirmCustomerArrival: () => {
-    return reservationAPI.confirmCustomerArrival();
-  }
+  getDailyStatistics: async ({ period, startDate, endDate }) => {
+    try {
+      let params = {};
+      if (period) {
+        params.period = period;
+      } else if (startDate && endDate) {
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+
+      const response = await reservationAPI.getDailyStatistics(params);
+      console.log('Daily statistics response:', response);
+      return response;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error fetching daily statistics');
+    }
+  },
+
+
+  confirmCustomerArrival: async (reservationCode) => {
+    try {
+      const response = await reservationAPI.confirmCustomerArrival(reservationCode);
+      return response;
+    } catch (error) {
+      console.error("Error confirming customer arrival:", error);
+      throw error.response ? error.response.data : new Error('Error confirming customer arrival');
+    }
+  },
 };
 
 export default reservationService;

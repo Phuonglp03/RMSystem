@@ -9,6 +9,13 @@ const axiosInstance = axios.create({
   },
 });
 
+const axiosRaw = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:9999',
+  timeout: 10000,
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" }
+});
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -39,13 +46,16 @@ axiosInstance.interceptors.response.use(
 
       try {
         // Try to refresh token
-        const refreshResponse = await axiosInstance.post('/api/users/refresh-token');
-        
+        const refreshResponse = await axiosRaw.post('/api/users/refresh-token');
+
         // Update token in localStorage
         if (refreshResponse.accessToken) {
           localStorage.setItem('token', refreshResponse.accessToken);
+          // Update axios headers
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${refreshResponse.accessToken}`;
+          originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.accessToken}`;
         }
-        
+
         // Retry the original request
         return axiosInstance(originalRequest);
       } catch (refreshError) {
