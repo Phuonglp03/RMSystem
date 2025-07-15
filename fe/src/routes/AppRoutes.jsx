@@ -20,7 +20,7 @@ import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servan
 import Assigned_Table_By_Servant from '../pages/Assigned_Table_By_Servant';
 import ChefDashboard from '../pages/Chef/ChefDashboard';
 import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
-
+import RevenueReport from '../pages/Admin/RevenueReport';
 const AppRoutes = () => (
     <BrowserRouter>
         <Routes>
@@ -58,6 +58,7 @@ const AppRoutes = () => (
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />
             <Route path="/inventory" element={<InventoryDashboard />} />
+            <Route path="/revenue" element={<RevenueReport />} />
 
 
         </Routes>

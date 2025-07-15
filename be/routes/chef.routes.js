@@ -20,6 +20,38 @@ router.get('/', async (req, res) => {
 
 
 
+// router.post('/:id/complete', async (req, res) => {
+//   try {
+//     const id = req.params.id;
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({ message: 'ID không hợp lệ' });
+//     }
+
+//     console.log('🔧 Gọi hoàn thành đơn với ID:', id);
+
+//     const order = await TableOrder.findById(id);
+//     if (!order) {
+//       return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+//     }
+
+//     if (order.status === 'completed') {
+//       return res.status(400).json({ message: 'Đơn hàng đã hoàn thành' });
+//     }
+
+//     // ✅ Cập nhật đúng cách
+//     order.status = 'completed';
+//     order.completedAt = new Date();
+//     await order.save(); // Không tạo mới, chỉ lưu
+
+//     console.log('✅ Đã hoàn thành đơn:', order._id);
+//     res.json({ message: 'Đã hoàn thành đơn', order });
+//   } catch (err) {
+//     console.error('❌ Lỗi backend:', err);
+//     res.status(500).json({ message: 'Lỗi server', error: err.message });
+//   }
+// });
+
 router.post('/:id/complete', async (req, res) => {
   try {
     const id = req.params.id;
@@ -39,17 +71,26 @@ router.post('/:id/complete', async (req, res) => {
       return res.status(400).json({ message: 'Đơn hàng đã hoàn thành' });
     }
 
-    // ✅ Cập nhật đúng cách
-    order.status = 'completed';
-    order.completedAt = new Date();
-    await order.save(); // Không tạo mới, chỉ lưu
+    // ✅ Cập nhật trạng thái mà không validate toàn bộ schema
+    const updatedOrder = await TableOrder.findByIdAndUpdate(
+      id,
+      {
+        status: 'completed',
+        completedAt: new Date()
+      },
+      {
+        new: true,
+        runValidators: false // ⛔ Không validate userId nữa
+      }
+    );
 
-    console.log('✅ Đã hoàn thành đơn:', order._id);
-    res.json({ message: 'Đã hoàn thành đơn', order });
+    console.log('✅ Đã hoàn thành đơn:', updatedOrder._id);
+    res.json({ message: 'Đã hoàn thành đơn', order: updatedOrder });
   } catch (err) {
     console.error('❌ Lỗi backend:', err);
     res.status(500).json({ message: 'Lỗi server', error: err.message });
   }
 });
+
 
 module.exports = router;
