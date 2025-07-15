@@ -242,46 +242,6 @@ const tableService = {
     }
   },
 
-  servantSendTableOrderToChef: async (orderId) => {
-    try {
-      const response = await axiosClient.post(`/api/table-orders/servant/send?orderId=${orderId}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error sending table order to chef:", error);
-      throw error.response ? error.response.data : new Error('Error sending table order to chef');
-    }
-  },
-
-  updateFoodItemStatusInTableOrder: async (orderId, foodId, status) => {
-    try {
-      const response = await axiosClient.patch(`/api/table-orders/update-item/${orderId}/${foodId}`, { status });
-      return response.data;
-    } catch (error) {
-      console.error("Error updating food item status:", error);
-      throw error.response ? error.response.data : new Error('Error updating food item status');
-    }
-  },
-
-  deleteFoodItemFromTableOrder: async (orderId, foodId) => {
-    try {
-      const response = await axiosClient.patch(`/api/table-orders/delete-item/${orderId}/${foodId}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error deleting food item from table order:", error);
-      throw error.response ? error.response.data : new Error('Error deleting food item');
-    }
-  },
-
-  servantTransferTableOrderToCustomer: async (orderId) => {
-    try {
-      const response = await axiosClient.post(`/api/table-orders/change-table/${orderId}`);
-      return response.data;
-    } catch (error) {
-      console.error("Error transferring table order to customer:", error);
-      throw error.response ? error.response.data : new Error('Error transferring table order to customer');
-    }
-  },
-
 
   getTableOrderStats: async (type, from, to) => {
     try {
