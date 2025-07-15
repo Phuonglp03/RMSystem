@@ -2,7 +2,10 @@ const whitelist = [
     'http://localhost:3000', // Frontend development
     'http://127.0.0.1:3000',
     process.env.CORS_ORIGIN, 
-    'https://domain.com'
+    'https://domain.com',
+    'https://rm-system-beta.vercel.app', // Frontend production (Vercel)
+    'https://rmsystem.store', // Custom domain
+    'https://www.rmsystem.store' // Custom domain with www
 ];
 
 const corsOptions = {
