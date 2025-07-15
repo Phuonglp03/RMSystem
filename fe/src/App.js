@@ -6,8 +6,6 @@ import { store, persistor } from './redux/Store';
 import AppRoutes from './routes/AppRoutes';
 import AuthInitializer from './components/AuthInitializer';
 import { PersistGate } from 'redux-persist/integration/react';
-
-import 'antd/dist/reset.css';
 const App = () => (
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>

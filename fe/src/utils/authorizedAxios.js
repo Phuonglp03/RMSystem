@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 
 // Khởi tạo một đối tượng Axios (authorizedAxiosInstance) mục đích để custom và cấu hình chung cho dự án
 let authorizedAxiosInstance = axios.create({
-    baseURL: process.env.REACT_APP_API_URL
+    baseURL: process.env.REACT_APP_API_URL || 'https://rm-system-4tru.vercel.app'
 })
 
 // Thời gian chờ tối đa của 1 request là 10 phút
