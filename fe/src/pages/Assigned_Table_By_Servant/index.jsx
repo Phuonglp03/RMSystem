@@ -3,13 +3,13 @@ import tableService from '../../services/table.service';
 import './index.css';
 import { ToastContainer, toast } from 'react-toastify';
 import {
-  TableOutlined,
-  UserOutlined,
-  TeamOutlined,
-  FileTextOutlined,
-  ClockCircleOutlined,
-  InfoCircleOutlined,
-  CalendarOutlined
+    TableOutlined,
+    UserOutlined,
+    TeamOutlined,
+    FileTextOutlined,
+    ClockCircleOutlined,
+    InfoCircleOutlined,
+    CalendarOutlined
 } from '@ant-design/icons';
 
 const Assigned_Table_By_Servant = () => {
@@ -20,6 +20,7 @@ const Assigned_Table_By_Servant = () => {
         const fetchAssignedTables = async () => {
             try {
                 const res = await tableService.getAssignedTableByServant();
+                console.log('Assigned Tables:', res);
                 setAssignedTables(res.assignedTables);
             } catch (err) {
                 toast.error('Lỗi khi tải danh sách bàn');

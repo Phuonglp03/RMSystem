@@ -22,6 +22,11 @@ import FoodManage from '../pages/Food_Manage'
 import FoodCategoryManage from '../pages/FoodCategory_Manage'
 import Assigned_Table_By_Servant from '../pages/Assigned_Table_By_Servant';
 import Confirm_Customer_Arrived from '../pages/Confirm_Customer_Arrived';
+import Servant_Manage_Table_Order from '../pages/Servant_Manage_Table_Order';
+import TableOrder_History from '../pages/TableOrder_History';
+import TableOrder_Assigned from '../pages/TableOrder_Assigned';
+import TableOrder_Create_By_Servant from '../pages/TableOrder_Create_By_Servant';
+import TableOrder_Statistics from '../pages/TableOrder_Statistics';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -51,6 +56,11 @@ const AppRoutes = () => (
                 <Route path="reservation-create" element={<Reservation_Create_By_Servant />} />
                 <Route path="assigned-tables" element={<Assigned_Table_By_Servant />} />
                 <Route path="confirm-guest-arrive" element={<Confirm_Customer_Arrived />} />
+                <Route path="manage-order" element={<Servant_Manage_Table_Order />} />
+                <Route path="table-order-history" element={<TableOrder_History />} />
+                <Route path="assigned-order" element={<TableOrder_Assigned />} />
+                <Route path="table-order-create" element={<TableOrder_Create_By_Servant />} />
+                <Route path="table-order-statistics" element={<TableOrder_Statistics />} />
             </Route>
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />

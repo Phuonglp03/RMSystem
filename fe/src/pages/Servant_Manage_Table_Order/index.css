@@ -1,4 +1,4 @@
-/* Reservation Management Styles */
+/* Table Order Management Styles */
 
 .reservation-container {
     min-height: 100vh;
@@ -97,6 +97,7 @@
     height: 8px;
     margin-top: auto;
     transition: all 0.3s ease;
+
 }
 
 /* Color variants for navigation cards */

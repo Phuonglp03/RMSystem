@@ -39,8 +39,6 @@ const Reservation_Create_By_Servant = () => {
         return offsetDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
     };
 
-
-
     const handleTableCheck = (id) => {
         setForm(f => {
             const ids = f.tableIds.includes(id)
@@ -93,9 +91,16 @@ const Reservation_Create_By_Servant = () => {
                 note: form.note,
                 isWalkIn: form.isWalkIn === 'true' //convert string to boolean
             };
-            await reservationService.servantCreateReservation(data);
+            console.log('Creating reservation with data:', data);
+            const response = await reservationService.servantCreateReservation(data);
+            console.log('Reservation created:', response);
             toast.success('Tạo đơn thành công!');
-            setTimeout(() => navigate('/servant/reservation-history'), 1200);
+            if (form.isWalkIn === 'true') {
+                // Chuyển ngay sang trang tạo order, truyền reservationCode qua url
+                navigate(`/servant/table-order-create?code=${response.reservationCode}`);
+            } else {
+                setTimeout(() => navigate('/servant/reservation-history'), 1200);
+            }
         } catch (err) {
             toast.error('Lỗi khi tạo đơn: ' + (err?.message || err));
         } finally {

@@ -530,7 +530,7 @@ const servantCreateReservation = async (req, res) => {
                     phone: reservation?.servantId?.phone
                 }
             },
-
+            reservationCode: newReservation.reservationCode
         });
 
     } catch (err) {

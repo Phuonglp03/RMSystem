@@ -10,6 +10,7 @@ export const foodService = {
   getAllFoods: async () => {
     try {
       const response = await axiosInstance.get(API_ENDPOINTS.FOODS);
+      console.log('Foods fetched:', response.data);
       return response.data || [];
     } catch (error) {
       console.error('Error fetching foods:', error);
@@ -48,10 +49,10 @@ export const foodService = {
     try {
       // Tự động phát hiện loại dữ liệu và set header phù hợp
       const isFormData = data instanceof FormData;
-      const headers = isFormData 
+      const headers = isFormData
         ? { 'Content-Type': 'multipart/form-data' }
         : { 'Content-Type': 'application/json' };
-        
+
       const response = await axiosInstance.put(`${API_ENDPOINTS.FOODS}/${id}`, data, {
         headers,
       });
@@ -80,6 +81,17 @@ export const foodService = {
       return response.data || [];
     } catch (error) {
       console.error('Error fetching food categories:', error);
+      throw error;
+    }
+  },
+
+  getAllCombos: async () => {
+    try {
+      const response = await axiosInstance.get('/api/combos/');
+      console.log('Combos fetched:', response.data);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching combos:', error);
       throw error;
     }
   }

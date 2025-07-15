@@ -29,8 +29,8 @@ const reservationAPI = {
     return axiosClient.get('/api/reservations/servant/customer')
   },
 
-  servantCreateReservation: () => {
-    return axiosClient.post('/api/reservations/servant/create')
+  servantCreateReservation: (data) => {
+    return axiosClient.post('/api/reservations/servant/create', data)
   },
 
   servantUpdateReservation: (resvId, updateData) => {
@@ -49,8 +49,8 @@ const reservationAPI = {
     return axiosClient.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
   },
 
-  getDailyStatistics: (queryParams) => {
-    return axiosClient.get(`/api/reservations/servant/daily-statistics${queryParams}`);
+  getDailyStatistics: (params) => {
+    return axiosClient.get(`/api/reservations/servant/daily-statistics`, { params });
   },
 
   confirmCustomerArrival: (reservationCode) => {
@@ -152,9 +152,11 @@ const reservationService = {
     }
   },
 
-  servantCreateReservation: async () => {
+  servantCreateReservation: async (data) => {
     try {
-
+      const response = await reservationAPI.servantCreateReservation(data);
+      console.log('response: ', response);
+      return response;
     } catch (error) {
       throw error.response ? error.response.data : new Error('Error creating reservation for customer by servant');
     }
@@ -199,19 +201,22 @@ const reservationService = {
 
   getDailyStatistics: async ({ period, startDate, endDate }) => {
     try {
-      let queryParams = '';
+      let params = {};
       if (period) {
-        queryParams = `?period=${period}`;
+        params.period = period;
       } else if (startDate && endDate) {
-        queryParams = `?startDate=${startDate}&endDate=${endDate}`;
+        params.startDate = startDate;
+        params.endDate = endDate;
       }
 
-      const response = await reservationAPI.getDailyStatistics(queryParams);
+      const response = await reservationAPI.getDailyStatistics(params);
+      console.log('Daily statistics response:', response);
       return response;
     } catch (error) {
       throw error.response ? error.response.data : new Error('Error fetching daily statistics');
     }
   },
+
 
   confirmCustomerArrival: async (reservationCode) => {
     try {

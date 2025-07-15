@@ -80,7 +80,7 @@ const Header = () => {
                     Đặt bàn
                 </Menu.Item>
 
-{/* 
+                {/* 
                 <Menu.Item key="foodmanager" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
                     Quản lý món ăn
                 </Menu.Item>
@@ -98,13 +98,18 @@ const Header = () => {
                     Quản lý đặt bàn
                 </Menu.Item>
 
-                <Menu.Item key="5" icon={<BarChartOutlined />} onClick={() => navigate('/')}>
+                <Menu.Item key="foodlistmanage" icon={<AppstoreOutlined />} onClick={() => navigate('/servant/manage-order')}>
+                    Quản lý đơn đặt món
+                </Menu.Item>
+
+                {/* <Menu.Item key="5" icon={<BarChartOutlined />} onClick={() => navigate('/')}>
                     Thống kê
                 </Menu.Item>
 
                 <Menu.Item key="foodlistmanage" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
                     Quản lý món ăn
                 </Menu.Item>
+
 
                 <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/coupon-exchange')}>
                     Đổi voucher
@@ -115,7 +120,7 @@ const Header = () => {
                 </Menu.Item>
                 <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>
                     Lịch sử đặt đơn
-                </Menu.Item>
+                </Menu.Item> */}
 
             </Menu>
 
