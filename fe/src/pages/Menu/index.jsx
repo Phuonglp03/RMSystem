@@ -23,8 +23,8 @@ const Menu = () => {
       console.log('Fetching data from API...');
       
       const [foodRes, comboRes] = await Promise.all([     
-        axios.get('http://localhost:9999/api/foods'),
-        axios.get('http://localhost:9999/api/combos'),
+        axios.get('https://rm-system-4tru.vercel.app//foods'),
+        axios.get('https://rm-system-4tru.vercel.app//combos'),
       ]);
 
       console.log('Food API Response:', foodRes);

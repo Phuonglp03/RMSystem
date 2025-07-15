@@ -93,7 +93,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:9999/api/users/${userData.userId}/profile`,
+        `https://rm-system-4tru.vercel.app//users/${userData.userId}/profile`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -121,7 +121,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:9999/api/users/${userData.userId}/loyalty`,
+        `https://rm-system-4tru.vercel.app//users/${userData.userId}/loyalty`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -146,7 +146,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:9999/api/users/${userData.userId}/coupons`,
+        `https://rm-system-4tru.vercel.app//users/${userData.userId}/coupons`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -186,7 +186,7 @@ const UserProfile = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:9999/api/users/${userData.userId}/profile`,
+        `https://rm-system-4tru.vercel.app//users/${userData.userId}/profile`,
         values,
         {
           headers: { Authorization: `Bearer ${token}` }

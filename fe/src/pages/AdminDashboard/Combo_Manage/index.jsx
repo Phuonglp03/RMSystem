@@ -77,8 +77,8 @@ const ComboManage = () => {
     try {
       setLoading(true);
       const [comboRes, foodRes] = await Promise.all([
-        axios.get('http://localhost:9999/api/combos'),
-        axios.get('http://localhost:9999/api/foods')
+        axios.get('https://rm-system-4tru.vercel.app//combos'),
+        axios.get('https://rm-system-4tru.vercel.app//foods')
       ]);
       
       setCombos(comboRes.data.data || []);
@@ -220,8 +220,8 @@ const ComboManage = () => {
       }
 
       const url = editingCombo 
-        ? `http://localhost:9999/api/combos/${editingCombo._id}`
-        : 'http://localhost:9999/api/combos';
+        ? `https://rm-system-4tru.vercel.app//combos/${editingCombo._id}`
+        : 'https://rm-system-4tru.vercel.app//combos';
       
       const method = editingCombo ? 'put' : 'post';
       
@@ -245,7 +245,7 @@ const ComboManage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:9999/api/combos/${id}`);
+      await axios.delete(`https://rm-system-4tru.vercel.app//combos/${id}`);
       message.success('Xóa combo thành công!');
       fetchData();
     } catch (error) {
@@ -256,7 +256,7 @@ const ComboManage = () => {
 
   const handleToggleStatus = async (comboId, currentStatus) => {
     try {
-      await axios.put(`http://localhost:9999/api/combos/${comboId}`, {
+      await axios.put(`https://rm-system-4tru.vercel.app//combos/${comboId}`, {
         isActive: !currentStatus
       }, {
         headers: {
@@ -275,7 +275,7 @@ const ComboManage = () => {
 
   const handleRemoveItem = async (itemId) => {
     try {
-      await axios.delete(`http://localhost:9999/api/combos/${selectedCombo._id}/items/${itemId}`);
+      await axios.delete(`https://rm-system-4tru.vercel.app//combos/${selectedCombo._id}/items/${itemId}`);
       message.success('Xóa món ăn khỏi combo thành công!');
       fetchData();
     } catch (error) {

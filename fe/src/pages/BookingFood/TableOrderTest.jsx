@@ -64,10 +64,10 @@ const TableOrderTest = () => {
     
     try {
       const [res, categoryRes, foodRes, comboRes] = await Promise.all([
-        axios.get(`http://localhost:9999/api/table-orders/reservation/by-code/${reservationCode}`),
-        axios.get('http://localhost:9999/api/food-categories'),
-        axios.get('http://localhost:9999/api/foods'),
-        axios.get('http://localhost:9999/api/combos'),
+        axios.get(`https://rm-system-4tru.vercel.app//table-orders/reservation/by-code/${reservationCode}`),
+        axios.get('https://rm-system-4tru.vercel.app//food-categories'),
+        axios.get('https://rm-system-4tru.vercel.app//foods'),
+        axios.get('https://rm-system-4tru.vercel.app//combos'),
       ]);
 
       setReservation(res.data.data);
@@ -179,7 +179,7 @@ const TableOrderTest = () => {
         orders: ordersForAPI
       };
 
-      const response = await axios.post('http://localhost:9999/api/table-orders', orderData);
+      const response = await axios.post('https://rm-system-4tru.vercel.app//table-orders', orderData);
       const returnedOrders = response.data.data; 
 
       setPlacedOrders(prev => {

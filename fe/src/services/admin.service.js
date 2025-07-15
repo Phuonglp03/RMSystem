@@ -1,6 +1,6 @@
 import authorizedAxios from '../utils/authorizedAxios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:9999/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://rm-system-4tru.vercel.app/';
 
 class AdminService {
   // Dashboard Statistics
