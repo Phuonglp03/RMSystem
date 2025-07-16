@@ -36,7 +36,13 @@ exports.createTableOrders = async (req, res) => {
           total += price;
         });
       }
-      return { ...order, bookingCode, totalprice: total };
+      return {
+        ...order,
+        bookingCode,
+        totalprice: total,
+        paymentStatus: 'pending',
+        status: 'pending',
+      };
     });
     const createdOrders = await TableOrder.insertMany(ordersWithPrice);
     res.status(201).json({ status: 'success', data: createdOrders });
@@ -189,21 +195,40 @@ exports.getReservationByCode = async (req, res) => {
 exports.getTableOrdersByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log('userId:', userId);
+    console.log('userId param:', userId);
+
     const customer = await Customer.findOne({ userId });
-    console.log('customer:', customer);
+    console.log('customer found:', customer);
+
     if (!customer) {
       return res.status(404).json({ status: 'fail', message: 'Không tìm thấy customer với userId này' });
     }
-    const reservations = await Reservation.find({ customerId: customer._id }).select('_id');
-    console.log('reservations:', reservations);
+
+    console.log('customer._id:', customer._id, 'typeof:', typeof customer._id, 'instanceof ObjectId:', customer._id instanceof require('mongoose').Types.ObjectId);
+
+    // Lấy một reservation mẫu để log kiểu dữ liệu customerId
+    const oneReservation = await Reservation.findOne({});
+    if (oneReservation) {
+      console.log('Sample reservation customerId:', oneReservation.customerId, 'typeof:', typeof oneReservation.customerId[0], 'instanceof ObjectId:', oneReservation.customerId[0] instanceof require('mongoose').Types.ObjectId);
+    }
+
+    // Truy vấn match cả ObjectId lẫn string
+    const reservations = await Reservation.find({
+      $or: [
+        { customerId: { $in: [customer._id] } },
+        { customerId: { $in: [customer._id.toString()] } }
+      ]
+    }).select('_id');
+    console.log('reservations found:', reservations);
+
     const reservationIds = reservations.map(r => r._id);
     const orders = await TableOrder.find({ reservationId: { $in: reservationIds } })
       .populate('tableId', 'tableNumber')
       .populate('reservationId')
       .populate('foods.foodId', 'name')
       .populate('combos', 'comboId foodId quantity');
-    console.log('orders:', orders);
+    console.log('orders found:', orders);
+
     res.status(200).json({ status: 'success', data: orders });
   } catch (error) {
     console.error('Error in getTableOrdersByUserId:', error);

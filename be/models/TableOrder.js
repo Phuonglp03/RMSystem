@@ -28,7 +28,7 @@ const tableOrderSchema = new mongoose.Schema(
     combos: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'ComboItem',
+        ref: 'Combo', // Đổi từ 'ComboItem' sang 'Combo' để khớp với dữ liệu gửi lên
       },
     ],
     status: {
@@ -56,9 +56,10 @@ const tableOrderSchema = new mongoose.Schema(
       default: 0,
     },
 
-    paymentMethod: { type: String, enum: ['cash', 'momo', 'vnpay'], default: null },
+    paymentMethod: { type: String, enum: ['cash', 'momo', 'vnpay', 'payos'], default: null },
     paymentStatus: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
-    paidAt: Date
+    paidAt: Date,
+    order_payment_id: { type: String, index: true }, // Xóa unique: true để tránh lỗi duplicate key khi null
   },
   {
     timestamps: true,

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const tableOrderController = require('../controllers/tableOrder.controller');
 const { authMiddleware } = require('../middleware/authMiddleware')
+const payosController = require('../controllers/payos.controller');
 
 // Tạo nhiều TableOrder cho 1 bookingCode
 router.post('/', tableOrderController.createTableOrders);
@@ -51,6 +52,12 @@ router.delete('/:id', tableOrderController.deleteTableOrder);
 router.get('/reservation/by-code/:code', tableOrderController.getReservationByCode);
 // Lấy TableOrder theo reservationId
 
+// Route tạo link thanh toán PayOS cho TableOrder
+router.post('/payos/create-payment', payosController.createPayment);
+// Route webhook PayOS
+router.post('/payos/webhook', payosController.handleWebhook);
+// Route kiểm tra trạng thái thanh toán
+router.get('/payos/check-status/:transactionCode', payosController.checkPaymentStatus);
 
 
 module.exports = router; 

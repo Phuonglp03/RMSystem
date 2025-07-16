@@ -18,6 +18,7 @@ import Reservation_Notification from '../pages/Reservation_Notification';
 import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
 import Signup from '../pages/SignUp';
+import PaymentCallback from '../pages/payment-callback';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
@@ -51,6 +52,7 @@ const AppRoutes = () => (
                 <Route path='test-table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
                 <Route path='profile' element={<UserProfile />} />
+                <Route path='payment-callback' element={<PaymentCallback />} />
             </Route>
 
             {/* Auth Routes */}

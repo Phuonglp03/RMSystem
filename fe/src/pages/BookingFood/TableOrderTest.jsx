@@ -27,12 +27,14 @@ import {
   MinusOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
+import tableService from '../../services/table.service';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select;
 
 const TableOrderTest = () => {
+  console.log('TableOrderTest component loaded');
   // State for code entry popup
   const [codeModalVisible, setCodeModalVisible] = useState(true);
   const [reservationCode, setReservationCode] = useState('');
@@ -51,6 +53,7 @@ const TableOrderTest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [detailModal, setDetailModal] = useState({ open: false, data: null, type: null });
   const [placedOrders, setPlacedOrders] = useState({});
+  const [payingOrderId, setPayingOrderId] = useState(null);
 
   // Check reservation code
   const handleCheckCode = async () => {
@@ -64,10 +67,11 @@ const TableOrderTest = () => {
     
     try {
       const [res, categoryRes, foodRes, comboRes] = await Promise.all([
-        axios.get(`https://rm-system-4tru.vercel.app//table-orders/reservation/by-code/${reservationCode}`),
-        axios.get('https://rm-system-4tru.vercel.app//food-categories'),
-        axios.get('https://rm-system-4tru.vercel.app//foods'),
-        axios.get('https://rm-system-4tru.vercel.app//combos'),
+axios.get(`http://localhost:9999/api/table-orders/reservation/by-code/${reservationCode}`),
+        axios.get('http://localhost:9999/api/food-categories'),
+        axios.get('http://localhost:9999/api/foods'),
+        axios.get('http://localhost:9999/api/combos'),
+
       ]);
 
       setReservation(res.data.data);
@@ -179,7 +183,7 @@ const TableOrderTest = () => {
         orders: ordersForAPI
       };
 
-      const response = await axios.post('https://rm-system-4tru.vercel.app//table-orders', orderData);
+      const response = await axios.post('http://localhost:9999/api/table-orders', orderData);
       const returnedOrders = response.data.data; 
 
       setPlacedOrders(prev => {
@@ -229,6 +233,24 @@ const TableOrderTest = () => {
   // Hàm mở modal chi tiết
   const openDetailModal = (item, type) => {
     setDetailModal({ open: true, data: item, type });
+  };
+
+  const handlePayWithPayos = async (orderId) => {
+    setPayingOrderId(orderId);
+    try {
+      const res = await tableService.createPayosPayment(orderId);
+      if (res && res.data && res.data.paymentUrl) {
+        console.log('Redirecting to PayOS:', res.data.paymentUrl); // Thêm log để kiểm tra luồng
+        window.location.href = res.data.paymentUrl;
+      } else {
+        console.log('Không có paymentUrl trong response:', res);
+        message.error('Không nhận được link thanh toán từ server!');
+      }
+    } catch (err) {
+      message.error(err.message || 'Lỗi khi tạo thanh toán');
+    }
+   
+    setPayingOrderId(null);
   };
 
   return (
@@ -383,6 +405,14 @@ const TableOrderTest = () => {
                                       </Text>
                                     </div>
                                   )}
+                                  <Button
+                                    type="primary"
+                                    style={{ marginTop: 8, background: '#6366f1', border: 'none' }}
+                                    loading={payingOrderId === order._id}
+                                    onClick={() => { console.log('Button clicked', order._id); handlePayWithPayos(order._id); }}
+                                  >
+                                    Thanh toán PayOS
+                                  </Button>
                                 </div>
                               ))}
                             </div>
