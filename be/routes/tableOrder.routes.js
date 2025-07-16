@@ -10,37 +10,37 @@ router.get('/', tableOrderController.getAllTableOrders);
 
 // Lấy TableOrder theo userId
 router.get('/user/:userId', tableOrderController.getTableOrdersByUserId);
-/* https://rm-system-4tru.vercel.app//table-orders/servant */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant */
 router.get('/servant', authMiddleware, tableOrderController.servantGetAllTableOrders)
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant */
 router.post('/servant', authMiddleware, tableOrderController.getTableOrderFromCustomerByReservationCode)
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/confirm */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant/confirm */
 router.post('/servant/confirm/:orderId', authMiddleware, tableOrderController.servantConfirmTableOrder)
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/create */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant/create */
 router.post('/servant/create', authMiddleware, tableOrderController.servantCreateTableOrderForCustomer)
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/update */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant/update */
 router.put('/servant/update', authMiddleware, tableOrderController.servantUpdateTableOrder)
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/send */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant/send */
 router.post('/servant/send', authMiddleware, tableOrderController.servantSendTableOrderToChef)
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/delete */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant/delete */
 router.delete('/servant/delete', authMiddleware, tableOrderController.servantDeleteTableOrder)
 
-/* https://rm-system-4tru.vercel.app//table-orders/update-item/:orderId/:foodId */
+/* https://rm-system-4tru.vercel.app/api/table-orders/update-item/:orderId/:foodId */
 router.patch('/update-item/:orderId/:foodId', authMiddleware, tableOrderController.updateFoodItemStatusInTableOrder);
 
-/* https://rm-system-4tru.vercel.app//table-orders/delete-item/:orderId/:foodId */
+/* https://rm-system-4tru.vercel.app/api/table-orders/delete-item/:orderId/:foodId */
 router.patch('/delete-item/:orderId/:foodId', authMiddleware, tableOrderController.deleteFoodItemFromTableOrder);
 
-/* https://rm-system-4tru.vercel.app//table-orders/change-table/:orderId */
+/* https://rm-system-4tru.vercel.app/api/table-orders/change-table/:orderId */
 router.post('/change-table/:orderId', authMiddleware, tableOrderController.servantTransferTableOrderToCustomer);
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/stats */
+/* https://rm-system-4tru.vercel.app/api/table-orders/servant/stats */
 router.get('/servant/stats', authMiddleware, tableOrderController.getTableOrderStats);
 // Lấy TableOrder theo ID
 router.get('/:id', tableOrderController.getTableOrderById);

@@ -1,15 +1,28 @@
-import authorizedAxios from '../utils/authorizedAxios';
+import axiosInstance from './axios.service';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://rm-system-4tru.vercel.app/';
 
 class AdminService {
   // Dashboard Statistics
   async getDashboardStats() {
     try {
-      const response = await authorizedAxios.get(`${API_BASE_URL}/admin/stats/dashboard`);
-      return response.data;
+      const response = await axiosInstance.get('/api/admin/stats/dashboard');
+      return response; // axiosInstance already returns response.data
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
+      throw error;
+    }
+  }
+
+  // Food Statistics
+  async getFoodStats(params = {}) {
+    try {
+      const response = await axiosInstance.get(
+        '/api/admin/stats/food',
+        { params }
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching food stats:', error);
       throw error;
     }
   }
@@ -17,15 +30,11 @@ class AdminService {
   // Revenue Statistics
   async getRevenueStats(params = {}) {
     try {
-      const queryParams = new URLSearchParams();
-      if (params.period) queryParams.append('period', params.period);
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-
-      const response = await authorizedAxios.get(
-        `${API_BASE_URL}/admin/stats/revenue?${queryParams.toString()}`
+      const response = await axiosInstance.get(
+        '/api/admin/stats/revenue',
+        { params }
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error fetching revenue stats:', error);
       throw error;
@@ -35,35 +44,27 @@ class AdminService {
   // Reservation Statistics
   async getReservationStats(params = {}) {
     try {
-      const queryParams = new URLSearchParams();
-      if (params.period) queryParams.append('period', params.period);
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-
-      const response = await authorizedAxios.get(
-        `${API_BASE_URL}/admin/stats/reservations?${queryParams.toString()}`
+      const response = await axiosInstance.get(
+        '/api/admin/stats/reservations',
+        { params }
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error fetching reservation stats:', error);
       throw error;
     }
   }
 
-  // Staff Performance Statistics
-  async getStaffStats(params = {}) {
+  // Table Order Statistics
+  async getTableOrderStats(params = {}) {
     try {
-      const queryParams = new URLSearchParams();
-      if (params.period) queryParams.append('period', params.period);
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-
-      const response = await authorizedAxios.get(
-        `${API_BASE_URL}/admin/stats/staff?${queryParams.toString()}`
+      const response = await axiosInstance.get(
+        '/api/admin/stats/table-orders',
+        { params }
       );
-      return response.data;
+      return response;
     } catch (error) {
-      console.error('Error fetching staff stats:', error);
+      console.error('Error fetching table order stats:', error);
       throw error;
     }
   }
@@ -71,94 +72,77 @@ class AdminService {
   // Customer Analytics
   async getCustomerStats(params = {}) {
     try {
-      const queryParams = new URLSearchParams();
-      if (params.period) queryParams.append('period', params.period);
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-
-      const response = await authorizedAxios.get(
-        `${API_BASE_URL}/admin/stats/customers?${queryParams.toString()}`
+      const response = await axiosInstance.get(
+        '/api/admin/stats/customers',
+        { params }
       );
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error fetching customer stats:', error);
       throw error;
     }
   }
 
-  // Staff Management APIs
-  async getAllStaff(params = {}) {
+  // Staff Management - Create
+  async createStaff(staffData) {
     try {
-      const queryParams = new URLSearchParams();
-      if (params.role) queryParams.append('role', params.role);
-      if (params.page) queryParams.append('page', params.page);
-      if (params.limit) queryParams.append('limit', params.limit);
-      if (params.search) queryParams.append('search', params.search);
-
-      const response = await authorizedAxios.get(
-        `${API_BASE_URL}/admin/staff?${queryParams.toString()}`
-      );
-      return response.data;
+      const response = await axiosInstance.post('/api/admin/staff', staffData);
+      return response;
     } catch (error) {
-      console.error('Error fetching staff:', error);
+      console.error('Error creating staff:', error);
       throw error;
     }
   }
 
-  async createStaffAccount(staffData) {
+  // Staff Management - Update
+  async updateStaff(userId, staffData) {
     try {
-      const response = await authorizedAxios.post(`${API_BASE_URL}/admin/staff`, staffData);
-      return response.data;
+      const response = await axiosInstance.put(`/api/admin/staff/${userId}`, staffData);
+      return response;
     } catch (error) {
-      console.error('Error creating staff account:', error);
+      console.error('Error updating staff:', error);
       throw error;
     }
   }
 
-  async updateStaffAccount(userId, staffData) {
-    try {
-      const response = await authorizedAxios.put(`${API_BASE_URL}/admin/staff/${userId}`, staffData);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating staff account:', error);
-      throw error;
-    }
-  }
-
+  // Staff Management - Get By ID
   async getStaffById(userId) {
     try {
-      const response = await authorizedAxios.get(`${API_BASE_URL}/admin/staff/${userId}`);
-      return response.data;
+      const response = await axiosInstance.get(`/api/admin/staff/${userId}`);
+      return response;
     } catch (error) {
       console.error('Error fetching staff by ID:', error);
       throw error;
     }
   }
 
-  async deactivateStaffAccount(userId) {
+  // Staff Management - Deactivate
+  async deactivateStaff(userId) {
     try {
-      const response = await authorizedAxios.patch(`${API_BASE_URL}/admin/staff/${userId}/deactivate`);
-      return response.data;
+      const response = await axiosInstance.patch(`/api/admin/staff/${userId}/deactivate`);
+      return response;
     } catch (error) {
-      console.error('Error deactivating staff account:', error);
+      console.error('Error deactivating staff:', error);
       throw error;
     }
   }
 
-  async activateStaffAccount(userId) {
+  // Staff Management - Activate
+  async activateStaff(userId) {
     try {
-      const response = await authorizedAxios.patch(`${API_BASE_URL}/admin/staff/${userId}/activate`);
-      return response.data;
+      const response = await axiosInstance.patch(`/api/admin/staff/${userId}/activate`);
+      return response;
     } catch (error) {
-      console.error('Error activating staff account:', error);
+      console.error('Error activating staff:', error);
       throw error;
     }
   }
 
-  async resetStaffPassword(userId) {
+  // Staff Management - Reset Password
+  async resetStaffPassword(userId, passwordData) {
     try {
-      const response = await authorizedAxios.patch(`${API_BASE_URL}/admin/staff/${userId}/reset-password`);
-      return response.data;
+      const response = await axiosInstance.patch(`/api/admin/staff/${userId}/reset-password`);
+      return response;
     } catch (error) {
       console.error('Error resetting staff password:', error);
       throw error;

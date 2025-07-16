@@ -26,7 +26,9 @@ import {
   PlusOutlined,
   MinusOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
+import tableService from '../../services/table.service';
+import { foodService } from '../../services/food.service';
+import comboService from '../../services/combo.service';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -63,20 +65,20 @@ const TableOrderTest = () => {
     setCodeError('');
     
     try {
-      const [res, categoryRes, foodRes, comboRes] = await Promise.all([
-        axios.get(`https://rm-system-4tru.vercel.app//table-orders/reservation/by-code/${reservationCode}`),
-        axios.get('https://rm-system-4tru.vercel.app//food-categories'),
-        axios.get('https://rm-system-4tru.vercel.app//foods'),
-        axios.get('https://rm-system-4tru.vercel.app//combos'),
+      const [reservation, categories, foods, combos] = await Promise.all([
+        tableService.getTableOrderFromCustomerByReservationCode(reservationCode),
+        foodService.getAllFoodCategories(),
+        foodService.getAllFoods(),
+        comboService.getAllCombos(),
       ]);
 
-      setReservation(res.data.data);
-      setFoodCategories(categoryRes.data.data || categoryRes.data.categories || []);
-      setFoods(foodRes.data.data || foodRes.data.foods || []);
-      setCombos(comboRes.data.data || comboRes.data.combos || []);
+      setReservation(reservation.data);
+      setFoodCategories(categories || []);
+      setFoods(foods || []);
+      setCombos(combos || []);
 
-      if (categoryRes.data.data?.length > 0) {
-        setSelectedCategory(categoryRes.data.data[0]._id);
+      if (categories?.length > 0) {
+        setSelectedCategory(categories[0]._id);
       }
 
       setCodeModalVisible(false);
@@ -179,7 +181,7 @@ const TableOrderTest = () => {
         orders: ordersForAPI
       };
 
-      const response = await axios.post('https://rm-system-4tru.vercel.app//table-orders', orderData);
+      const response = await tableService.createTableOrder(orderData);
       const returnedOrders = response.data.data; 
 
       setPlacedOrders(prev => {

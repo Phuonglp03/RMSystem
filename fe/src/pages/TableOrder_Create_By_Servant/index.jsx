@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Input, Button, Row, Col, Card, List, Typography, message, Badge, Space, Divider } from 'antd';
 import { PlusOutlined, MinusOutlined, CheckCircleOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import tableService from '../../services/table.service';
-import foodService from '../../services/food.service';
+import { foodService } from '../../services/food.service';
+import comboService from '../../services/combo.service';
 import { toast, ToastContainer } from 'react-toastify';
 import './index.css';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -38,10 +39,10 @@ const TableOrder_Create_By_Servant = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const foodRes = await foodService.getAllFoods(); // cần implement ở tableService
-                const comboRes = await foodService.getAllCombos();
-                setFoods(foodRes.data || []);
-                setCombos(comboRes.data || []);
+                const foods = await foodService.getAllFoods();
+                const combos = await comboService.getAllCombos();
+                setFoods(foods || []);
+                setCombos(combos || []);
             } catch (err) {
                 console.error(err);
             }

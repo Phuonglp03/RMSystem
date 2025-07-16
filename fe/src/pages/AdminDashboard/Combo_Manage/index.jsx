@@ -35,7 +35,8 @@ import {
   ReloadOutlined,
   FileAddOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
+import comboService from '../../../services/combo.service';
+import { foodService } from '../../../services/food.service';
 import './index.css';
 
 const { Option } = Select;
@@ -76,13 +77,13 @@ const ComboManage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [comboRes, foodRes] = await Promise.all([
-        axios.get('https://rm-system-4tru.vercel.app//combos'),
-        axios.get('https://rm-system-4tru.vercel.app//foods')
+      const [combos, foods] = await Promise.all([
+        comboService.getAllCombos(),
+        foodService.getAllFoods()
       ]);
       
-      setCombos(comboRes.data.data || []);
-      setFoods(foodRes.data.data || []);
+      setCombos(combos || []);
+      setFoods(foods || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       message.error('Không thể tải dữ liệu');
@@ -219,17 +220,9 @@ const ComboManage = () => {
         formData.append('image', fileList[0].originFileObj);
       }
 
-      const url = editingCombo 
-        ? `https://rm-system-4tru.vercel.app//combos/${editingCombo._id}`
-        : 'https://rm-system-4tru.vercel.app//combos';
-      
-      const method = editingCombo ? 'put' : 'post';
-      
-      const response = await axios[method](url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = editingCombo 
+        ? await comboService.updateCombo(editingCombo._id, formData)
+        : await comboService.createCombo(formData);
 
       message.success(editingCombo ? 'Cập nhật combo thành công!' : 'Tạo combo thành công!');
       handleCancel();
@@ -245,7 +238,7 @@ const ComboManage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://rm-system-4tru.vercel.app//combos/${id}`);
+      await comboService.deleteCombo(id);
       message.success('Xóa combo thành công!');
       fetchData();
     } catch (error) {
@@ -256,12 +249,8 @@ const ComboManage = () => {
 
   const handleToggleStatus = async (comboId, currentStatus) => {
     try {
-      await axios.put(`https://rm-system-4tru.vercel.app//combos/${comboId}`, {
+      await comboService.updateCombo(comboId, {
         isActive: !currentStatus
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
       message.success(`${!currentStatus ? 'Kích hoạt' : 'Vô hiệu hóa'} combo thành công!`);
       fetchData();
@@ -275,7 +264,7 @@ const ComboManage = () => {
 
   const handleRemoveItem = async (itemId) => {
     try {
-      await axios.delete(`https://rm-system-4tru.vercel.app//combos/${selectedCombo._id}/items/${itemId}`);
+      await comboService.removeItemFromCombo(selectedCombo._id, itemId);
       message.success('Xóa món ăn khỏi combo thành công!');
       fetchData();
     } catch (error) {
