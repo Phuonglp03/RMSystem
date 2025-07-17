@@ -36,7 +36,13 @@ exports.createTableOrders = async (req, res) => {
           total += price;
         });
       }
-      return { ...order, bookingCode, totalprice: total };
+      return {
+        ...order,
+        bookingCode,
+        totalprice: total,
+        paymentStatus: 'pending',
+        status: 'pending',
+      };
     });
     const createdOrders = await TableOrder.insertMany(ordersWithPrice);
     res.status(201).json({ status: 'success', data: createdOrders });
@@ -189,25 +195,57 @@ exports.getReservationByCode = async (req, res) => {
 exports.getTableOrdersByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
-    console.log('userId:', userId);
+    console.log('userId param:', userId);
+
     const customer = await Customer.findOne({ userId });
-    console.log('customer:', customer);
+    console.log('customer found:', customer);
+
     if (!customer) {
       return res.status(404).json({ status: 'fail', message: 'Không tìm thấy customer với userId này' });
     }
-    const reservations = await Reservation.find({ customerId: customer._id }).select('_id');
-    console.log('reservations:', reservations);
+
+    console.log('customer._id:', customer._id, 'typeof:', typeof customer._id, 'instanceof ObjectId:', customer._id instanceof require('mongoose').Types.ObjectId);
+
+    // Lấy một reservation mẫu để log kiểu dữ liệu customerId
+    const oneReservation = await Reservation.findOne({});
+    if (oneReservation) {
+      console.log('Sample reservation customerId:', oneReservation.customerId, 'typeof:', typeof oneReservation.customerId[0], 'instanceof ObjectId:', oneReservation.customerId[0] instanceof require('mongoose').Types.ObjectId);
+    }
+
+    // Truy vấn match cả ObjectId lẫn string
+    const reservations = await Reservation.find({
+      $or: [
+        { customerId: { $in: [customer._id] } },
+        { customerId: { $in: [customer._id.toString()] } }
+      ]
+    }).select('_id');
+    console.log('reservations found:', reservations);
+
     const reservationIds = reservations.map(r => r._id);
     const orders = await TableOrder.find({ reservationId: { $in: reservationIds } })
       .populate('tableId', 'tableNumber')
       .populate('reservationId')
       .populate('foods.foodId', 'name')
       .populate('combos', 'comboId foodId quantity');
-    console.log('orders:', orders);
+    console.log('orders found:', orders);
+
     res.status(200).json({ status: 'success', data: orders });
   } catch (error) {
     console.error('Error in getTableOrdersByUserId:', error);
     res.status(500).json({ status: 'fail', message: error.message });
+  }
+};
+
+exports.getTableOrdersByReservationId = async (req, res) => {
+  try {
+    const { reservationId } = req.params;
+    const orders = await TableOrder.find({ reservationId })
+      .populate('tableId', 'tableNumber')
+      .populate('foods.foodId', 'name price')
+      .populate('combos', 'comboId foodId quantity');
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -217,7 +255,7 @@ exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
   try {
     const servantId = req.jwtDecode.id
     const { reservationCode } = req.body
-    const reservation = Reservation.findOne({ reservationCode })
+    const reservation = await Reservation.findOne({ reservationCode })
 
     if (!reservation) {
       return res.status(404).json({
@@ -226,7 +264,7 @@ exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
       })
     }
 
-    const tableOrder = TableOrder.find({ reservationId: reservation._id })
+    const tableOrder = await TableOrder.find({ reservationId: reservation._id })
       .populate({
         path: 'foods.foodId',
         select: 'name price'
@@ -241,7 +279,7 @@ exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
       });
 
     return res.json({
-      status: success,
+      success: true,
       message: `Lấy danh sách đặt món theo ${reservationCode} thành công`,
       tableOrder
     })
@@ -249,7 +287,7 @@ exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
 
   } catch (error) {
     console.error('[DEBUG] Error in getTableOrderFromCustomerByReservationCode:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -259,27 +297,27 @@ exports.servantConfirmTableOrder = async (req, res) => {
     const servantId = req.jwtDecode.id
     const { orderId } = req.params
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
     const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy đơn đặt món' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy đơn đặt món' });
     }
     if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: false, message: 'Bạn không có quyền xác nhận đơn này' });
+      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền xác nhận đơn này' });
     }
     // Cập nhật trạng thái đơn đặt món
     tableOrder.status = 'confirmed'; // Xác nhận đơn
     await tableOrder.save();
     return res.json({
-      status: true,
+      status: 'success',
       message: 'Xác nhận đơn đặt món thành công',
       tableOrder
     });
 
   } catch (error) {
     console.error('[DEBUG] Error in servantConfirmTableOrder:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -358,7 +396,7 @@ exports.servantGetAllTableOrders = async (req, res) => {
 
   } catch (error) {
     console.error('[DEBUG] Error in servantGetAllTableOrders:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 };
 
@@ -371,7 +409,7 @@ exports.servantCreateTableOrderForCustomer = async (req, res) => {
     // orders: [{ tableId, foods, combos, status }]
     if (!orders || !Array.isArray(orders) || orders.length === 0) {
       return res.status(400).json({
-        status: false,
+        success: false,
         message: 'orders phải là mảng và không được rỗng'
       });
     }
@@ -379,7 +417,7 @@ exports.servantCreateTableOrderForCustomer = async (req, res) => {
     const reservation = await Reservation.findOne({ reservationCode, servantId });
     if (!reservation) {
       return res.status(404).json({
-        status: false,
+        success: false,
         message: `Không tìm thấy đặt bàn với mã ${reservationCode}`
       });
     }
@@ -403,13 +441,13 @@ exports.servantCreateTableOrderForCustomer = async (req, res) => {
     }
 
     return res.status(201).json({
-      status: true,
+      success: true,
       message: 'Tạo đơn đặt món thành công',
       createdOrders
     });
   } catch (error) {
     console.error('[DEBUG] Error in servantCreateTableOrderForCustomer:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -421,10 +459,10 @@ exports.servantUpdateTableOrder = async (req, res) => {
 
     const tableOrder = await TableOrder.findOne({ _id: orderId }).populate('reservationId')
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy TableOrder' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy TableOrder' });
     }
     if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: false, message: 'Bạn không có quyền sửa đơn này' });
+      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền sửa đơn này' });
     }
     const updateData = { ...req.body };
     const updatedOrder = await TableOrder.findByIdAndUpdate(orderId, updateData, { new: true, runValidators: true })
@@ -439,14 +477,14 @@ exports.servantUpdateTableOrder = async (req, res) => {
     await notificationService.addNotification(servantId, notiData);
 
     return res.json({
-      status: true,
+      status: 'success',
       message: 'Cập nhật đơn đặt món thành công',
       updatedOrder
     });
 
   } catch (error) {
     console.error('[DEBUG] Error in servantUpdateTableOrder:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -456,29 +494,29 @@ exports.servantSendTableOrderToChef = async (req, res) => {
     const servantId = req.jwtDecode.id
     const { orderId } = req.params
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
 
     const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy TableOrder' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy TableOrder' });
     }
 
     if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: false, message: 'Bạn không có quyền gửi đơn này' });
+      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền gửi đơn này' });
     }
 
     tableOrder.status = 'preparing'; //Gui toi cho chef
     await tableOrder.save();
 
     return res.json({
-      status: true,
+      status: 'success',
       message: 'Gửi đơn đặt món cho Chef thành công',
       tableOrder
     });
   } catch (error) {
     console.error('[DEBUG] Error in servantSendTableOrderToChef:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -488,24 +526,24 @@ exports.servantDeleteTableOrder = async (req, res) => {
     const servantId = req.jwtDecode.id
     const { orderId } = req.params
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
 
     const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy TableOrder' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy TableOrder' });
     }
 
     if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: false, message: 'Bạn không có quyền xóa đơn này' });
+      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền xóa đơn này' });
     }
 
     await TableOrder.findByIdAndDelete(orderId);
-    return res.status(204).json({ status: true, message: 'Xóa đơn đặt món thành công', tableOrder });
+    return res.status(204).json({ status: 'success', message: 'Xóa đơn đặt món thành công', tableOrder });
 
   } catch (error) {
     console.error('[DEBUG] Error in servantDeleteTableOrder:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -516,17 +554,17 @@ exports.updateFoodItemStatusInTableOrder = async (req, res) => {
     const { status } = req.body; // status: 'pending', 'preparing', 'ready_to_serve', 'served'
     const servantId = req.jwtDecode.id;
     if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(foodId)) {
-      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
 
     const tableOrder = await TableOrder.findById(orderId);
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy đơn đặt món' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy đơn đặt món' });
     }
 
     const foodItem = tableOrder.foods.find(f => f.foodId.toString() === foodId);
     if (!foodItem) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy món ăn trong đơn đặt món này' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy món ăn trong đơn đặt món này' });
     }
 
     // Cập nhật trạng thái món ăn
@@ -534,14 +572,14 @@ exports.updateFoodItemStatusInTableOrder = async (req, res) => {
     await tableOrder.save();
 
     return res.json({
-      status: true,
+      status: 'success',
       message: 'Cập nhật trạng thái món ăn thành công',
       tableOrder
     });
 
   } catch (error) {
     console.error('[DEBUG] Error in updateFoodItemStatusInTableOrder:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -550,20 +588,20 @@ exports.deleteFoodItemFromTableOrder = async (req, res) => {
   try {
     const { orderId, foodId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(orderId) || !mongoose.Types.ObjectId.isValid(foodId)) {
-      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
     const servantId = req.jwtDecode.id;
     const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy đơn đặt món' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy đơn đặt món' });
     }
     if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: false, message: 'Bạn không có quyền xóa món này' });
+      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền xóa món này' });
     }
     // Tìm món ăn trong foods
     const foodIndex = tableOrder.foods.findIndex(f => f.foodId.toString() === foodId);
     if (foodIndex === -1) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy món ăn trong đơn đặt món này' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy món ăn trong đơn đặt món này' });
     }
     // Xóa món ăn
     tableOrder.foods.splice(foodIndex, 1);
@@ -571,13 +609,13 @@ exports.deleteFoodItemFromTableOrder = async (req, res) => {
     tableOrder.totalprice = tableOrder.foods.reduce((total, f) => total + (f.quantity || 1) * (f.foodId?.price || 0), 0);
     await tableOrder.save();
     return res.json({
-      status: true,
+      status: 'success',
       message: 'Xóa món ăn khỏi đơn đặt món thành công',
       tableOrder
     });
   } catch (error) {
     console.error('[DEBUG] Error in deleteFoodItemFromTableOrder:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 }
 
@@ -587,14 +625,14 @@ exports.servantTransferTableOrderToCustomer = async (req, res) => {
     const servantId = req.jwtDecode.id;
     const { orderId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
-      return res.status(400).json({ status: false, message: 'ID không hợp lệ' });
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
     const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
     if (!tableOrder) {
-      return res.status(404).json({ status: false, message: 'Không tìm thấy đơn đặt món' });
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy đơn đặt món' });
     }
     if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: false, message: 'Bạn không có quyền chuyển đơn này' });
+      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền chuyển đơn này' });
     }
     // Cập nhật trạng thái đơn đặt món
     tableOrder.status = 'ready_to_serve'; // Chuyển cho khách
@@ -606,13 +644,13 @@ exports.servantTransferTableOrderToCustomer = async (req, res) => {
     }, NOTIFICATION_TYPES.TABLE_ORDER_TRANSFERRED_TO_CUSTOMER);
     await notificationService.addNotification(tableOrder.reservationId.customerId, notiData);
     return res.json({
-      status: true,
+      status: 'success',
       message: 'Chuyển đơn đặt món cho khách thành công',
       tableOrder
     });
   } catch (error) {
     console.error('[DEBUG] Error in servantTransferTableOrderToCustomer:', error);
-    res.status(500).json({ status: false, message: error.message });
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 };
 
@@ -647,7 +685,7 @@ exports.getTableOrderStats = async (req, res) => {
         groupId = { year: { $year: "$createdAt" } };
         break;
       default:
-        return res.status(400).json({ status: false, message: 'type phải là day|week|month|year' });
+        return res.status(400).json({ status: 'fail', message: 'type phải là day|week|month|year' });
     }
 
     const stats = await TableOrder.aggregate([
@@ -663,9 +701,9 @@ exports.getTableOrderStats = async (req, res) => {
       { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1, "_id.week": 1 } }
     ]);
 
-    res.json({ status: true, stats });
+    res.json({ status: 'success', stats });
   } catch (err) {
     console.error('[DEBUG] Error in getTableOrderStats:', err);
-    res.status(500).json({ status: false, message: err.message });
+    res.status(500).json({ status: 'fail', message: err.message });
   }
 };
