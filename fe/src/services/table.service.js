@@ -67,6 +67,24 @@ const tableAPI = {
   }
 };
 
+const createPayosPayment = async (orderId) => {
+  try {
+    // response đã là .data do interceptor, nên chỉ cần return luôn
+    return await axiosClient.post('/api/table-orders/payos/create-payment', { orderId });
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Error creating PayOS payment');
+  }
+};
+
+const checkPayosPaymentStatus = async (transactionCode) => {
+  try {
+    const response = await axiosClient.get(`/api/table-orders/payos/check-status/${transactionCode}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Error checking PayOS payment status');
+  }
+};
+
 const tableService = {
   getAllTables: async () => {
     try {
@@ -153,7 +171,7 @@ const tableService = {
 
   getTableOrderFromCustomerByReservationCode: async (reservationCode) => {
     try {
-      const response = await tableAPI.getTableOrderFromCustomerByReservationCode(reservationCode);
+      const response = await axiosClient.get(`/api/table-orders/reservation/by-code/${reservationCode}`);
       return response.data;
     } catch (error) {
       console.error("Error getting table orders by reservationCode:", error);
@@ -242,6 +260,8 @@ const tableService = {
     }
   },
 
+  createPayosPayment,
+  checkPayosPaymentStatus,
 
   getTableOrderStats: async (type, from, to) => {
     try {
@@ -251,6 +271,16 @@ const tableService = {
     } catch (error) {
       console.error("Error fetching table order stats:", error);
       throw error.response ? error.response.data : new Error('Error fetching table order stats');
+    }
+  },
+
+  createTableOrder: async (orderData) => {
+    try {
+      const response = await axiosClient.post('/api/table-orders', orderData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating table order:", error);
+      throw error.response ? error.response.data : new Error('Error creating table order');
     }
   },
 };

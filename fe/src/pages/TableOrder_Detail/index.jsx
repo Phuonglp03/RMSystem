@@ -9,6 +9,7 @@ const TableOrder_Detail = () => {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [paying, setPaying] = useState(false);
 
     useEffect(() => {
         fetchOrder();
@@ -63,7 +64,38 @@ const TableOrder_Detail = () => {
         }
     };
 
+    const handlePayWithPayos = async () => {
+        setPaying(true);
+        try {
+            const res = await tableService.createPayosPayment(id);
+            if (res && res.data && res.data.paymentUrl) {
+                window.location.href = res.data.paymentUrl;
+            } else {
+                message.error('Không lấy được link thanh toán');
+            }
+        } catch (err) {
+            message.error(err.message || 'Lỗi khi tạo thanh toán');
+        }
+        setPaying(false);
+    };
+
     if (loading) return <Spin />;
+
+    let paymentStatusText = '';
+    let paymentStatusColor = '';
+    if (order.paymentStatus === 'success') {
+        paymentStatusText = 'Đã thanh toán';
+        paymentStatusColor = 'green';
+    } else if (order.paymentStatus === 'pending') {
+        paymentStatusText = 'Chưa thanh toán';
+        paymentStatusColor = 'orange';
+    } else if (order.paymentStatus === 'failed') {
+        paymentStatusText = 'Thanh toán thất bại';
+        paymentStatusColor = 'red';
+    } else {
+        paymentStatusText = 'Không xác định';
+        paymentStatusColor = 'gray';
+    }
 
     return (
         <div style={{ padding: 24 }}>
@@ -71,6 +103,7 @@ const TableOrder_Detail = () => {
             <p><b>Bàn:</b> {order.tableId?.tableNumber}</p>
             <p><b>Trạng thái:</b> {order.status}</p>
             <p><b>Ngày tạo:</b> {new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+            <p><b>Trạng thái thanh toán:</b> <span style={{ color: paymentStatusColor, fontWeight: 600 }}>{paymentStatusText}</span></p>
             <div>
                 <b>Món ăn:</b>
                 <ul>
@@ -94,6 +127,9 @@ const TableOrder_Detail = () => {
                 </Button>
                 <Button onClick={handleSendToChef} style={{ marginLeft: 8 }}>
                     Gửi cho chef
+                </Button>
+                <Button type="primary" style={{ marginLeft: 8 }} loading={paying} onClick={handlePayWithPayos}>
+                    Thanh toán PayOS
                 </Button>
             </div>
         </div>

@@ -18,6 +18,7 @@ import Reservation_Notification from '../pages/Reservation_Notification';
 import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
 import Signup from '../pages/SignUp';
+import PaymentCallback from '../pages/payment-callback';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
@@ -34,6 +35,7 @@ import TableOrder_Assigned from '../pages/TableOrder_Assigned';
 import TableOrder_Create_By_Servant from '../pages/TableOrder_Create_By_Servant';
 import TableOrder_History from '../pages/TableOrder_History';
 import TableOrder_Statistics from '../pages/TableOrder_Statistics';
+import VoucherManage from '../pages/AdminDashboard/Voucher_Manage';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -51,6 +53,7 @@ const AppRoutes = () => (
                 <Route path='test-table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
                 <Route path='profile' element={<UserProfile />} />
+                <Route path='payment-callback' element={<PaymentCallback />} />
             </Route>
 
             {/* Auth Routes */}
@@ -69,6 +72,7 @@ const AppRoutes = () => (
                 <Route path="food-categories" element={<FoodCategoryManage />} />
                 <Route path="foods" element={<FoodManage />} />
                 <Route path="combos" element={<ComboManage />} />
+                <Route path="voucher" element={<VoucherManage />} />
             </Route>
 
             {/* Servant Routes - Protected */}

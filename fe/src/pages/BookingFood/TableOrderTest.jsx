@@ -29,6 +29,7 @@ import {
 import tableService from '../../services/table.service';
 import { foodService } from '../../services/food.service';
 import comboService from '../../services/combo.service';
+// Removed: import axios from 'axios';
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -53,7 +54,8 @@ const TableOrderTest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [detailModal, setDetailModal] = useState({ open: false, data: null, type: null });
   const [placedOrders, setPlacedOrders] = useState({});
-
+  const [payingOrderId, setPayingOrderId] = useState(null);
+  const [orders, setOrders] = useState([]);
   // Check reservation code
   const handleCheckCode = async () => {
     if (!reservationCode.trim()) {
@@ -65,28 +67,32 @@ const TableOrderTest = () => {
     setCodeError('');
     
     try {
-      const [reservation, categories, foods, combos] = await Promise.all([
+      // Use tableService, foodService, comboService
+      const [res, categoryRes, foodRes, comboRes] = await Promise.all([
         tableService.getTableOrderFromCustomerByReservationCode(reservationCode),
         foodService.getAllFoodCategories(),
         foodService.getAllFoods(),
         comboService.getAllCombos(),
       ]);
-
-      setReservation(reservation.data);
-      setFoodCategories(categories || []);
-      setFoods(foods || []);
-      setCombos(combos || []);
-
-      if (categories?.length > 0) {
-        setSelectedCategory(categories[0]._id);
+      setReservation(res.data || res);
+      setFoodCategories(categoryRes.data || categoryRes.categories || categoryRes || []);
+      setFoods(foodRes.data || foodRes.foods || foodRes || []);
+      setCombos(comboRes.data || comboRes.combos || comboRes || []);
+      if ((categoryRes.data || categoryRes.categories || categoryRes)?.length > 0) {
+        setSelectedCategory((categoryRes.data || categoryRes.categories || categoryRes)[0]._id);
       }
-
+      // Lấy danh sách order theo reservationId
+      if ((res.data || res)?._id) {
+        const ordersRes = await tableService.getOrdersByReservationId((res.data || res)._id);
+        setOrders(ordersRes || []);
+      } else {
+        setOrders([]);
+      }
       setCodeModalVisible(false);
       message.success('Mã đặt bàn hợp lệ!');
     } catch (err) {
-      setCodeError(err.response?.data?.message || 'Mã đặt bàn không hợp lệ');
+      setCodeError(err.response?.data?.message || err.message || 'Mã đặt bàn không hợp lệ');
     }
-    
     setCheckingCode(false);
   };
 
@@ -161,18 +167,24 @@ const TableOrderTest = () => {
 
   // Submit order
   const handleSubmitOrder = async () => {
-    if (Object.keys(cart).length === 0) {
-      message.error('Vui lòng thêm món vào giỏ hàng trước khi đặt');
+    if (!selectedTable || !cart[selectedTable._id] || cart[selectedTable._id].length === 0) {
+      message.error('Vui lòng chọn bàn và thêm món vào giỏ hàng trước khi đặt');
       return;
     }
 
-    const ordersForAPI = Object.entries(cart).map(([tableId, items]) => ({
-      tableId,
-      reservationId: reservation?._id,
-      foods: items.filter(item => item.type === 'food').map(item => ({ foodId: item.id, quantity: item.quantity })),
-      combos: items.filter(item => item.type === 'combo').map(item => item.id),
-      status: 'pending' // Gửi trạng thái mặc định
-    }));
+    const ordersForAPI = [
+      {
+        tableId: selectedTable._id,
+        reservationId: reservation?._id,
+        foods: cart[selectedTable._id]
+          .filter(item => item.type === 'food')
+          .map(item => ({ foodId: item.id, quantity: item.quantity })),
+        combos: cart[selectedTable._id]
+          .filter(item => item.type === 'combo')
+          .map(item => item.id),
+        status: 'pending'
+      }
+    ];
 
     setSubmitting(true);
     try {
@@ -180,45 +192,52 @@ const TableOrderTest = () => {
         bookingCode: reservationCode,
         orders: ordersForAPI
       };
-
-      const response = await tableService.createTableOrder(orderData);
-      const returnedOrders = response.data.data; 
-
-      setPlacedOrders(prev => {
-        const newPlaced = { ...prev };
-        
-        returnedOrders.forEach(dbOrder => {
-          const tableId = dbOrder.tableId;
-
-          const isAlreadyInState = (newPlaced[tableId] || []).some(
-            (existingOrder) => existingOrder._id === dbOrder._id
-          );
-          
-          if (!isAlreadyInState) {
-            const cartForThisTable = cart[tableId]; 
-            if (cartForThisTable) {
-              if (!newPlaced[tableId]) {
-                newPlaced[tableId] = [];
-              }
-              const newOrderForState = {
-                _id: dbOrder._id,
-                status: dbOrder.status,
-                items: cartForThisTable,
-                createdAt: new Date()
-              };
-              newPlaced[tableId].push(newOrderForState);
+      // Use tableService for order creation
+      // Assume a method like tableService.createTableOrder exists, otherwise fallback to axiosClient
+      if (typeof tableService.createTableOrder === 'function') {
+        const response = await tableService.createTableOrder(orderData);
+        if (response && response.data) {
+          message.success('Đặt món thành công!');
+          // Reset cart chỉ cho bàn vừa đặt
+          setCart(prevCart => {
+            const newCart = { ...prevCart };
+            if (selectedTable && selectedTable._id) {
+              newCart[selectedTable._id] = [];
             }
+            return newCart;
+          });
+          // Thêm đơn mới vào danh sách orders hiện tại để hiển thị ngay
+          const normalizeOrder = (order) => {
+            let normalized = { ...order };
+            if (order.tableId && typeof order.tableId === 'string') {
+              normalized.tableId = { _id: order.tableId };
+            }
+            if (order.reservationId && typeof order.reservationId === 'string') {
+              normalized.reservationId = { _id: order.reservationId };
+            }
+            return normalized;
+          };
+          if (Array.isArray(response.data)) {
+            setOrders(prev => [...prev, ...response.data.map(normalizeOrder)]);
+          } else {
+            setOrders(prev => [...prev, normalizeOrder(response.data)]);
           }
-        });
-
-        return newPlaced;
-      });
-
-      message.success('Đặt món thành công!');
-      setCart({});
-
+          // Debug log
+          console.log('Orders after add:', setOrders);
+          // Scroll tới danh sách đơn đã đặt (nếu có)
+          setTimeout(() => {
+            const orderList = document.querySelector('.ant-list');
+            if (orderList) orderList.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
+        } else {
+          message.error('Có lỗi xảy ra khi đặt món');
+        }
+      } else {
+        // fallback: use axiosClient directly if not implemented
+        message.error('API đặt món chưa được triển khai trong tableService');
+      }
     } catch (err) {
-      message.error(err.response?.data?.message || 'Có lỗi xảy ra khi đặt món');
+      message.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi đặt món');
     }
     setSubmitting(false);
   };
@@ -232,7 +251,23 @@ const TableOrderTest = () => {
   const openDetailModal = (item, type) => {
     setDetailModal({ open: true, data: item, type });
   };
-
+const handlePayWithPayos = async (orderId) => {
+    setPayingOrderId(orderId);
+    try {
+      const res = await tableService.createPayosPayment(orderId);
+      if (res && res.data && res.data.paymentUrl) {
+        console.log('Redirecting to PayOS:', res.data.paymentUrl); // Thêm log để kiểm tra luồng
+        window.location.href = res.data.paymentUrl;
+      } else {
+        console.log('Không có paymentUrl trong response:', res);
+        message.error('Không nhận được link thanh toán từ server!');
+      }
+    } catch (err) {
+      message.error(err.message || 'Lỗi khi tạo thanh toán');
+    }
+   
+    setPayingOrderId(null);
+  };
   return (
     <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #e0e7ff 0%, #f4f6fb 100%)' }}>
       {/* Code Entry Modal */}
@@ -330,7 +365,9 @@ const TableOrderTest = () => {
                 <List
                   dataSource={reservation.bookedTable}
                   renderItem={(table) => {
-                    const ordersForThisTable = placedOrders[table._id] || [];
+                    const ordersForThisTable = orders.filter(order =>
+                      String(order.tableId?._id || order.tableId) === String(table._id)
+                    );
                     return (
                       <List.Item
                         style={{
@@ -356,35 +393,35 @@ const TableOrderTest = () => {
                             )}
                           </div>
                           <Text type="secondary" style={{ fontSize: 15 }}>Sức chứa: {table.capacity} người</Text>
-                          
+                          {/* Đơn đã đặt cho bàn này */}
                           {ordersForThisTable.length > 0 && (
-                            <div style={{ marginTop: '12px' }}>
-                              {ordersForThisTable.map((order, orderIndex) => (
-                                <div key={order._id || orderIndex} style={{ 
-                                    marginTop: '10px',
-                                    paddingTop: '10px',
-                                    borderTop: '1.5px dashed #dde3f0' 
-                                }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                    <Text strong style={{color: '#10b981' }}>Lần đặt #{orderIndex + 1}</Text>
-                                    <Tag color={order.status === 'pending' ? 'orange' : 'green'}>{order.status}</Tag>
-                                  </div>
-                                  <ul style={{ paddingLeft: '18px', margin: 0, listStyleType: '"✓ "' }}>
-                                    {order.items.map((item, itemIndex) => (
-                                      <li key={itemIndex} style={{ marginBottom: '4px' }}>
-                                        <Text style={{ color: '#555' }}>
-                                          {item.name} <Text type="secondary">x</Text> <Text strong>{item.quantity}</Text>
-                                        </Text>
+                            <div style={{ marginTop: 8 }}>
+                              {ordersForThisTable.map((order, idx) => (
+                                <div key={order._id || idx} style={{ marginBottom: 8 }}>
+                                  <b>Đơn #{idx + 1} ({order.status}):</b>
+                                  <ul>
+                                    {order.foods.map(f => (
+                                      <li key={f.foodId?._id || f.foodId}>
+                                        {f.foodId?.name || ''} x {f.quantity}
+                                        {typeof f.foodId?.price !== 'undefined' &&
+                                          <span> ({f.foodId.price?.toLocaleString('vi-VN')}đ)</span>
+                                        }
+                                      </li>
+                                    ))}
+                                    {order.combos.map(c => (
+                                      <li key={c._id}>
+                                        Combo: {c.comboId} x {c.quantity}
                                       </li>
                                     ))}
                                   </ul>
-                                  {order.totalprice !== undefined && (
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-                                      <Text strong style={{ color: '#ff4d4f', fontSize: 15 }}>
-                                        Tổng tiền: {order.totalprice.toLocaleString('vi-VN')}đ
-                                      </Text>
-                                    </div>
-                                  )}
+                                  <Button
+                                    type="primary"
+                                    style={{ marginTop: 8, background: '#6366f1', border: 'none' }}
+                                    loading={payingOrderId === order._id}
+                                    onClick={() => handlePayWithPayos(order._id)}
+                                  >
+                                    Thanh toán PayOS
+                                  </Button>
                                 </div>
                               ))}
                             </div>
@@ -626,7 +663,11 @@ const TableOrderTest = () => {
                       onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #60a5fa 0%, #6366f1 100%)'}
                       onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)'}
                       loading={submitting}
-                      disabled={Object.keys(cart).length === 0}
+                      disabled={
+                        !selectedTable ||
+                        !cart[selectedTable._id] ||
+                        cart[selectedTable._id].length === 0
+                      }
                       onClick={handleSubmitOrder}
                     >
                       {submitting ? 'Đang đặt món...' : 'Xác nhận đặt món'}
@@ -671,6 +712,34 @@ const TableOrderTest = () => {
           </div>
         )}
       </Modal>
+      {/* Hiển thị danh sách món đã đặt */}
+      {orders.length > 0 && (
+        <div style={{ marginTop: 32, background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 12px #eee' }}>
+          <Title level={4}>Danh sách món đã đặt</Title>
+          <ul>
+            {orders.map(order => (
+              <li key={order._id} style={{ marginBottom: 18 }}>
+                <b>Bàn:</b> {order.tableId?.tableNumber || ''} | <b>Trạng thái:</b> {order.status}
+                <ul>
+                  {order.foods.map(f => (
+                    <li key={f.foodId?._id || f.foodId}>
+                      {f.foodId?.name || ''} x {f.quantity}
+                      {typeof f.foodId?.price !== 'undefined' &&
+                        <span> ({f.foodId.price?.toLocaleString('vi-VN')}đ)</span>
+                      }
+                    </li>
+                  ))}
+                  {order.combos.map(c => (
+                    <li key={c._id}>
+                      Combo: {c.comboId} x {c.quantity}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
