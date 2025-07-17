@@ -1,0 +1,89 @@
+.voucher-manage-container {
+  padding: 32px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header-card {
+  margin-bottom: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #f0f0f0;
+  padding: 32px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  letter-spacing: 0.5px;
+}
+
+.title-icon {
+  color: #f39c12;
+  font-size: 40px;
+  filter: drop-shadow(0 4px 8px rgba(243, 156, 18, 0.3));
+}
+
+.page-subtitle {
+  color: #7f8c8d;
+  margin: 8px 0 0 0;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3) !important;
+  height: 44px !important;
+  padding: 8px 24px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.add-btn:hover {
+  background: linear-gradient(135deg, #f7931e 0%, #e8890b 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.5) !important;
+}
+
+.table-card {
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+}
+
+.voucher-table .ant-table {
+  background: white;
+  font-size: 15px;
+}
+
+.voucher-table .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-bottom: 3px solid #e9ecef;
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 20px 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+} 
