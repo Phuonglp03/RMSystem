@@ -24,8 +24,9 @@ const PaymentCallback = () => {
         console.log('[FE] Gọi API checkPayosPaymentStatus với transactionCode:', transactionCode);
         const res = await tableService.checkPayosPaymentStatus(transactionCode);
         console.log('[FE] Nhận response checkPayosPaymentStatus:', res);
-        setOrder(res.data.order);
-        setStatus(res.data.payment.status);
+        const data = res.data || res;
+        setOrder(data?.order || null);
+        setStatus(data?.payment?.status || 'error');
       } catch (err) {
         console.error('[FE] Lỗi khi checkPayosPaymentStatus:', err);
         setStatus('error');
@@ -53,8 +54,9 @@ const PaymentCallback = () => {
     setLoading(true);
     try {
       const res = await tableService.checkPayosPaymentStatus(transactionCode);
-      setOrder(res.data.order);
-      setStatus(res.data.payment.status);
+      const data = res.data || res;
+      setOrder(data?.order || null);
+      setStatus(data?.payment?.status || 'error');
     } catch (err) {
       setStatus('error');
     }
