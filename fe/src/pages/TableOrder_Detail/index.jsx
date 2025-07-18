@@ -67,13 +67,16 @@ const TableOrder_Detail = () => {
     const handlePayWithPayos = async () => {
         setPaying(true);
         try {
+            console.log('[FE] Gọi API tạo thanh toán PayOS cho orderId:', id);
             const res = await tableService.createPayosPayment(id);
+            console.log('[FE] Nhận response tạo thanh toán PayOS:', res);
             if (res && res.data && res.data.paymentUrl) {
                 window.location.href = res.data.paymentUrl;
             } else {
                 message.error('Không lấy được link thanh toán');
             }
         } catch (err) {
+            console.error('[FE] Lỗi khi tạo thanh toán PayOS:', err);
             message.error(err.message || 'Lỗi khi tạo thanh toán');
         }
         setPaying(false);

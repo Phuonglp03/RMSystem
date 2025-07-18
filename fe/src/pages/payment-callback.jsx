@@ -21,10 +21,13 @@ const PaymentCallback = () => {
     const fetchStatus = async () => {
       setLoading(true);
       try {
+        console.log('[FE] Gọi API checkPayosPaymentStatus với transactionCode:', transactionCode);
         const res = await tableService.checkPayosPaymentStatus(transactionCode);
+        console.log('[FE] Nhận response checkPayosPaymentStatus:', res);
         setOrder(res.data.order);
         setStatus(res.data.payment.status);
       } catch (err) {
+        console.error('[FE] Lỗi khi checkPayosPaymentStatus:', err);
         setStatus('error');
       }
       setLoading(false);
