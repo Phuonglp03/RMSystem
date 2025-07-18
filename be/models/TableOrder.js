@@ -59,7 +59,7 @@ const tableOrderSchema = new mongoose.Schema(
     paymentMethod: { type: String, enum: ['cash', 'momo', 'vnpay', 'payos'], default: null },
     paymentStatus: { type: String, enum: ['pending', 'success', 'failed'], default: 'pending' },
     paidAt: Date,
-    order_payment_id: { type: String, index: true }, // Xóa unique: true để tránh lỗi duplicate key khi null
+    order_payment_id: { type: String, index: true }, // Bỏ unique: true để tránh lỗi duplicate key khi null hoặc trùng
   },
   {
     timestamps: true,

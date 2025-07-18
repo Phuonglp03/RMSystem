@@ -29,7 +29,7 @@ import {
 import tableService from '../../services/table.service';
 import { foodService } from '../../services/food.service';
 import comboService from '../../services/combo.service';
-// Removed: import axios from 'axios';
+import axios from 'axios'; // Added axios import
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -56,6 +56,7 @@ const TableOrderTest = () => {
   const [placedOrders, setPlacedOrders] = useState({});
   const [payingOrderId, setPayingOrderId] = useState(null);
   const [orders, setOrders] = useState([]);
+
   // Check reservation code
   const handleCheckCode = async () => {
     if (!reservationCode.trim()) {
@@ -67,7 +68,6 @@ const TableOrderTest = () => {
     setCodeError('');
     
     try {
-      // Use tableService, foodService, comboService
       const [res, categoryRes, foodRes, comboRes] = await Promise.all([
         tableService.getTableOrderFromCustomerByReservationCode(reservationCode),
         foodService.getAllFoodCategories(),
@@ -81,7 +81,6 @@ const TableOrderTest = () => {
       if ((categoryRes.data || categoryRes.categories || categoryRes)?.length > 0) {
         setSelectedCategory((categoryRes.data || categoryRes.categories || categoryRes)[0]._id);
       }
-      // Lấy danh sách order theo reservationId
       if ((res.data || res)?._id) {
         const ordersRes = await tableService.getOrdersByReservationId((res.data || res)._id);
         setOrders(ordersRes || []);
@@ -99,7 +98,6 @@ const TableOrderTest = () => {
   // Add item to cart
   const addToCart = (item, type) => {
     if (!selectedTable) {
-      // (Không thêm vào giỏ nếu chưa chọn bàn)
       return;
     }
     
@@ -127,7 +125,7 @@ const TableOrderTest = () => {
             id: item._id,
             name: item.name,
             price: item.price,
-            type: type, // 'food' or 'combo'
+            type: type,
             quantity: 1,
             image: item.images?.[0] || item.image
           }
@@ -164,27 +162,42 @@ const TableOrderTest = () => {
     const currentCart = cart[tableId] || [];
     return currentCart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
+  //'https://rm-system-4tru.vercel.app'
+  // Hàm fetch lại danh sách đơn đã đặt theo reservationId
+  const fetchPlacedOrders = async (reservationId) => {
+    try {
+      const res = await axios.get(`https://rm-system-4tru.vercel.app/api/table-orders/reservation/${reservationId}`);
+      const orders = res.data.data;
+      console.log('[DEBUG] Orders từ API:', orders); // Log dữ liệu trả về từ API
+      // Gom nhóm theo tableId (key là string)
+      const grouped = {};
+      orders.forEach(order => {
+        const tableId = typeof order.tableId === 'object' ? order.tableId._id : order.tableId;
+        if (!grouped[tableId]) grouped[tableId] = [];
+        grouped[tableId].push(order);
+      });
+      setPlacedOrders(grouped);
+      console.log('[DEBUG] placedOrders sau khi set:', grouped); // Log state mới
+    } catch (err) {
+      message.error('Không lấy được danh sách đơn đã đặt');
+      console.error('[DEBUG] Lỗi khi fetchPlacedOrders:', err);
+    }
+  };
 
   // Submit order
   const handleSubmitOrder = async () => {
-    if (!selectedTable || !cart[selectedTable._id] || cart[selectedTable._id].length === 0) {
-      message.error('Vui lòng chọn bàn và thêm món vào giỏ hàng trước khi đặt');
+    if (Object.keys(cart).length === 0) {
+      message.error('Vui lòng thêm món vào giỏ hàng trước khi đặt');
       return;
     }
 
-    const ordersForAPI = [
-      {
-        tableId: selectedTable._id,
-        reservationId: reservation?._id,
-        foods: cart[selectedTable._id]
-          .filter(item => item.type === 'food')
-          .map(item => ({ foodId: item.id, quantity: item.quantity })),
-        combos: cart[selectedTable._id]
-          .filter(item => item.type === 'combo')
-          .map(item => item.id),
-        status: 'pending'
-      }
-    ];
+    const ordersForAPI = Object.entries(cart).map(([tableId, items]) => ({
+      tableId,
+      reservationId: reservation?._id,
+      foods: items.filter(item => item.type === 'food').map(item => ({ foodId: item.id, quantity: item.quantity })),
+      combos: items.filter(item => item.type === 'combo').map(item => item.id),
+      status: 'pending' // Gửi trạng thái mặc định
+    }));
 
     setSubmitting(true);
     try {
@@ -192,52 +205,44 @@ const TableOrderTest = () => {
         bookingCode: reservationCode,
         orders: ordersForAPI
       };
-      // Use tableService for order creation
-      // Assume a method like tableService.createTableOrder exists, otherwise fallback to axiosClient
-      if (typeof tableService.createTableOrder === 'function') {
-        const response = await tableService.createTableOrder(orderData);
-        if (response && response.data) {
-          message.success('Đặt món thành công!');
-          // Reset cart chỉ cho bàn vừa đặt
-          setCart(prevCart => {
-            const newCart = { ...prevCart };
-            if (selectedTable && selectedTable._id) {
-              newCart[selectedTable._id] = [];
-            }
-            return newCart;
-          });
-          // Thêm đơn mới vào danh sách orders hiện tại để hiển thị ngay
-          const normalizeOrder = (order) => {
-            let normalized = { ...order };
-            if (order.tableId && typeof order.tableId === 'string') {
-              normalized.tableId = { _id: order.tableId };
-            }
-            if (order.reservationId && typeof order.reservationId === 'string') {
-              normalized.reservationId = { _id: order.reservationId };
-            }
-            return normalized;
-          };
-          if (Array.isArray(response.data)) {
-            setOrders(prev => [...prev, ...response.data.map(normalizeOrder)]);
-          } else {
-            setOrders(prev => [...prev, normalizeOrder(response.data)]);
+
+      const response = await axios.post('https://rm-system-4tru.vercel.app/api/table-orders', orderData);
+      const returnedOrders = response.data.data;
+
+      // Cập nhật placedOrders để luôn giữ lại đơn cũ và thêm đơn mới
+      setPlacedOrders(prev => {
+        const newPlaced = { ...prev };
+        returnedOrders.forEach(dbOrder => {
+          const tableId = dbOrder.tableId;
+          if (!newPlaced[tableId]) newPlaced[tableId] = [];
+          // Tìm xem đã có đơn này chưa
+          const exists = newPlaced[tableId].some(order => order._id === dbOrder._id);
+          if (!exists) {
+            // Lấy lại items từ cart cho đơn mới
+            const cartForThisTable = cart[tableId] || [];
+            newPlaced[tableId].push({
+              _id: dbOrder._id,
+              status: dbOrder.status,
+              items: cartForThisTable,
+              createdAt: new Date(),
+              totalprice: dbOrder.totalprice
+            });
           }
-          // Debug log
-          console.log('Orders after add:', setOrders);
-          // Scroll tới danh sách đơn đã đặt (nếu có)
-          setTimeout(() => {
-            const orderList = document.querySelector('.ant-list');
-            if (orderList) orderList.scrollIntoView({ behavior: 'smooth' });
-          }, 300);
-        } else {
-          message.error('Có lỗi xảy ra khi đặt món');
-        }
-      } else {
-        // fallback: use axiosClient directly if not implemented
-        message.error('API đặt món chưa được triển khai trong tableService');
+        });
+        return newPlaced;
+      });
+
+      message.success('Đặt món thành công!');
+      setCart({}); // Reset giỏ hàng
+      // Gọi lại API lấy danh sách đơn đã đặt để luôn hiển thị đơn mới nhất
+      if (reservation?._id) {
+        await new Promise(r => setTimeout(r, 300)); // Chờ backend lưu xong
+        await fetchPlacedOrders(reservation._id);
       }
+
     } catch (err) {
-      message.error(err.response?.data?.message || err.message || 'Có lỗi xảy ra khi đặt món');
+      message.error(err.response?.data?.message || 'Có lỗi xảy ra khi đặt món');
+      console.error('[DEBUG] Lỗi khi đặt món:', err);
     }
     setSubmitting(false);
   };
@@ -247,27 +252,25 @@ const TableOrderTest = () => {
     ? foods.filter(food => String(food.categoryId?._id || food.categoryId) === String(selectedCategory))
     : foods;
 
-  // Hàm mở modal chi tiết
+  // Open detail modal
   const openDetailModal = (item, type) => {
     setDetailModal({ open: true, data: item, type });
   };
-const handlePayWithPayos = async (orderId) => {
-    setPayingOrderId(orderId);
+
+  // Handle payment with PayOS
+  const handlePayWithPayos = async (orderId) => {
     try {
       const res = await tableService.createPayosPayment(orderId);
       if (res && res.data && res.data.paymentUrl) {
-        console.log('Redirecting to PayOS:', res.data.paymentUrl); // Thêm log để kiểm tra luồng
         window.location.href = res.data.paymentUrl;
       } else {
-        console.log('Không có paymentUrl trong response:', res);
-        message.error('Không nhận được link thanh toán từ server!');
+        console.log('No paymentUrl in response:', res);
       }
     } catch (err) {
-      message.error(err.message || 'Lỗi khi tạo thanh toán');
+      console.error('Error creating PayOS payment:', err);
     }
-   
-    setPayingOrderId(null);
   };
+
   return (
     <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #e0e7ff 0%, #f4f6fb 100%)' }}>
       {/* Code Entry Modal */}
@@ -365,9 +368,8 @@ const handlePayWithPayos = async (orderId) => {
                 <List
                   dataSource={reservation.bookedTable}
                   renderItem={(table) => {
-                    const ordersForThisTable = orders.filter(order =>
-                      String(order.tableId?._id || order.tableId) === String(table._id)
-                    );
+                    // Đảm bảo luôn là mảng để tránh lỗi runtime
+                    const ordersForThisTable = Array.isArray(placedOrders[table._id]) ? placedOrders[table._id] : [];
                     return (
                       <List.Item
                         style={{
@@ -393,14 +395,13 @@ const handlePayWithPayos = async (orderId) => {
                             )}
                           </div>
                           <Text type="secondary" style={{ fontSize: 15 }}>Sức chứa: {table.capacity} người</Text>
-                          {/* Đơn đã đặt cho bàn này */}
                           {ordersForThisTable.length > 0 && (
                             <div style={{ marginTop: 8 }}>
                               {ordersForThisTable.map((order, idx) => (
                                 <div key={order._id || idx} style={{ marginBottom: 8 }}>
                                   <b>Đơn #{idx + 1} ({order.status}):</b>
                                   <ul>
-                                    {order.foods.map(f => (
+                                    {(order.foods || []).map(f => (
                                       <li key={f.foodId?._id || f.foodId}>
                                         {f.foodId?.name || ''} x {f.quantity}
                                         {typeof f.foodId?.price !== 'undefined' &&
@@ -408,7 +409,7 @@ const handlePayWithPayos = async (orderId) => {
                                         }
                                       </li>
                                     ))}
-                                    {order.combos.map(c => (
+                                    {(order.combos || []).map(c => (
                                       <li key={c._id}>
                                         Combo: {c.comboId} x {c.quantity}
                                       </li>
@@ -469,7 +470,7 @@ const handlePayWithPayos = async (orderId) => {
                                   transition: 'filter 0.2s',
                                   cursor: 'pointer'
                                 }}
-                                onMouseOver={e => e.currentTarget.style.filter = 'brightness(0.92)'}
+                                onMouseOver={e => e.currentTarget.style.filter = 'brightness10.92)'}
                                 onMouseOut={e => e.currentTarget.style.filter = 'none'}
                                 onClick={() => openDetailModal(food, 'food')}
                               />
@@ -582,7 +583,9 @@ const handlePayWithPayos = async (orderId) => {
                               <div>
                                 <Text type="secondary" style={{ fontSize: 15 }}>{combo.description}</Text>
                                 <br />
-                                <Text strong style={{ color: '#ff4d4f', fontSize: 17 }}>
+                                <Text strong style={{ color: '#ff4d4f',
+
+ fontSize: 17 }}>
                                   {combo.price?.toLocaleString('vi-VN')}đ
                                 </Text>
                               </div>
@@ -712,36 +715,41 @@ const handlePayWithPayos = async (orderId) => {
           </div>
         )}
       </Modal>
-      {/* Hiển thị danh sách món đã đặt */}
+
+      {/* Display placed orders */}
       {orders.length > 0 && (
         <div style={{ marginTop: 32, background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 12px #eee' }}>
           <Title level={4}>Danh sách món đã đặt</Title>
-          <ul>
-            {orders.map(order => (
-              <li key={order._id} style={{ marginBottom: 18 }}>
-                <b>Bàn:</b> {order.tableId?.tableNumber || ''} | <b>Trạng thái:</b> {order.status}
-                <ul>
-                  {order.foods.map(f => (
-                    <li key={f.foodId?._id || f.foodId}>
-                      {f.foodId?.name || ''} x {f.quantity}
-                      {typeof f.foodId?.price !== 'undefined' &&
-                        <span> ({f.foodId.price?.toLocaleString('vi-VN')}đ)</span>
-                      }
-                    </li>
-                  ))}
-                  {order.combos.map(c => (
-                    <li key={c._id}>
-                      Combo: {c.comboId} x {c.quantity}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ul>
+          <List
+            className="ant-list"
+            dataSource={orders}
+            renderItem={order => (
+              <List.Item style={{ marginBottom: 18 }}>
+                <div>
+                  <b>Bàn:</b> {order.tableId?.tableNumber || ''} | <b>Trạng thái:</b> {order.status}
+                  <ul>
+                    {(order.foods || []).map(f => (
+                      <li key={f.foodId?._id || f.foodId}>
+                        {f.foodId?.name || ''} x {f.quantity}
+                        {typeof f.foodId?.price !== 'undefined' &&
+                          <span> ({f.foodId.price?.toLocaleString('vi-VN')}đ)</span>
+                        }
+                      </li>
+                    ))}
+                    {(order.combos || []).map(c => (
+                      <li key={c._id}>
+                        Combo: {c.comboId} x {c.quantity}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </List.Item>
+            )}
+          />
         </div>
       )}
     </div>
   );
 };
 
-export default TableOrderTest; 
+export default TableOrderTest;
