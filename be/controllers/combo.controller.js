@@ -161,7 +161,34 @@ exports.getAllCombos = async (req, res) => {
   }
 };
 
+// Get Combo by ID với Items
+exports.getComboById = async (req, res) => {
+  try {
+    const comboId = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(comboId)) {
+      return res.status(400).json({ status: 'fail', message: 'ID combo không hợp lệ' });
+    }
 
+    const combo = await Combo.findById(comboId);
+    if (!combo) {
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy combo' });
+    }
+
+    // Lấy items của combo
+    const items = await ComboItem.find({ comboId })
+      .populate('foodId', 'name price images description isAvailable');
+
+    res.status(200).json({ 
+      status: 'success', 
+      data: {
+        ...combo.toObject(),
+        items
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message });
+  }
+};
 
 // Update Combo và Items
 exports.updateCombo = async (req, res) => {

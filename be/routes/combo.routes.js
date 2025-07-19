@@ -9,6 +9,9 @@ router.post('/', comboController.upload.single('image'), comboController.createC
 // Lấy tất cả combo với items
 router.get('/', comboController.getAllCombos);
 
+// Lấy combo theo ID với items
+router.get('/:id', comboController.getComboById);
+
 // Cập nhật combo (có upload ảnh và items)
 router.put('/:id', comboController.upload.single('image'), comboController.updateCombo);
 
