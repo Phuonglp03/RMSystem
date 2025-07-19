@@ -2,6 +2,27 @@ import axiosInstance from './axios.service';
 
 
 class AdminService {
+  async testAdminAccess() {
+    try {
+      console.log('🧪 Testing admin access...');
+      const response = await axiosInstance.get('/api/admin/stats/dashboard');
+      console.log('✅ Admin access test successful');
+      return { success: true, data: response };
+    } catch (error) {
+      console.error('❌ Admin access test failed:', error);
+      return { 
+        success: false, 
+        error: error.message,
+        status: error.status,
+        details: {
+          url: error.url,
+          method: 'GET',
+          headers: error.config?.headers
+        }
+      };
+    }
+  }
+
   // Dashboard Statistics
   async getDashboardStats() {
     try {
@@ -79,6 +100,20 @@ class AdminService {
       return response;
     } catch (error) {
       console.error('Error fetching customer stats:', error);
+      throw error;
+    }
+  }
+
+  // Staff Statistics
+  async getStaffStats(params = {}) {
+    try {
+      const response = await axiosInstance.get(
+        '/api/admin/stats/staff',
+        { params }
+      );
+      return response;
+    } catch (error) {
+      console.error('Error fetching staff stats:', error);
       throw error;
     }
   }

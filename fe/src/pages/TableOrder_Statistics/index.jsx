@@ -27,32 +27,52 @@ const TableOrder_Statistics = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const stats = await tableService.getTableOrderStats(type);
-            setData(stats.stats || []);
+            const response = await tableService.getTableOrderStats(type);
+            const statsData = response?.stats || response?.data?.stats || response?.data || [];
+            
+            // Validate and sanitize data
+            const validatedData = Array.isArray(statsData) ? statsData.map(item => ({
+                ...item,
+                totalOrders: safeNumber(item?.totalOrders),
+                totalRevenue: safeNumber(item?.totalRevenue),
+                _id: item?._id || {}
+            })) : [];
+            
+            setData(validatedData);
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching table order stats:', err);
+            setData([]);
         }
         setLoading(false);
     };
 
+    // Safe data processing function
+    const safeNumber = (value) => {
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+    };
+
+    const safeArray = Array.isArray(data) ? data : [];
+
     // Format data cho chart.js
     const chartData = {
-        labels: data.map(item => {
-            if (type === 'day') return `${item._id.day}/${item._id.month}/${item._id.year}`;
-            if (type === 'week') return `Tuần ${item._id.week}/${item._id.year}`;
-            if (type === 'month') return `${item._id.month}/${item._id.year}`;
-            if (type === 'year') return `${item._id.year}`;
-            return '';
+        labels: safeArray.map(item => {
+            if (!item || !item._id) return 'N/A';
+            if (type === 'day') return `${item._id.day || 0}/${item._id.month || 0}/${item._id.year || 0}`;
+            if (type === 'week') return `Tuần ${item._id.week || 0}/${item._id.year || 0}`;
+            if (type === 'month') return `${item._id.month || 0}/${item._id.year || 0}`;
+            if (type === 'year') return `${item._id.year || 0}`;
+            return 'N/A';
         }),
         datasets: [
             {
                 label: 'Số lượng đơn',
-                data: data.map(item => item.totalOrders),
+                data: safeArray.map(item => safeNumber(item?.totalOrders)),
                 backgroundColor: '#3b82f6',
             },
             {
                 label: 'Doanh thu',
-                data: data.map(item => item.totalRevenue),
+                data: safeArray.map(item => safeNumber(item?.totalRevenue)),
                 backgroundColor: '#10b981',
             },
         ],
