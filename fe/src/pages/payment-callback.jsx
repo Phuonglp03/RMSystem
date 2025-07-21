@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import tableService from '../services/table.service';
 import { Spin, Result, Button } from 'antd';
@@ -10,6 +10,28 @@ const PaymentCallback = () => {
   const [status, setStatus] = useState(null);
   const [order, setOrder] = useState(null);
 
+  const fetchStatus = useCallback(async (transactionCode) => {
+    setLoading(true);
+    try {
+      console.log('[FE] Gọi API checkPayosPaymentStatus với transactionCode:', transactionCode);
+      const res = await tableService.checkPayosPaymentStatus(transactionCode);
+      console.log('[FE] Nhận response checkPayosPaymentStatus:', res);
+      
+      // res đã là data do axios interceptor, không cần .data nữa
+      const data = res;
+      setOrder(data?.order || null);
+      const newStatus = data?.payment?.status || 'error';
+      setStatus(newStatus);
+      return newStatus;
+    } catch (err) {
+      console.error('[FE] Lỗi khi checkPayosPaymentStatus:', err);
+      setStatus('error');
+      return 'error';
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const transactionCode = searchParams.get('transactionCode');
     if (!transactionCode) {
@@ -17,29 +39,31 @@ const PaymentCallback = () => {
       setLoading(false);
       return;
     }
+
     let interval;
-    const fetchStatus = async () => {
-      setLoading(true);
-      try {
-        console.log('[FE] Gọi API checkPayosPaymentStatus với transactionCode:', transactionCode);
-        const res = await tableService.checkPayosPaymentStatus(transactionCode);
-        console.log('[FE] Nhận response checkPayosPaymentStatus:', res);
-        const data = res.data || res;
-        setOrder(data?.order || null);
-        setStatus(data?.payment?.status || 'error');
-      } catch (err) {
-        console.error('[FE] Lỗi khi checkPayosPaymentStatus:', err);
-        setStatus('error');
+    
+    const checkStatus = async () => {
+      const currentStatus = await fetchStatus(transactionCode);
+      
+      // Chỉ set interval nếu status vẫn là PENDING
+      if (currentStatus === 'PENDING') {
+        interval = setInterval(async () => {
+          const updatedStatus = await fetchStatus(transactionCode);
+          if (updatedStatus !== 'PENDING') {
+            clearInterval(interval);
+          }
+        }, 3000);
       }
-      setLoading(false);
     };
-    fetchStatus(); // Gọi lần đầu
-    if (status === 'PENDING' || status === null) {
-      interval = setInterval(fetchStatus, 3000);
-    }
-    return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [searchParams, status]);
+
+    checkStatus();
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [searchParams, fetchStatus]);
 
   useEffect(() => {
     if (status === 'PAID') {
@@ -49,19 +73,6 @@ const PaymentCallback = () => {
       return () => clearTimeout(timer);
     }
   }, [status, navigate]);
-
-  const fetchStatus = async (transactionCode) => {
-    setLoading(true);
-    try {
-      const res = await tableService.checkPayosPaymentStatus(transactionCode);
-      const data = res.data || res;
-      setOrder(data?.order || null);
-      setStatus(data?.payment?.status || 'error');
-    } catch (err) {
-      setStatus('error');
-    }
-    setLoading(false);
-  };
 
   if (loading) return <Spin style={{ display: 'block', margin: '100px auto' }} />;
 

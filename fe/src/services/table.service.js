@@ -82,9 +82,13 @@ const createPayosPayment = async (orderId) => {
 
 const checkPayosPaymentStatus = async (transactionCode) => {
   try {
+    console.log('[Table Service] Gọi checkPayosPaymentStatus với transactionCode:', transactionCode);
     const response = await axiosClient.get(`/api/table-orders/payos/check-status/${transactionCode}`);
-    return response.data;
+    console.log('[Table Service] Response từ checkPayosPaymentStatus:', response);
+    // axiosClient đã trả về response.data do interceptor, nên không cần .data nữa
+    return response;
   } catch (error) {
+    console.error('[Table Service] Lỗi checkPayosPaymentStatus:', error);
     throw error.response ? error.response.data : new Error('Error checking PayOS payment status');
   }
 };

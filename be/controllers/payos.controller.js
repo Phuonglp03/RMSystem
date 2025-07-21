@@ -129,25 +129,65 @@ class PayOsController {
   // Xử lý webhook từ PayOS
   async handleWebhook(req, res, next) {
     try {
+      console.log('[PayOS Webhook] Nhận webhook data:', JSON.stringify(req.body, null, 2));
+      
       const webhookData = req.body;
-      if (!webhookData || !webhookData.data) {
+      if (!webhookData) {
+        console.log('[PayOS Webhook] Không có webhook data');
         return res.status(200).json({ success: true });
       }
-      const { orderCode, status, amount } = webhookData.data;
+
+      // PayOS webhook có thể có format khác nhau, kiểm tra cả 2 format
+      let orderCode, status, amount;
+      
+      if (webhookData.data) {
+        // Format 1: { data: { orderCode, status, amount }, code, success }
+        orderCode = webhookData.data.orderCode;
+        status = webhookData.data.status;
+        amount = webhookData.data.amount;
+      } else if (webhookData.orderCode) {
+        // Format 2: { orderCode, status, amount, code, success }
+        orderCode = webhookData.orderCode;
+        status = webhookData.status;
+        amount = webhookData.amount;
+      }
+
+      console.log('[PayOS Webhook] Parsed data:', { orderCode, status, amount, code: webhookData.code, success: webhookData.success });
+
+      if (!orderCode) {
+        console.log('[PayOS Webhook] Không có orderCode');
+        return res.status(200).json({ success: true });
+      }
+
       const order = await TableOrder.findOne({ order_payment_id: orderCode.toString() });
-      if (!order) return res.status(200).json({ success: true });
-      if (webhookData.code === '00' && webhookData.success === true) {
+      if (!order) {
+        console.log('[PayOS Webhook] Không tìm thấy order với orderCode:', orderCode);
+        return res.status(200).json({ success: true });
+      }
+
+      console.log('[PayOS Webhook] Tìm thấy order:', order._id, 'Payment status hiện tại:', order.paymentStatus);
+
+      // Kiểm tra trạng thái thanh toán
+      const isSuccess = (webhookData.code === '00' && webhookData.success === true) || 
+                       (status === 'PAID' || status === 'SUCCESS');
+
+      if (isSuccess) {
         order.paymentStatus = 'success';
         order.status = 'completed';
         order.paidAt = new Date();
+        console.log('[PayOS Webhook] Cập nhật order thành công:', order._id);
       } else {
         order.paymentStatus = 'failed';
         order.status = 'cancelled';
+        console.log('[PayOS Webhook] Cập nhật order thất bại:', order._id);
       }
+
       await order.save();
+      console.log('[PayOS Webhook] Đã lưu order với paymentStatus:', order.paymentStatus);
+      
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error('PayOs webhook error:', error);
+      console.error('[PayOS Webhook] Error:', error);
       if (!res.headersSent) {
         return res.status(200).json({ success: true });
       }
@@ -158,8 +198,16 @@ class PayOsController {
   async checkPaymentStatus(req, res, next) {
     try {
       const { transactionCode } = req.params;
+      console.log('[PayOS Check Status] Kiểm tra transactionCode:', transactionCode);
+      
       const order = await TableOrder.findOne({ order_payment_id: transactionCode.toString() });
-      if (!order) throw httpErrors.NotFound('Không tìm thấy đơn hàng với mã giao dịch này');
+      if (!order) {
+        console.log('[PayOS Check Status] Không tìm thấy order với transactionCode:', transactionCode);
+        throw httpErrors.NotFound('Không tìm thấy đơn hàng với mã giao dịch này');
+      }
+      
+      console.log('[PayOS Check Status] Tìm thấy order:', order._id, 'Payment status:', order.paymentStatus, 'Order status:', order.status);
+      
       let paymentStatus = { status: 'UNKNOWN' };
       paymentStatus = {
         status:
@@ -169,7 +217,8 @@ class PayOsController {
             ? 'FAILED'
             : 'PENDING',
       };
-      res.status(200).json({
+      
+      const response = {
         success: true,
         data: {
           order: {
@@ -183,9 +232,12 @@ class PayOsController {
             updated_at: order.updatedAt,
           },
         },
-      });
+      };
+      
+      console.log('[PayOS Check Status] Trả về response:', response);
+      res.status(200).json(response);
     } catch (error) {
-      console.error('Check payment status error:', error);
+      console.error('[PayOS Check Status] Error:', error);
       if (!res.headersSent) {
         next(error);
       }

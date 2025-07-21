@@ -1,15 +1,20 @@
 const whitelist = [
-    'http://localhost:3000', // Frontend development
+    // Development URLs
+    'http://localhost:3000',
     'http://127.0.0.1:3000',
-    process.env.CORS_ORIGIN, 
-    'https://domain.com',
-    'https://rm-system-beta.vercel.app', // Frontend production (Vercel)
-    'https://rmsystem.store', // Custom domain
-    'https://www.rmsystem.store' // Custom domain with www
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
+    process.env.FRONTEND_URL,
+    
+    // Production URLs
+    'https://www.rmsystem.store',
+    'https://rmsystem.store',
+    'https://rm-system-beta.vercel.app'
 ];
 
 const corsOptions = {
     origin: function (origin, callback) {
+        console.log('Request origin:', origin);
         // Cho phép requests không có origin (mobile apps, etc.)
         if (!origin || whitelist.includes(origin)) {
             callback(null, true);
