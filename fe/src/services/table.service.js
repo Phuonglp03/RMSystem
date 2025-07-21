@@ -17,6 +17,10 @@ const tableAPI = {
     return axiosClient.get(url)
   },
 
+  getTableOrderById: (id) => {
+    return axiosClient.get(`/api/table-orders/${id}`);
+  },
+
   servantGetAllTableOrders: (url) => {
     return axiosClient.get(url)
   },
@@ -60,7 +64,7 @@ const tableAPI = {
   getTableOrderStats: (type, from, to) => {
     // type: 'day' | 'week' | 'month' | 'year'
     // from, to: ISO date string (yyyy-mm-dd)
-    let url = `/api/table-orders/stats?type=${type}`;
+    let url = `/api/table-orders/servant/stats?type=${type}`;
     if (from) url += `&from=${from}`;
     if (to) url += `&to=${to}`;
     return axiosClient.get(url);
@@ -137,6 +141,18 @@ const tableService = {
       throw error.response ? error.response.data : new Error('Error fetching orders by reservationId');
     }
   },
+
+  getTableOrderById: async (id) => {
+    try {
+      const response = await tableAPI.getTableOrderById(id);
+      console.log('getTableOrderById response: ', response);
+      return response;
+    } catch (error) {
+      console.error("Error fetching table order by ID:", error);
+      throw error.response ? error.response.data : new Error('Error fetching table order by ID');
+    }
+  },
+
   getOrdersByUserId: async (userId) => {
     try {
       const response = await axiosClient.get(`/api/table-orders/user/${userId}`);
@@ -171,8 +187,9 @@ const tableService = {
 
   getTableOrderFromCustomerByReservationCode: async (reservationCode) => {
     try {
-      const response = await axiosClient.get(`/api/table-orders/reservation/by-code/${reservationCode}`);
-      return response.data;
+      const response = await tableAPI.getTableOrderFromCustomerByReservationCode(reservationCode);
+      console.log('response: ', response.reservation)
+      return response.reservation;
     } catch (error) {
       console.error("Error getting table orders by reservationCode:", error);
       throw error.response ? error.response.data : new Error('Error getting table orders by reservationCode');
@@ -192,7 +209,7 @@ const tableService = {
   servantCreateTableOrderForCustomer: async (reservationCode, orders) => {
     try {
       const response = await tableAPI.servantCreateTableOrderForCustomer(reservationCode, orders);
-      console.log('response.data: ', response)
+      console.log('response: ', response)
       return response;
     } catch (error) {
       console.error("Error creating table order for customer:", error);

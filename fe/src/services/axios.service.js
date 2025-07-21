@@ -2,7 +2,7 @@ import axios from "axios";
 // 'http://localhost:9999'
 // 'https://rm-system-4tru.vercel.app'
 const axiosInstance = axios.create({
-  baseURL: 'https://rm-system-4tru.vercel.app' , 
+  baseURL: 'http://localhost:9999',
   timeout: 10000,
   withCredentials: true, // Important for cookies
   headers: {
@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 });
 
 const axiosRaw = axios.create({
-  baseURL: 'https://rm-system-4tru.vercel.app' ,
+  baseURL: 'http://localhost:9999',
   timeout: 10000,
   withCredentials: true,
   headers: { "Content-Type": "application/json" }
@@ -48,13 +48,19 @@ axiosInstance.interceptors.response.use(
       try {
         // Try to refresh token
         const refreshResponse = await axiosRaw.post('/api/users/refresh-token');
+        console.log('Refresh token response:', refreshResponse);
+
+        // Lấy accessToken từ refreshResponse.data
+        const newAccessToken = refreshResponse.data.accessToken;
 
         // Update token in localStorage
-        if (refreshResponse.accessToken) {
-          localStorage.setItem('token', refreshResponse.accessToken);
+        if (newAccessToken) {
+
+          localStorage.setItem('token', newAccessToken);
+          console.log('New access token set in localStorage:', newAccessToken);
           // Update axios headers
-          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${refreshResponse.accessToken}`;
-          originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.accessToken}`;
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         }
 
         // Retry the original request

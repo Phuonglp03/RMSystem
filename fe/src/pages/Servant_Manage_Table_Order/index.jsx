@@ -21,13 +21,6 @@ const Servant_Manage_Table_Order = () => {
             colorClass: 'nav-card-blue'
         },
         {
-            title: 'Thông Báo Đặt Món Mới',
-            description: 'Xem thông báo đặt món mới',
-            icon: <BellOutlined />,
-            path: '/servant/table-order-notification',
-            colorClass: 'nav-card-orange'
-        },
-        {
             title: 'Đơn đặt món đã nhận',
             description: 'Xem danh sách bàn đã nhận từ những đơn đặt bàn trước',
             icon: <CheckCircleOutlined />,
@@ -48,13 +41,6 @@ const Servant_Manage_Table_Order = () => {
             path: '/servant/table-order-payment',
             colorClass: 'nav-card-purple'
         },
-        {
-            title: 'Thống Kê Cá Nhân',
-            description: 'Xem thống kê đơn đặt món của bạn',
-            icon: <BarChartOutlined />,
-            path: '/servant/table-order-statistics',
-            colorClass: 'nav-card-indigo'
-        }
     ]
 
     const handleNavigation = (path) => {

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Food = require('../models/Food');
 const Combo = require('../models/Combo');
 const notificationService = require('../services/notificationService');
+const NOTIFICATION_TYPES = require('../constants/notificationTypes');
 
 // Tạo nhiều TableOrder cho 1 user với cùng 1 bookingCode
 exports.createTableOrders = async (req, res) => {
@@ -256,6 +257,7 @@ exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
     const servantId = req.jwtDecode.id
     const { reservationCode } = req.body
     const reservation = await Reservation.findOne({ reservationCode })
+      .populate('bookedTable', 'tableNumber capacity status')
 
     if (!reservation) {
       return res.status(404).json({
@@ -279,9 +281,10 @@ exports.getTableOrderFromCustomerByReservationCode = async (req, res) => {
       });
 
     return res.json({
-      success: true,
+      status: true,
       message: `Lấy danh sách đặt món theo ${reservationCode} thành công`,
-      tableOrder
+      tableOrder,
+      reservation
     })
 
 
@@ -299,13 +302,14 @@ exports.servantConfirmTableOrder = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
     }
-    const tableOrder = await TableOrder.findById(orderId).populate('reservationId');
+    const tableOrder = await TableOrder.findById(orderId).populate('reservationId', 'servantId');
+    console.log('[DEBUG] tableOrder:', tableOrder.reservationId.servantId, 'servantId:', servantId);
     if (!tableOrder) {
       return res.status(404).json({ status: 'fail', message: 'Không tìm thấy đơn đặt món' });
     }
-    if (tableOrder.reservationId.servantId.toString() !== servantId) {
-      return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền xác nhận đơn này' });
-    }
+    // if (tableOrder.reservationId.servantId.toString() !== servantId) {
+    //   return res.status(403).json({ status: 'fail', message: 'Bạn không có quyền xác nhận đơn này' });
+    // }
     // Cập nhật trạng thái đơn đặt món
     tableOrder.status = 'confirmed'; // Xác nhận đơn
     await tableOrder.save();
@@ -385,6 +389,8 @@ exports.servantGetAllTableOrders = async (req, res) => {
       updatedAt: order.updatedAt
     }));
 
+    console.log('[DEBUG] formattedOrders:', formattedOrders);
+
     res.status(200).json({
       status: 'success',
       totalItems: totalDocs,
@@ -404,9 +410,9 @@ exports.servantGetAllTableOrders = async (req, res) => {
 /* Tạo đơn đặt món cho customer */
 exports.servantCreateTableOrderForCustomer = async (req, res) => {
   try {
-    const servantId = req.jwtDecode.id
-    const { reservationCode, orders } = req.body
-    // orders: [{ tableId, foods, combos, status }]
+    const servantId = req.jwtDecode.id;
+    const { reservationCode, orders } = req.body;
+
     if (!orders || !Array.isArray(orders) || orders.length === 0) {
       return res.status(400).json({
         success: false,
@@ -422,34 +428,125 @@ exports.servantCreateTableOrderForCustomer = async (req, res) => {
       });
     }
 
-    const createdOrders = await TableOrder.insertMany(
-      orders.map(order => ({
+    const createdOrders = [];
+    let globalTotal = 0; // Tổng tất cả đơn cho cùng 1 reservation
+
+    for (const order of orders) {
+      let total = 0;
+
+      // Tính tiền món ăn
+      if (order.foods && order.foods.length > 0) {
+        for (const item of order.foods) {
+          const food = await Food.findById(item.foodId);
+          if (!food) continue;
+          const qty = item.quantity || 1;
+          total += food.price * qty;
+        }
+      }
+
+      // Tính tiền combo
+      if (order.combos && order.combos.length > 0) {
+        for (const comboId of order.combos) {
+          const combo = await Combo.findById(comboId);
+          if (!combo) continue;
+          total += combo.price; // Nếu combo có quantity, cần nhân thêm
+        }
+      }
+
+      globalTotal += total;
+
+      const newOrder = await TableOrder.create({
         ...order,
         reservationId: reservation._id,
-        status: 'preparing' //gui cho chef
-      }))
-    );
+        status: 'preparing',
+        servantId,
+        totalprice: total // lưu tạm subtotal
+      });
 
-    // Lấy userId của servant (nếu đã có sẵn thì dùng luôn)
-    const servantUserId = servantId;
-    for (const order of createdOrders) {
+      createdOrders.push(newOrder);
+
       const notiData = await notificationService.createTableOrderNotification({
-        tableOrderId: order._id,
-        tableNumber: order.tableId // hoặc lấy số bàn từ populate nếu cần
+        tableOrderId: newOrder._id,
+        tableNumber: order.tableId
       }, NOTIFICATION_TYPES.TABLE_ORDER_CREATED_BY_SERVANT);
-      await notificationService.addNotification(servantUserId, notiData);
+
+      await notificationService.addNotification(servantId, notiData);
     }
 
+    // ✅ Gán totalPrice cuối cùng vào tất cả đơn cùng reservationId (gợi ý cho thanh toán)
+    await TableOrder.updateMany(
+      { reservationId: reservation._id },
+      { $set: { totalprice: globalTotal } }
+    );
+
     return res.status(201).json({
-      success: true,
-      message: 'Tạo đơn đặt món thành công',
+      status: true,
+      message: 'Tạo đơn đặt món và tổng thanh toán thành công',
+      totalPrice: globalTotal,
       createdOrders
     });
+
   } catch (error) {
     console.error('[DEBUG] Error in servantCreateTableOrderForCustomer:', error);
-    res.status(500).json({ status: 'fail', message: error.message });
+    res.status(500).json({ status: false, message: error.message });
   }
-}
+};
+
+// Thanh toán đơn đặt bàn
+const payReservationOrders = async (req, res) => {
+  try {
+    const { reservationCode, method } = req.body;
+
+    // Validate input
+    if (!reservationCode || !['cash', 'momo', 'vnpay'].includes(method)) {
+      return res.status(400).json({ success: false, message: 'Thông tin thanh toán không hợp lệ.' });
+    }
+
+    // Tìm Reservation
+    const reservation = await Reservation.findOne({ reservationCode });
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đặt bàn.' });
+    }
+
+    // Tìm tất cả các đơn theo reservationId
+    const orders = await TableOrder.find({ reservationId: reservation._id });
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ success: false, message: 'Không có đơn nào để thanh toán.' });
+    }
+
+    // Tính tổng toàn bộ đơn
+    const totalAmount = orders.reduce((sum, order) => sum + (order.totalprice || 0), 0);
+
+    const now = new Date();
+
+    // Cập nhật từng đơn
+    for (const order of orders) {
+      order.paymentStatus = 'success';
+      order.paymentMethod = method;
+      order.paidAt = now;
+      await order.save();
+    }
+
+    // Cập nhật reservation
+    reservation.paymentStatus = true;
+    await reservation.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Thanh toán thành công!',
+      data: {
+        reservationCode,
+        paymentMethod: method,
+        totalAmount,
+        paidAt: now,
+      },
+    });
+  } catch (err) {
+    console.error('Thanh toán lỗi:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ.' });
+  }
+};
 
 /* Cập nhật đơn đặt món */
 exports.servantUpdateTableOrder = async (req, res) => {
