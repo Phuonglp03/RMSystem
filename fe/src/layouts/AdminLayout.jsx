@@ -55,6 +55,11 @@ const AdminLayout = () => {
       icon: <ShoppingCartOutlined />,
       label: 'Quản lý combo',
     },
+    {
+      key: '/admin/voucher',
+      icon: <TagsOutlined />,
+      label: 'Quản lý voucher',
+    },
   ];
 
   const handleMenuClick = ({ key }) => {

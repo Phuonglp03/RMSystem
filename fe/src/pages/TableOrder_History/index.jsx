@@ -4,13 +4,14 @@ import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined } from '@
 import tableService from '../../services/table.service';
 import { ToastContainer, toast } from 'react-toastify';
 import './index.css';
+import { useNavigate } from 'react-router-dom';
 
 const TableOrder_History = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('accepted'); // accepted = đã nhận, unaccepted = chưa nhận
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(9)
+    const [pageSize] = useState(8)
     const [totalPages, setTotalPages] = useState(0);
     const [statusFilter, setStatusFilter] = useState(''); // all by default
 
@@ -22,31 +23,28 @@ const TableOrder_History = () => {
     const fetchData = async (tab) => {
         setLoading(true);
         try {
-            let data
+            let queryStatus = statusFilter;
             if (tab === 'accepted') {
-                data = await tableService.servantGetAllTableOrders({
-                    page: currentPage,
-                    limit: pageSize,
-                    status: statusFilter
-                });
-                setOrders(data || []);
-                setTotalPages(data.totalPages || 1);
-            } else {
-                data = await tableService.getAllTableOrders({
-                    page: currentPage,
-                    limit: pageSize,
-                    status: statusFilter
-                });
-                setOrders(data.data || []);
-                setTotalPages(data.totalPages || 1);
+                queryStatus = 'confirmed'; // hoặc: ['confirmed', 'preparing', ...]
+            } else if (tab === 'unaccepted') {
+                queryStatus = 'pending';
             }
-            console.log('data: ', data)
+
+            const data = await tableService.getAllTableOrders({
+                page: currentPage,
+                limit: pageSize,
+                status: queryStatus
+            });
+            console.log('[DEBUG] fetched data:', data);
+            setOrders(data.data || []);
+            setTotalPages(data.totalPages || 1);
         } catch (err) {
             console.error(err);
             setOrders([]);
         }
         setLoading(false);
     };
+
 
     const getStatusIcon = (status) => {
         switch (status) {
@@ -72,6 +70,8 @@ const TableOrder_History = () => {
             toast.error('Nhận đơn thất bại');
         }
     };
+
+    const navigate = useNavigate();
 
     return (
         <div className="history-container">
@@ -142,6 +142,9 @@ const TableOrder_History = () => {
                                             Nhận đơn
                                         </Button>
                                     )}
+                                    <Button style={{ marginTop: 8 }} onClick={() => navigate(`/servant/table-order-detail/${order._id}`)}>
+                                        Xem chi tiết
+                                    </Button>
                                 </div>
                             </div>
                         ))}

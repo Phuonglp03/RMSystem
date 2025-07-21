@@ -20,15 +20,16 @@ const notificationService = {
             const response = await notificationAPI.getNotifications();
             return response;
         } catch (error) {
+            console.error('Lỗi trong notificationService:', error);
             throw error.response ? error.response.data : new Error('Error fetching notifications');
         }
     },
 
-    markNotificationAsRead: async (notificationId) =>{
-        try{
+    markNotificationAsRead: async (notificationId) => {
+        try {
             const response = await notificationAPI.markNotificationAsRead(notificationId);
             return response;
-        }catch(error){
+        } catch (error) {
             throw error.response ? error.response.data : new Error('Error marking notification as read');
         }
     },

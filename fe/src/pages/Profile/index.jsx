@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import userService from '../../services/user.service';
 import { 
   Layout, 
   Menu, 
@@ -91,19 +91,13 @@ const UserProfile = () => {
     
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:9999/api/users/${userData.userId}/profile`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await userService.getUserProfile(userData.userId);
       
-      if (response.data.success) {
-        setUser(response.data.data);
-        form.setFieldsValue(response.data.data);
+      if (response.success) {
+        setUser(response.data);
+        form.setFieldsValue(response.data);
       } else {
-        message.error(response.data.message || 'Không thể tải thông tin người dùng');
+        message.error(response.message || 'Không thể tải thông tin người dùng');
       }
     } catch (error) {
       console.error('Lỗi khi lấy dữ liệu người dùng:', error);
@@ -119,18 +113,12 @@ const UserProfile = () => {
     
     setLoadingLoyalty(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:9999/api/users/${userData.userId}/loyalty`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await userService.getUserLoyalty(userData.userId);
       
-      if (response.data.success) {
-        setLoyaltyInfo(response.data.data);
+      if (response.success) {
+        setLoyaltyInfo(response.data);
       } else {
-        console.error('Lỗi khi lấy thông tin tích điểm:', response.data.message);
+        console.error('Lỗi khi lấy thông tin tích điểm:', response.message);
       }
     } catch (error) {
       console.error('Lỗi khi lấy thông tin tích điểm:', error);
@@ -144,18 +132,12 @@ const UserProfile = () => {
     if (!userData?.userId) return;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:9999/api/users/${userData.userId}/coupons`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await userService.getUserCoupons(userData.userId);
       
-      if (response.data.success) {
-        setCoupons(response.data.data);
+      if (response.success) {
+        setCoupons(response.data);
       } else {
-        console.error('Lỗi khi lấy mã giảm giá:', response.data.message);
+        console.error('Lỗi khi lấy mã giảm giá:', response.message);
       }
     } catch (error) {
       console.error('Lỗi khi lấy mã giảm giá:', error);
@@ -184,21 +166,14 @@ const UserProfile = () => {
     
     setUpdating(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(
-        `http://localhost:9999/api/users/${userData.userId}/profile`,
-        values,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await userService.updateUserProfile(userData.userId, values);
       
-      if (response.data.success) {
-        setUser(response.data.data);
+      if (response.success) {
+        setUser(response.data);
         message.success('Cập nhật thông tin thành công!');
         setEditMode(false);
       } else {
-        message.error(response.data.message || 'Không thể cập nhật thông tin');
+        message.error(response.message || 'Không thể cập nhật thông tin');
       }
     } catch (error) {
       console.error('Lỗi khi cập nhật thông tin:', error);

@@ -1,7 +1,8 @@
 import axios from "axios";
-
+// 'http://localhost:9999'
+// 'https://rm-system-4tru.vercel.app'
 const axiosInstance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:9999',
+  baseURL: 'http://localhost:9999',
   timeout: 10000,
   withCredentials: true, // Important for cookies
   headers: {
@@ -10,7 +11,7 @@ const axiosInstance = axios.create({
 });
 
 const axiosRaw = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:9999',
+  baseURL: 'http://localhost:9999',
   timeout: 10000,
   withCredentials: true,
   headers: { "Content-Type": "application/json" }
@@ -56,6 +57,7 @@ axiosInstance.interceptors.response.use(
         if (newAccessToken) {
 
           localStorage.setItem('token', newAccessToken);
+          console.log('New access token set in localStorage:', newAccessToken);
           // Update axios headers
           axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;

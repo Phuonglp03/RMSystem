@@ -8,9 +8,9 @@ const {
 const { authMiddleware } = require('../middleware/authMiddleware')
 
 router.get('/all', getAllTables);
-/* http://localhost:9999/api/tables/available */
+/* https://rm-system-4tru.vercel.app/api/tables/available */
 router.post('/available', getAvailableTableForCreateReservation)
-/* http://localhost:9999/api/tables/servant/assigned */
+/* https://rm-system-4tru.vercel.app/api/tables/servant/assigned */
 router.get('/servant/assigned', authMiddleware, getAssignedTableByServant)
 
 module.exports = router; 

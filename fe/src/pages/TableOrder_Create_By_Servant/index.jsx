@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Input, Button, Row, Col, Card, List, Typography, message, Badge, Space, Divider, Checkbox } from 'antd';
-import { PlusOutlined, MinusOutlined, CheckCircleOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { PlusOutlined, MinusOutlined, CheckCircleOutlined, ShoppingCartOutlined, TableOutlined } from '@ant-design/icons';
 import tableService from '../../services/table.service';
-import foodService from '../../services/food.service';
+import { foodService } from '../../services/food.service';
+import comboService from '../../services/combo.service';
 import { toast, ToastContainer } from 'react-toastify';
 import './index.css';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -28,6 +29,8 @@ const TableOrder_Create_By_Servant = () => {
     const [lastTotal, setLastTotal] = useState(0);
     const [createdOrders, setCreatedOrders] = useState([]); // Danh sách đơn vừa tạo
     const [confirmingOrderId, setConfirmingOrderId] = useState(null); // Đơn đang xác nhận
+    const [firstCreatedOrderId, setFirstCreatedOrderId] = useState(null); // Lưu id đơn đầu tiên
+    const [confirmVisible, setConfirmVisible] = useState(false);
 
 
     useEffect(() => {
@@ -122,49 +125,47 @@ const TableOrder_Create_By_Servant = () => {
 
     const handleSubmitOrder = async () => {
         if (!reservation) return;
-        const allItems = Object.values(cart).flat();
-        if (allItems.length === 0) {
-            toast.warning('Bạn chưa chọn món!');
-            return;
-        }
-        Modal.confirm({
-            title: 'Xác nhận đặt món?',
-            content: 'Bạn có chắc chắn muốn gửi đơn đặt món cho bếp không?',
-            okText: 'Xác nhận',
-            cancelText: 'Huỷ',
-            onOk: async () => {
-                setSubmitting(true);
-                try {
-                    const ordersForAPI = Object.entries(cart).map(([tableId, items]) => ({
-                        tableId,
-                        foods: items.filter(i => i.type === 'food').map(i => ({ foodId: i.id, quantity: i.quantity })),
-                        combos: items.filter(i => i.type === 'combo').map(i => i.id),
-                        status: 'pending'
-                    }));
-
-                    const data = await tableService.servantCreateTableOrderForCustomer(reservationCode, ordersForAPI);
-                    const totalAmount = data.totalPrice || 0;
-                    setCart({});
-                    setPlacedOrders({});
-                    setLastTotal(totalAmount);
-                    setShowPaymentChoice(true);  // ✅ hiển thị modal thanh toán
-                    setCreatedOrders(data.createdOrders || []); // Lưu lại đơn vừa tạo
-                    toast.success('Đặt món thành công!');
-                } catch (err) {
-                    console.error(err);
-                    toast.error('Đặt món thất bại');
-                } finally {
-                    setSubmitting(false);
-                }
+        setSubmitting(true);
+        try {
+            const tableId = selectedTable;
+            console.log('tableId: ', selectedTable)
+            if (!tableId) {
+                toast.warning('Bạn chưa chọn bàn!');
+                setSubmitting(false);
+                return;
             }
-        });
+            const items = cart[tableId] || [];
+            if (items.length === 0) {
+                toast.warning('Bạn chưa chọn món!');
+                setSubmitting(false);
+                return;
+            }
+            const ordersForAPI = [{
+                tableId,
+                foods: items.filter(i => i.type === 'food').map(i => ({ foodId: i.id, quantity: i.quantity })),
+                combos: items.filter(i => i.type === 'combo').map(i => i.id),
+                status: 'pending'
+            }];
+            const data = await tableService.servantCreateTableOrderForCustomer(reservationCode, ordersForAPI);
+            setPlacedOrders(data.createdOrders.reduce((acc, order) => {
+                acc[order.tableId] = acc[order.tableId] || [];
+                acc[order.tableId].push(order);
+                return acc;
+            }, { ...placedOrders }));
+            setCart({});
+            message.success('Đặt món thành công!');
+        } catch (err) {
+            console.error(err);
+            toast.error('Đặt món thất bại');
+        }
+        setSubmitting(false);
     };
 
     // Hàm xác nhận đơn đặt món
     const handleConfirmOrder = async (orderId) => {
         setConfirmingOrderId(orderId);
         try {
-            await tableService.servantConfirmTableOrder(orderId);
+            await tableService.servantCreateTableOrderForCustomer(orderId);
             toast.success('Xác nhận đơn thành công!');
             setCreatedOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'confirmed' } : o));
         } catch (err) {
@@ -175,10 +176,10 @@ const TableOrder_Create_By_Servant = () => {
     };
 
     return (
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
             <ToastContainer position="top-right" autoClose={3000} />
             <Modal
-                title="Nhập mã đặt bàn"
+                title={<span><TableOutlined /> <b>Nhập mã đặt bàn</b></span>}
                 open={codeModalVisible}
                 onOk={() => handleCheckCode(reservationCode)}
                 confirmLoading={checkingCode}
@@ -190,95 +191,113 @@ const TableOrder_Create_By_Servant = () => {
             </Modal>
 
             {!codeModalVisible && reservation && (
-                <Row gutter={[16, 16]}>
-                    <Col xs={24} sm={24} md={8} lg={6} xl={6}>
-                        <Card title="Danh sách bàn">
-                            <List
-                                dataSource={reservation.bookedTable}
-                                renderItem={table => (
-                                    <List.Item>
-                                        <Checkbox
-                                            checked={selectedTable.includes(table._id)}
-                                            onChange={() => handleToggleTable(table._id)}
-                                        >
-                                            Bàn {table.tableNumber} - Sức chứa: {table.capacity}
-                                        </Checkbox>
-                                    </List.Item>
-                                )}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={24} md={16} lg={12} xl={12}>
-                        <Card title="Món ăn">
-                            <List
-                                dataSource={foods}
-                                renderItem={food => (
-                                    <List.Item>
-                                        <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                <img src={food.images?.[0]} alt={food.name} width={48} height={48} style={{ borderRadius: 6 }} />
-                                                <div>
-                                                    <div>{food.name}</div>
-                                                    <Text type="secondary">{food.price?.toLocaleString()}đ</Text>
-                                                </div>
-                                            </div>
-                                            <Button onClick={() => addToCart(food, 'food')} icon={<PlusOutlined />} />
-                                        </Space>
-                                    </List.Item>
-                                )}
-                            />
-                        </Card>
-                        <Card title="Combo" style={{ marginTop: 16 }}>
-                            <List
-                                dataSource={combos}
-                                renderItem={combo => (
-                                    <List.Item key={combo._id}>
-                                        <Space style={{ justifyContent: 'space-between', width: '100%' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                <img src={combo.image} alt={combo.name} width={48} height={48} style={{ borderRadius: 6 }} />
-                                                <div>
-                                                    <div>{combo.name}</div>
-                                                    <Text type="secondary">{combo.price?.toLocaleString()}đ</Text>
-                                                </div>
-                                            </div>
-                                            <Button onClick={() => addToCart(combo, 'combo')} icon={<PlusOutlined />} />
-                                        </Space>
-                                    </List.Item>
-                                )}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={24} md={24} lg={6} xl={6}>
-                        {selectedTable.map(tableId => (
-                            <Card key={tableId} title={`Giỏ bàn ${tableId}`} style={{ marginBottom: 16 }}>
-                                {(cart[tableId] || []).map(item => (
-                                    <div key={item.id + item.type} style={{ marginBottom: 8 }}>
-                                        <Space>
-                                            <span>{item.name} x {item.quantity}</span>
-                                            <Button icon={<MinusOutlined />} size="small" onClick={() => updateCartQuantity(item.id, item.type, item.quantity - 1)} />
-                                            <Button icon={<PlusOutlined />} size="small" onClick={() => updateCartQuantity(item.id, item.type, item.quantity + 1)} />
-                                        </Space>
-                                    </div>
-                                ))}
-                                <Divider />
-                                <div><b>Tổng:</b> {calculateTotal(tableId).toLocaleString()}đ</div>
+                <Card bordered style={{ borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.07)', marginBottom: 24 }}>
+                    <Title level={4} style={{ marginBottom: 16 }}>Tạo đơn đặt món cho khách</Title>
+                    <Row gutter={[24, 24]}>
+                        <Col xs={24} sm={24} md={8} lg={6} xl={6}>
+                            <Card title="Danh sách bàn" bordered={false} style={{ borderRadius: 8, minHeight: 300 }}>
+                                <List
+                                    dataSource={reservation.bookedTable}
+                                    renderItem={table => (
+                                        <List.Item>
+                                            <Checkbox
+                                                checked={selectedTable.includes(table._id)}
+                                                onChange={() => handleToggleTable(table._id)}
+                                            >
+                                                Bàn {table.tableNumber} - Sức chứa: {table.capacity}
+                                            </Checkbox>
+                                        </List.Item>
+                                    )}
+                                />
                             </Card>
-                        ))}
-                        <Button
-                            type="primary"
-                            block
-                            style={{ marginTop: 8 }}
-                            onClick={handleSubmitOrder}
-                            loading={submitting}
-                        >
-                            Đặt món
-                        </Button>
-                    </Col>
-                </Row>
+                        </Col>
+                        <Col xs={24} sm={24} md={16} lg={12} xl={12}>
+                            <Card title="Món ăn" bordered={false} style={{ borderRadius: 8 }}>
+                                <List
+                                    dataSource={foods}
+                                    renderItem={food => (
+                                        <List.Item>
+                                            <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    {food.images?.[0] ? (
+                                                        <img src={food.images[0]} alt={food.name} width={48} height={48} style={{ borderRadius: 6, objectFit: 'cover', background: '#f0f0f0' }} />
+                                                    ) : (
+                                                        <div style={{ width: 48, height: 48, borderRadius: 6, background: '#f0f0f0' }} />
+                                                    )}
+                                                    <div>
+                                                        <div style={{ fontWeight: 500 }}>{food.name}</div>
+                                                        <Text type="secondary">{food.price?.toLocaleString()}đ</Text>
+                                                    </div>
+                                                </div>
+                                                <Button onClick={() => addToCart(food, 'food')} icon={<PlusOutlined />} />
+                                            </Space>
+                                        </List.Item>
+                                    )}
+                                />
+                            </Card>
+                            <Card title="Combo" bordered={false} style={{ marginTop: 16, borderRadius: 8 }}>
+                                <List
+                                    dataSource={combos}
+                                    renderItem={combo => (
+                                        <List.Item key={combo._id}>
+                                            <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                                    {combo.image ? (
+                                                        <img src={combo.image} alt={combo.name} width={48} height={48} style={{ borderRadius: 6, objectFit: 'cover', background: '#f0f0f0' }} />
+                                                    ) : (
+                                                        <div style={{ width: 48, height: 48, borderRadius: 6, background: '#f0f0f0' }} />
+                                                    )}
+                                                    <div>
+                                                        <div style={{ fontWeight: 500 }}>{combo.name}</div>
+                                                        <Text type="secondary">{combo.price?.toLocaleString()}đ</Text>
+                                                    </div>
+                                                </div>
+                                                <Button onClick={() => addToCart(combo, 'combo')} icon={<PlusOutlined />} />
+                                            </Space>
+                                        </List.Item>
+                                    )}
+                                />
+                            </Card>
+                        </Col>
+                        <Col xs={24} sm={24} md={24} lg={6} xl={6}>
+                            {selectedTable.length === 0 ? (
+                                <Card bordered={false} style={{ borderRadius: 8, minHeight: 200, textAlign: 'center', color: '#aaa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <div>Chọn bàn để bắt đầu đặt món</div>
+                                </Card>
+                            ) : (
+                                selectedTable.map(tableId => (
+                                    <Card key={tableId} title={`Giỏ bàn ${tableId}`} style={{ marginBottom: 16, borderRadius: 8 }} bordered={false}>
+                                        {(cart[tableId] || []).map(item => (
+                                            <div key={item.id + item.type} style={{ marginBottom: 8 }}>
+                                                <Space>
+                                                    <span>{item.name} x {item.quantity}</span>
+                                                    <Button icon={<MinusOutlined />} size="small" onClick={() => updateCartQuantity(item.id, item.type, item.quantity - 1)} />
+                                                    <Button icon={<PlusOutlined />} size="small" onClick={() => updateCartQuantity(item.id, item.type, item.quantity + 1)} />
+                                                </Space>
+                                            </div>
+                                        ))}
+                                        <Divider />
+                                        <div style={{ fontWeight: 500 }}><b>Tổng:</b> {calculateTotal(tableId).toLocaleString()}đ</div>
+                                    </Card>
+                                ))
+                            )}
+                            <Button
+                                type="primary"
+                                block
+                                style={{ marginTop: 8, fontWeight: 600, fontSize: 16, height: 48 }}
+                                onClick={handleSubmitOrder}
+                                loading={submitting}
+                                disabled={selectedTable.length === 0}
+                            >
+                                Đặt món
+                            </Button>
+                        </Col>
+                    </Row>
+                </Card>
             )}
             {/* Danh sách đơn vừa tạo và xác nhận */}
             {createdOrders.length > 0 && (
-                <Card title="Xác nhận đơn đặt món" style={{ marginTop: 24 }}>
+                <Card title="Xác nhận đơn đặt món" style={{ marginTop: 24, borderRadius: 12 }}>
                     <List
                         dataSource={createdOrders}
                         renderItem={order => (
@@ -310,18 +329,22 @@ const TableOrder_Create_By_Servant = () => {
                     open={showPaymentChoice}
                     onCancel={() => {
                         setShowPaymentChoice(false);
-                        navigate('/manage-tableOrder');
+                        navigate('/servant/table-order-history');
                     }}
                     footer={[
                         <Button key="later" onClick={() => {
                             setShowPaymentChoice(false);
-                            navigate('/manage-tableOrder');
+                            navigate('/servant/table-order-history');
                         }}>
                             Thanh toán sau
                         </Button>,
                         <Button key="now" type="primary" onClick={() => {
                             setShowPaymentChoice(false);
-                            navigate(`/payment/${reservationCode}?total=${lastTotal}`);
+                            if (firstCreatedOrderId) {
+                                navigate(`/servant/table-order-detail/${firstCreatedOrderId}`);
+                            } else {
+                                navigate('/servant/table-order-history');
+                            }
                         }}>
                             Thanh toán ngay
                         </Button>,

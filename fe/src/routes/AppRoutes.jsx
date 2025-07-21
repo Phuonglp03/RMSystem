@@ -18,6 +18,7 @@ import Reservation_Notification from '../pages/Reservation_Notification';
 import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
 import Signup from '../pages/SignUp';
+import PaymentCallback from '../pages/payment-callback';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
@@ -37,6 +38,8 @@ import TableOrder_Statistics from '../pages/TableOrder_Statistics';
 import Servant_Layout from '../layouts/Servant_Layout';
 import Servant_Daily_Statistics_Page from '../pages/Servant_Daily_Statistics_Page';
 import Servant_Notification_Page from '../pages/Servant_Notification_Page';
+import VoucherManage from '../pages/AdminDashboard/Voucher_Manage';
+import TableOrder_Detail from '../pages/TableOrder_Detail';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -54,6 +57,7 @@ const AppRoutes = () => (
                 <Route path='test-table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
                 <Route path='profile' element={<UserProfile />} />
+                <Route path='payment-callback' element={<PaymentCallback />} />
             </Route>
 
             {/* Auth Routes */}
@@ -72,6 +76,7 @@ const AppRoutes = () => (
                 <Route path="food-categories" element={<FoodCategoryManage />} />
                 <Route path="foods" element={<FoodManage />} />
                 <Route path="combos" element={<ComboManage />} />
+                <Route path="voucher" element={<VoucherManage />} />
             </Route>
 
             {/* Servant Routes - Protected */}
@@ -91,6 +96,7 @@ const AppRoutes = () => (
                 <Route path="confirm-guest-arrive" element={<Confirm_Customer_Arrived />} />
                 <Route path="manage-tableOrder" element={<Servant_Manage_Table_Order />} />
                 <Route path="table-order-history" element={<TableOrder_History />} />
+                <Route path='table-order-detail/:id' element={<TableOrder_Detail />} />
                 <Route path="assigned-order" element={<TableOrder_Assigned />} />
                 <Route path="table-order-create" element={<TableOrder_Create_By_Servant />} />
                 <Route path="table-order-statistics" element={<TableOrder_Statistics />} />

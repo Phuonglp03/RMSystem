@@ -249,10 +249,13 @@ const UserManagement = () => {
       key: 'fullname',
       render: (_, record) => (
         <Space direction="vertical" size="small">
-          <Text strong>{record.fullname || record.username}</Text>
+          <Text strong>{record.fullname }</Text>
           <Text type="secondary" style={{ fontSize: '12px' }}>
             <MailOutlined style={{ marginRight: 4 }} />
             {record.email}
+          </Text>
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            {record.username}
           </Text>
           {record.phone && (
             <Text type="secondary" style={{ fontSize: '12px' }}>

@@ -32,7 +32,7 @@ const Login = () => {
       case 'admin':
         return '/admin';
       case 'servant':
-        return '/';
+        return '/servant';
       case 'chef':
         return '/';
       default:
@@ -42,11 +42,11 @@ const Login = () => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!email) {
       errors.email = 'Email/Username là bắt buộc';
     }
-    
+
     if (!password) {
       errors.password = 'Password là bắt buộc';
     } else if (password.length < 6) {
@@ -92,11 +92,11 @@ const Login = () => {
                     Trải nghiệm không gian ẩm thực hoàn hảo!
                   </p>
                 </Col>
-                
+
                 <Col md={6} className="auth-form-section d-flex align-items-center">
                   <div className="w-100">
                     <h3 className="auth-title">Chào mừng trở lại!</h3>
-                    
+
                     {error && (
                       <Alert variant="danger" className="auth-alert" dismissible onClose={() => dispatch(clearError())}>
                         {error}
@@ -157,13 +157,13 @@ const Login = () => {
                           'Đăng nhập'
                         )}
                       </Button>
-                      
+
                       <div className="text-center mb-3">
                         <NavLink to='/forgotPass' className="auth-link">
                           Quên mật khẩu?
                         </NavLink>
                       </div>
-                      
+
                       <div className="text-center">
                         Chưa có tài khoản?{' '}
                         <NavLink to='/signup' className="auth-link">

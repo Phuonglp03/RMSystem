@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Tabs, Spin, Empty, Tag, Button, Modal, Image, Descriptions, Divider } from 'antd';
 import { ShoppingCartOutlined, EyeOutlined, StarOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { foodService } from '../../services/food.service';
+import comboService from '../../services/combo.service';
 import './Menu.css';
 
 const { TabPane } = Tabs;
@@ -22,22 +23,16 @@ const Menu = () => {
       setLoading(true);
       console.log('Fetching data from API...');
       
-      const [foodRes, comboRes] = await Promise.all([     
-        axios.get('http://localhost:9999/api/foods'),
-        axios.get('http://localhost:9999/api/combos'),
+      const [foodsData, combosData] = await Promise.all([     
+        foodService.getAllFoods(),
+        comboService.getAllCombos(),
       ]);
-
-      console.log('Food API Response:', foodRes);
-      console.log('Combo API Response:', comboRes);
-
-      const foodsData = foodRes.data.data || [];
-      const combosData = comboRes.data.data || [];
 
       console.log('Foods data:', foodsData);
       console.log('Combos data:', combosData);
 
-      setFoods(foodsData);
-      setCombos(combosData);
+      setFoods(foodsData || []);
+      setCombos(combosData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       console.error('Error details:', error.response?.data);
