@@ -47,13 +47,18 @@ axiosInstance.interceptors.response.use(
       try {
         // Try to refresh token
         const refreshResponse = await axiosRaw.post('/api/users/refresh-token');
+        console.log('Refresh token response:', refreshResponse);
+
+        // Lấy accessToken từ refreshResponse.data
+        const newAccessToken = refreshResponse.data.accessToken;
 
         // Update token in localStorage
-        if (refreshResponse.accessToken) {
-          localStorage.setItem('token', refreshResponse.accessToken);
+        if (newAccessToken) {
+
+          localStorage.setItem('token', newAccessToken);
           // Update axios headers
-          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${refreshResponse.accessToken}`;
-          originalRequest.headers['Authorization'] = `Bearer ${refreshResponse.accessToken}`;
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         }
 
         // Retry the original request

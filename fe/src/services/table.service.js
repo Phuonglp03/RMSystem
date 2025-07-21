@@ -60,7 +60,7 @@ const tableAPI = {
   getTableOrderStats: (type, from, to) => {
     // type: 'day' | 'week' | 'month' | 'year'
     // from, to: ISO date string (yyyy-mm-dd)
-    let url = `/api/table-orders/stats?type=${type}`;
+    let url = `/api/table-orders/servant/stats?type=${type}`;
     if (from) url += `&from=${from}`;
     if (to) url += `&to=${to}`;
     return axiosClient.get(url);
@@ -154,7 +154,8 @@ const tableService = {
   getTableOrderFromCustomerByReservationCode: async (reservationCode) => {
     try {
       const response = await tableAPI.getTableOrderFromCustomerByReservationCode(reservationCode);
-      return response.data;
+      console.log('response: ', response.reservation)
+      return response.reservation;
     } catch (error) {
       console.error("Error getting table orders by reservationCode:", error);
       throw error.response ? error.response.data : new Error('Error getting table orders by reservationCode');

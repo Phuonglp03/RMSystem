@@ -21,13 +21,6 @@ const Servant_Manage_Reservation = () => {
             colorClass: 'nav-card-blue'
         },
         {
-            title: 'Thông Báo Đặt Bàn',
-            description: 'Xem thông báo đặt bàn mới',
-            icon: <BellOutlined />,
-            path: '/servant/reservation-notification',
-            colorClass: 'nav-card-orange'
-        },
-        {
             title: 'Bàn đã nhận',
             description: 'Xem danh sách bàn đã nhận từ những đơn đặt bàn trước',
             icon: <CheckCircleOutlined />,
@@ -48,13 +41,6 @@ const Servant_Manage_Reservation = () => {
             path: '/servant/confirm-guest-arrive',
             colorClass: 'nav-card-purple'
         },
-        {
-            title: 'Thống Kê Cá Nhân',
-            description: 'Xem thống kê đơn đặt bàn của từng người',
-            icon: <BarChartOutlined />,
-            path: '/servant/reservation-statistics',
-            colorClass: 'nav-card-indigo'
-        }
     ]
 
     const handleNavigation = (path) => {
