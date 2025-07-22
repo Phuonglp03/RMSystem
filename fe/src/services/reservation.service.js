@@ -1,60 +1,60 @@
-import axiosClient from "./axios.service";
+import axiosInstance from "./axios.service";
 
 const reservationAPI = {
   getAvailableTables: (formattedDate, formattedTime) => {
-    return axiosClient.get(`/api/reservations/tables/available?date=${formattedDate}&time=${formattedTime}`);
+    return axiosInstance.get(`/api/reservations/tables/available?date=${formattedDate}&time=${formattedTime}`);
   },
 
   create: (formattedData) => {
-    return axiosClient.post('/api/reservations', formattedData);
+    return axiosInstance.post('/api/reservations', formattedData);
   },
 
   getByCode: (code) => {
-    return axiosClient.get(`/api/reservations/${code}`);
+    return axiosInstance.get(`/api/reservations/${code}`);
   },
 
   updateStatus: (code, status) => {
-    return axiosClient.put(`/api/reservations/${code}/status`, { status });
+    return axiosInstance.put(`/api/reservations/${code}/status`, { status });
   },
 
   getReservationsFromToday: (date) => {
-    return axiosClient.get(`/api/reservations/from?date=${date}`);
+    return axiosInstance.get(`/api/reservations/from?date=${date}`);
   },
 
   getUnAssignedReservations: () => {
-    return axiosClient.get('/api/reservations/servant/unassigned');
+    return axiosInstance.get('/api/reservations/servant/unassigned');
   },
 
   getCustomerReservationByServant: () => {
-    return axiosClient.get('/api/reservations/servant/customer')
+    return axiosInstance.get('/api/reservations/servant/customer')
   },
 
   servantCreateReservation: (data) => {
-    return axiosClient.post('/api/reservations/servant/create', data)
+    return axiosInstance.post('/api/reservations/servant/create', data)
   },
 
   servantUpdateReservation: (resvId, updateData) => {
-    return axiosClient.put(`/api/reservations/servant/update/${resvId}`, updateData);
+    return axiosInstance.put(`/api/reservations/servant/update/${resvId}`, updateData);
   },
 
   getReservationDetailById: (resvId) => {
-    return axiosClient.get(`/api/reservations/servant/view/${resvId}`);
+    return axiosInstance.get(`/api/reservations/servant/view/${resvId}`);
   },
 
   servantDeleteReservation: (resvId) => {
-    return axiosClient.delete(`/api/reservations/servant/delete/${resvId}`);
+    return axiosInstance.delete(`/api/reservations/servant/delete/${resvId}`);
   },
 
   confirmOrRejectReservation: (resvId, action) => {
-    return axiosClient.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
+    return axiosInstance.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
   },
 
   getDailyStatistics: (params) => {
-    return axiosClient.get(`/api/reservations/servant/daily-statistics`, { params });
+    return axiosInstance.get(`/api/reservations/servant/daily-statistics`, { params });
   },
 
   confirmCustomerArrival: (reservationCode) => {
-    return axiosClient.post(`/api/reservations/servant/confirm-arrival`, { reservationCode });
+    return axiosInstance.post(`/api/reservations/servant/confirm-arrival`, { reservationCode });
   }
 };
 

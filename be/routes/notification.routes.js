@@ -7,10 +7,11 @@ const {
     deleteNotification
 } = require('../controllers/notificationController')
 
+router.use(authMiddleware);
 /* https://rm-system-4tru.vercel.app/api/notification/ */
-router.get('/', authMiddleware, getNotifications)
+router.get('/', getNotifications)
 /* https://rm-system-4tru.vercel.app/api/notification/read */
-router.patch('/read/:notificationId', authMiddleware, markNotificationAsRead)
+router.patch('/read/:notificationId', markNotificationAsRead)
 /* https://rm-system-4tru.vercel.app/api/notification/delete */
-router.delete('/delete/:notificationId', authMiddleware, deleteNotification)
+router.delete('/delete/:notificationId', deleteNotification)
 module.exports = router

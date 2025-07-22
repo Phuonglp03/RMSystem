@@ -73,7 +73,6 @@ const getCustomerReservationByServantId = async (req, res) => {
                 select: '_id fullname email phone dateOfBirth gender'
             })
 
-        console.log('reservation: ', reservations)
         const formattedReservations = await Promise.all(reservations.map(async (reservation) => {
             const customerDetail = reservation.customerId
                 ? await Customer.findOne({ userId: reservation.customerId._id }).lean()
@@ -113,7 +112,8 @@ const getCustomerReservationByServantId = async (req, res) => {
         res.status(200).json({
             success: true,
             message: `Danh sách đặt bàn của khách hàng được phục vụ bởi bạn`,
-            reservations: formattedReservations
+            reservations: formattedReservations,
+            length: formattedReservations.length
         });
 
     } catch (err) {
@@ -320,7 +320,6 @@ const getDailyReservationStatistics = async (req, res) => {
     try {
         const servantUserId = req.jwtDecode.id;
         let { startDate, endDate, period } = req.query;
-
         const today = new Date();
 
         if (period) {
@@ -366,11 +365,12 @@ const getDailyReservationStatistics = async (req, res) => {
         }
 
         const reservations = await Reservation.find({
-            servantId: servantUserId,
-            bookingTime: { $gte: startDate, $lte: endDate }
+            servantId: new mongoose.Types.ObjectId(servantUserId),
+            startTime: { $gte: startDate, $lte: endDate }
         }, { status: 1 });
-
+        console.log('reservations: ', reservations);
         const totalReservations = reservations.length;
+        console.log('totalReservations: ', totalReservations);
         const confirmed = reservations.filter(r => r.status === 'confirmed').length;
         const cancelled = reservations.filter(r => r.status === 'cancelled').length;
         const completed = reservations.filter(r => r.status === 'completed').length;

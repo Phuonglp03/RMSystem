@@ -44,12 +44,9 @@ const Servant_Notification_Page = () => {
         const fetchNotifications = async () => {
             setLoading(true);
             try {
-                const [res1] = await Promise.all([
-                    notificationService.getNotifications(),
-                ]);
-                const merged = [...(res1.notifications || [])]
-                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                setNotifications(merged);
+                const res = await notificationService.getNotifications();
+                console.log('Fetched notifications:', res);
+                setNotifications((res.notifications || []).sort());
             } catch (err) {
                 toast.error('Lỗi khi tải thông báo: ' + (err?.message || err));
             } finally {

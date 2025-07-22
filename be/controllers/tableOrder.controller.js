@@ -6,6 +6,7 @@ const Food = require('../models/Food');
 const Combo = require('../models/Combo');
 const notificationService = require('../services/notificationService');
 const NOTIFICATION_TYPES = require('../constants/notificationTypes');
+const Servant = require('../models/Servant');
 
 // Tạo nhiều TableOrder cho 1 user với cùng 1 bookingCode
 exports.createTableOrders = async (req, res) => {
@@ -757,50 +758,95 @@ exports.servantTransferTableOrderToCustomer = async (req, res) => {
 /* Thống kê đặt món của servant */
 exports.getTableOrderStats = async (req, res) => {
   try {
-    const { type, from, to } = req.query; // type: day|week|month|year, from/to: ISO date string
+    const { type } = req.query;
+    console.log('[DEBUG] type:', type);
+    let { from, to } = req.query;
+    console.log('[DEBUG] from:', from, 'to:', to);
     const servantId = req.jwtDecode.id;
-    // Xác định khoảng thời gian lọc
-    let match = {};
-    if (from && to) {
-      match.createdAt = { $gte: new Date(from), $lte: new Date(to) };
-    }
+    console.log('[DEBUG] servantId:', servantId);
+    const today = new Date();
+    let startDate, endDate;
 
-    match.servantId = new mongoose.Types.ObjectId(servantId);
-    // Group theo type
-    let groupId = null;
-    switch (type) {
-      case 'day':
-        groupId = { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } };
-        break;
-      case 'week':
-        groupId = { year: { $year: "$createdAt" }, week: { $isoWeek: "$createdAt" } };
-        break;
-      case 'month':
-        groupId = { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } };
-        break;
-      case 'year':
-        groupId = { year: { $year: "$createdAt" } };
-        break;
-      default:
-        return res.status(400).json({ status: 'fail', message: 'type phải là day|week|month|year' });
-    }
-
-    const stats = await TableOrder.aggregate([
-      { $match: match },
-      {
-        $group: {
-          _id: groupId,
-          totalOrders: { $sum: 1 },
-          totalRevenue: { $sum: "$totalprice" },
-          orders: { $push: "$_id" }
+    if (type) {
+      switch (type) {
+        case 'day':
+          startDate = new Date(today.setHours(0, 0, 0, 0));
+          endDate = new Date(today.setHours(23, 59, 59, 999));
+          break;
+        case 'week': {
+          const first = today.getDate() - today.getDay();
+          startDate = new Date(today.setDate(first));
+          startDate.setHours(0, 0, 0, 0);
+          endDate = new Date(startDate);
+          endDate.setDate(startDate.getDate() + 6);
+          endDate.setHours(23, 59, 59, 999);
+          break;
         }
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1, "_id.week": 1 } }
-    ]);
+        case 'month':
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+          break;
+        case 'year':
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today.getFullYear(), 11, 31, 23, 59, 59, 999);
+          break;
+        default:
+          return res.status(400).json({ success: false, message: 'Period không hợp lệ' });
+      }
+    } else if (from && to) {
+      startDate = new Date(from);
+      endDate = new Date(to);
+    } else {
+      return res.status(400).json({ success: false, message: 'Thiếu startDate/endDate hoặc period' });
+    }
 
-    res.json({ status: 'success', stats });
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ success: false, message: 'Ngày không hợp lệ' });
+    }
+
+    const servant = await Servant.findOne({ userId: servantId });
+    if (!servant) {
+      return res.status(404).json({ success: false, message: 'Servant không tồn tại' });
+    }
+    console.log('[DEBUG] servant found:', servant);
+    const orders = await TableOrder.find({
+      servantId: new mongoose.Types.ObjectId(servantId),
+      createdAt: { $gte: startDate, $lte: endDate }
+    }, { status: 1, totalprice: 1 });
+    console.log('[DEBUG] orders found:', orders.length, 'orders:', orders);
+    const totalOrders = orders.length;
+    const statusCount = {
+      pending: 0,
+      confirmed: 0,
+      preparing: 0,
+      ready_to_serve: 0,
+      served: 0,
+      completed: 0,
+      cancelled: 0
+    };
+    let totalRevenue = 0;
+
+    for (const order of orders) {
+      if (statusCount[order.status] !== undefined) {
+        statusCount[order.status]++;
+      }
+      totalRevenue += order.totalprice || 0;
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Thống kê table-order thành công',
+      statistics: {
+        type: type || 'custom',
+        period: `${startDate.toISOString()} → ${endDate.toISOString()}`,
+        totalOrders,
+        totalRevenue,
+        ...statusCount
+      }
+    });
   } catch (err) {
     console.error('[DEBUG] Error in getTableOrderStats:', err);
     res.status(500).json({ status: 'fail', message: err.message });
   }
 };
+

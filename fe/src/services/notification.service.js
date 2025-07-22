@@ -1,16 +1,16 @@
-import axiosClient from "./axios.service";
+import axiosInstance from "./axios.service";
 
 const notificationAPI = {
     getNotifications: () => {
-        return axiosClient.get('/api/notification');
+        return axiosInstance.get('/api/notification');
     },
 
     markNotificationAsRead: (notificationId) => {
-        return axiosClient.patch('/api/notification/read', { notificationId });
+        return axiosInstance.patch('/api/notification/read', { notificationId });
     },
 
     deleteNotification: (notificationId) => {
-        return axiosClient.delete('/api/notification/delete', { data: { notificationId } });
+        return axiosInstance.delete('/api/notification/delete', { data: { notificationId } });
     }
 }
 
@@ -18,6 +18,7 @@ const notificationService = {
     getNotifications: async () => {
         try {
             const response = await notificationAPI.getNotifications();
+            console.log('Notifications fetched:', response);
             return response;
         } catch (error) {
             console.error('Lỗi trong notificationService:', error);
