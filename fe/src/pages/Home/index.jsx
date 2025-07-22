@@ -384,7 +384,7 @@ const HomePage = () => {
         textAlign: 'center',
         cursor: 'pointer'
       }}
-      onClick={() => navigate('/promotions')}
+      onClick={() => navigate('/voucher')}
       >
         <Row align="middle" justify="center" gutter={16}>
           <Col>
