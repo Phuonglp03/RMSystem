@@ -1,16 +1,15 @@
-
 const mongoose = require('mongoose');
 
 const couponSchema = new mongoose.Schema(
   {
-    couponCode: {
+    coupon_code: {
       type: String,
       required: true,
       unique: true,
       trim: true,
       uppercase: true
     },
-    couponName: {
+    coupon_name: {
       type: String,
       required: true,
       trim: true
@@ -19,53 +18,54 @@ const couponSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    discountType: {
+    discount_type: {
       type: String,
       enum: ['percent', 'amount'],
       required: true
     },
-    discountValue: {
+    discount_value: {
       type: Number,
       required: true,
-      min: 0
+      min: 0,
+      validate: {
+        validator: function(value) {
+          if (this.discount_type === 'percent') {
+            return value <= 100;
+          }
+          return true;
+        },
+        message: 'Discount value for percent type cannot exceed 100%'
+      }
     },
-    minOrderAmount: {
+    quantity: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 1
+    },
+    point_required: {
       type: Number,
       default: 0,
       min: 0
     },
-    maxDiscountAmount: {
-      type: Number,
-      min: 0
-    },
-    usageLimit: {
-      type: Number,
-      default: 1,
-      min: 1
-    },
-    usedCount: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    validFrom: {
+    valid_from: {
       type: Date,
       default: Date.now
     },
-    validUntil: {
+    valid_to: {
       type: Date,
       required: true
     },
-    isActive: {
+    is_active: {
       type: Boolean,
       default: true
     },
-    applicableFor: {
+    applicable_for: {
       type: String,
       enum: ['all', 'new_customer', 'loyalty'],
       default: 'all'
     },
-    createdBy: {
+    created_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     }
@@ -75,21 +75,25 @@ const couponSchema = new mongoose.Schema(
   }
 );
 
-couponSchema.index({ couponCode: 1 });
-couponSchema.index({ validFrom: 1, validUntil: 1 });
-couponSchema.index({ isActive: 1 });
+couponSchema.index({ coupon_code: 1 });
+couponSchema.index({ valid_from: 1, valid_to: 1 });
+couponSchema.index({ is_active: 1 });
 
-// Virtual for checking if coupon is expired
-couponSchema.virtual('isExpired').get(function() {
-  return new Date() > this.validUntil;
+couponSchema.virtual('is_expired').get(function() {
+  return new Date() > this.valid_to;
 });
 
-// Virtual for checking if coupon is valid
-couponSchema.virtual('isValid').get(function() {
-  return this.isActive && !this.isExpired && this.usedCount < this.usageLimit;
+couponSchema.virtual('is_valid').get(function() {
+  return this.is_active && !this.is_expired && this.quantity > 0;
+});
+
+couponSchema.pre('save', function(next) {
+  if (this.discount_type === 'percent' && this.discount_value > 100) {
+    return next(new Error('Discount value for percent type cannot exceed 100%'));
+  }
+  next();
 });
 
 const Coupon = mongoose.model('Coupon', couponSchema);
 
 module.exports = Coupon; 
-

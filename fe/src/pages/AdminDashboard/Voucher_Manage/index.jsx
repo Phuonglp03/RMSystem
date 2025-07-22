@@ -17,7 +17,8 @@ import {
   Tag,
   Tooltip,
   Spin,
-  Select
+  Select,
+  Empty
 } from 'antd';
 import {
   PlusOutlined,
@@ -35,25 +36,22 @@ import moment from 'moment';
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-// Map lại dữ liệu từ BE sang FE
+// Map lại dữ liệu từ BE sang FE theo model mới
 const mapCouponData = (raw) => ({
   _id: raw._id,
-  couponCode: raw.Code || raw.couponCode,
-  couponName: raw.Description || raw.couponName,
-  description: raw.Description || raw.description,
-  discountType: raw.Discount_Type || raw.discountType,
-  discountValue: raw.Discount_Value || raw.discountValue,
-  minOrderAmount: raw.minOrderAmount,
-  maxDiscountAmount: raw.maxDiscountAmount,
-  usageLimit: raw.Quality || raw.usageLimit,
-  usedCount: raw.usedCount,
-  isActive: raw.isActive,
-  applicableFor: raw.applicableFor,
-  validFrom: raw.Valid_From || raw.validFrom,
-  validUntil: raw.Valid_To || raw.validUntil,
-  createdAt: raw.Created_At || raw.createdAt,
-  updatedAt: raw.Updated_At || raw.updatedAt,
-  pointRequired: raw.Point_required,
+  coupon_code: raw.coupon_code,
+  coupon_name: raw.coupon_name,
+  description: raw.description,
+  discount_type: raw.discount_type,
+  discount_value: raw.discount_value,
+  quantity: raw.quantity,
+  point_required: raw.point_required,
+  is_active: raw.is_active,
+  applicable_for: raw.applicable_for,
+  valid_from: raw.valid_from,
+  valid_to: raw.valid_to,
+  created_at: raw.createdAt,
+  updated_at: raw.updatedAt,
 });
 
 const VoucherManage = () => {
@@ -88,7 +86,7 @@ const VoucherManage = () => {
     if (coupon) {
       form.setFieldsValue({
         ...coupon,
-        validRange: [coupon.validFrom ? moment(coupon.validFrom) : null, coupon.validUntil ? moment(coupon.validUntil) : null]
+        validRange: [coupon.valid_from ? moment(coupon.valid_from) : null, coupon.valid_to ? moment(coupon.valid_to) : null]
       });
     } else {
       form.resetFields();
@@ -106,19 +104,19 @@ const VoucherManage = () => {
     setSubmitting(true);
     try {
       const data = {
-        couponCode: values.couponCode,
-        couponName: values.couponName,
+        coupon_code: values.coupon_code,
+        coupon_name: values.coupon_name,
         description: values.description,
-        discountType: values.discountType,
-        discountValue: values.discountValue,
-        minOrderAmount: values.minOrderAmount,
-        maxDiscountAmount: values.maxDiscountAmount,
-        usageLimit: values.usageLimit,
-        validFrom: values.validRange ? values.validRange[0] : null,
-        validUntil: values.validRange ? values.validRange[1] : null,
-        isActive: values.isActive,
-        applicableFor: values.applicableFor
+        discount_type: values.discount_type,
+        discount_value: values.discount_value,
+        quantity: values.quantity,
+        point_required: values.point_required || 0,
+        valid_from: values.validRange ? values.validRange[0] : null,
+        valid_to: values.validRange ? values.validRange[1] : null,
+        is_active: values.is_active,
+        applicable_for: values.applicable_for
       };
+      
       if (editingCoupon) {
         await couponService.updateCoupon(editingCoupon._id, data);
         message.success('Cập nhật voucher thành công!');
@@ -147,7 +145,7 @@ const VoucherManage = () => {
 
   const handleToggleStatus = async (couponId, currentStatus) => {
     try {
-      await couponService.updateCoupon(couponId, { isActive: !currentStatus });
+      await couponService.updateCoupon(couponId, { is_active: !currentStatus });
       message.success(`${!currentStatus ? 'Kích hoạt' : 'Vô hiệu hóa'} voucher thành công!`);
       fetchData();
     } catch (error) {
@@ -158,9 +156,20 @@ const VoucherManage = () => {
   const columns = [
     {
       title: 'Mã',
-      dataIndex: 'couponCode',
-      key: 'couponCode',
+      dataIndex: 'coupon_code',
+      key: 'coupon_code',
       render: (text) => <strong>{text}</strong>,
+    },
+    {
+      title: 'Tên',
+      dataIndex: 'coupon_name',
+      key: 'coupon_name',
+      ellipsis: true,
+      render: (text) => (
+        <Tooltip title={text}>
+          <span>{text}</span>
+        </Tooltip>
+      ),
     },
     {
       title: 'Mô tả',
@@ -175,41 +184,42 @@ const VoucherManage = () => {
     },
     {
       title: 'Loại',
-      dataIndex: 'discountType',
-      key: 'discountType',
-      render: (type) => type === 'percent' ? <Tag icon={<PercentageOutlined />} color="blue">Phần trăm</Tag> : <Tag icon={<DollarOutlined />} color="orange">Số tiền</Tag>
+      dataIndex: 'discount_type',
+      key: 'discount_type',
+      render: (type) => type === 'percent' ? 
+        <Tag icon={<PercentageOutlined />} color="green">Phần trăm</Tag> : 
+        <Tag icon={<DollarOutlined />} color="orange">Số tiền</Tag>
     },
     {
       title: 'Giá trị',
-      dataIndex: 'discountValue',
-      key: 'discountValue',
-      render: (value, record) => record.discountType === 'percent' ? `${value ?? 0}%` : (value != null ? `${value.toLocaleString()}₫` : '-')
+      dataIndex: 'discount_value',
+      key: 'discount_value',
+      render: (value, record) => record.discount_type === 'percent' ? 
+        `${value ?? 0}%` : 
+        (value != null ? `${value.toLocaleString()}₫` : '-')
     },
     {
       title: 'Số lượng',
-      dataIndex: 'usageLimit',
-      key: 'usageLimit',
-    },
-    {
-      title: 'Đã dùng',
-      dataIndex: 'usedCount',
-      key: 'usedCount',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (value) => value || 0,
     },
     {
       title: 'Điểm đổi',
-      dataIndex: 'pointRequired',
-      key: 'pointRequired',
+      dataIndex: 'point_required',
+      key: 'point_required',
+      render: (value) => value || 0,
     },
     {
       title: 'Hiệu lực',
-      dataIndex: 'validFrom',
-      key: 'validFrom',
-      render: (v, record) => `${v ? new Date(v).toLocaleDateString() : ''} - ${record.validUntil ? new Date(record.validUntil).toLocaleDateString() : ''}`
+      dataIndex: 'valid_from',
+      key: 'valid_from',
+      render: (v, record) => `${v ? new Date(v).toLocaleDateString() : ''} - ${record.valid_to ? new Date(record.valid_to).toLocaleDateString() : ''}`
     },
     {
       title: 'Trạng thái',
-      dataIndex: 'isActive',
-      key: 'isActive',
+      dataIndex: 'is_active',
+      key: 'is_active',
       render: (active) => active ? <Tag color="green">Đang hoạt động</Tag> : <Tag color="red">Vô hiệu hóa</Tag>
     },
     {
@@ -217,10 +227,10 @@ const VoucherManage = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={record.isActive ? "Vô hiệu hóa voucher" : "Kích hoạt voucher"}>
+          <Tooltip title={record.is_active ? "Vô hiệu hóa voucher" : "Kích hoạt voucher"}>
             <Switch
-              checked={record.isActive}
-              onChange={() => handleToggleStatus(record._id, record.isActive)}
+              checked={record.is_active}
+              onChange={() => handleToggleStatus(record._id, record.is_active)}
               checkedChildren="ON"
               unCheckedChildren="OFF"
             />
@@ -290,6 +300,7 @@ const VoucherManage = () => {
           dataSource={coupons}
           rowKey="_id"
           loading={loading}
+          className="voucher-table"
           pagination={{
             total: coupons.length,
             pageSize: 10,
@@ -298,7 +309,15 @@ const VoucherManage = () => {
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} của ${total} voucher`,
           }}
-          className="voucher-table"
+          locale={{
+            emptyText: (
+              <Empty 
+                description="Chưa có voucher nào"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            )
+          }}
+          scroll={{ x: 1200 }}
         />
       </Card>
 
@@ -326,16 +345,19 @@ const VoucherManage = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="couponCode"
+                  name="coupon_code"
                   label="Mã Voucher"
-                  rules={[{ required: true, message: 'Vui lòng nhập mã voucher!' }]}
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập mã voucher!' },
+                    { pattern: /^[A-Z0-9_]+$/, message: 'Mã voucher chỉ chứa chữ hoa, số và dấu gạch dưới!' }
+                  ]}
                 >
-                  <Input placeholder="Nhập mã voucher" />
+                  <Input placeholder="Nhập mã voucher (VD: SAVE20)" style={{ textTransform: 'uppercase' }} />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="couponName"
+                  name="coupon_name"
                   label="Tên Voucher"
                   rules={[{ required: true, message: 'Vui lòng nhập tên voucher!' }]}
                 >
@@ -352,7 +374,7 @@ const VoucherManage = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="discountType"
+                  name="discount_type"
                   label="Loại giảm giá"
                   rules={[{ required: true, message: 'Chọn loại giảm giá!' }]}
                 >
@@ -364,14 +386,27 @@ const VoucherManage = () => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="discountValue"
+                  name="discount_value"
                   label="Giá trị giảm"
-                  rules={[{ required: true, message: 'Nhập giá trị giảm!' }]}
+                  rules={[
+                    { required: true, message: 'Nhập giá trị giảm!' },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value) return Promise.resolve();
+                        const discountType = getFieldValue('discount_type');
+                        if (discountType === 'percent' && value > 100) {
+                          return Promise.reject(new Error('Giá trị giảm theo % không được vượt quá 100%!'));
+                        }
+                        return Promise.resolve();
+                      },
+                    })
+                  ]}
                 >
                   <InputNumber
                     placeholder="Nhập giá trị giảm"
                     style={{ width: '100%' }}
                     min={0}
+                    max={form.getFieldValue('discount_type') === 'percent' ? 100 : undefined}
                   />
                 </Form.Item>
               </Col>
@@ -379,11 +414,12 @@ const VoucherManage = () => {
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
-                  name="minOrderAmount"
-                  label="Tối thiểu đơn (VND)"
+                  name="quantity"
+                  label="Số lượng voucher"
+                  rules={[{ required: true, message: 'Nhập số lượng voucher!' }]}
                 >
                   <InputNumber
-                    placeholder="Nhập giá trị tối thiểu đơn"
+                    placeholder="Nhập số lượng voucher"
                     style={{ width: '100%' }}
                     min={0}
                   />
@@ -391,44 +427,29 @@ const VoucherManage = () => {
               </Col>
               <Col span={12}>
                 <Form.Item
-                  name="maxDiscountAmount"
-                  label="Tối đa giảm (VND)"
+                  name="point_required"
+                  label="Điểm cần thiết để đổi"
+                  initialValue={0}
                 >
                   <InputNumber
-                    placeholder="Nhập giá trị tối đa giảm"
+                    placeholder="Nhập số điểm cần thiết (0 = miễn phí)"
                     style={{ width: '100%' }}
                     min={0}
                   />
                 </Form.Item>
               </Col>
             </Row>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="usageLimit"
-                  label="Số lượng sử dụng"
-                  rules={[{ required: true, message: 'Nhập số lượng sử dụng!' }]}
-                >
-                  <InputNumber
-                    placeholder="Nhập số lượng sử dụng"
-                    style={{ width: '100%' }}
-                    min={1}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="applicableFor"
-                  label="Áp dụng cho"
-                >
-                  <Select placeholder="Chọn đối tượng áp dụng">
-                    <Option value="all">Tất cả</Option>
-                    <Option value="new_customer">Khách mới</Option>
-                    <Option value="loyalty">Khách thân thiết</Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
+            <Form.Item
+              name="applicable_for"
+              label="Áp dụng cho"
+              initialValue="all"
+            >
+              <Select placeholder="Chọn đối tượng áp dụng">
+                <Option value="all">Tất cả</Option>
+                <Option value="new_customer">Khách mới</Option>
+                <Option value="loyalty">Khách thân thiết</Option>
+              </Select>
+            </Form.Item>
             <Form.Item
               name="validRange"
               label="Thời gian hiệu lực"
@@ -437,7 +458,7 @@ const VoucherManage = () => {
               <RangePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
             </Form.Item>
             <Form.Item
-              name="isActive"
+              name="is_active"
               label="Trạng thái"
               valuePropName="checked"
               initialValue={true}

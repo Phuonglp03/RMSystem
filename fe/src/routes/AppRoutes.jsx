@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AdminProtectedRoute, ServantProtectedRoute } from '../components/ProtectedRoute';
+import ScrollToTop from '../components/ScrollToTop';
 import AdminLayout from '../layouts/AdminLayout';
 import MainLayout from '../layouts/MainLayout';
 import ServantLayout from '../layouts/ServantLayout';
@@ -10,6 +11,8 @@ import BookingTable from '../pages/BookTable';
 import HomePage from '../pages/Home';
 import Login from '../pages/LogIn';
 import Menu from '../pages/Menu';
+import FoodDetail from '../pages/FoodDetail';
+import ComboDetail from '../pages/ComboDetail';
 import UserProfile from '../pages/Profile';
 import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant';
 import Reservation_Detail from '../pages/Reservation_Detail';
@@ -47,6 +50,7 @@ import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
 
 const AppRoutes = () => (
     <BrowserRouter>
+        <ScrollToTop />
         <Routes>
             {/* Main Public Routes */}
             <Route path="/" element={<MainLayout />}>
@@ -57,6 +61,8 @@ const AppRoutes = () => (
                     </>
                 } />
                 <Route path='menu' element={<Menu />} />
+                <Route path='food/:id' element={<FoodDetail />} />
+                <Route path='combo/:id' element={<ComboDetail />} />
                 <Route path='book-table' element={<BookingTable />} />
                 <Route path='test-table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
