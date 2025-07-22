@@ -288,9 +288,118 @@ const getReservationsFromToday = async (req, res) => {
   }
 };
 
+// Lấy lịch sử đặt bàn của người dùng
+const getUserReservations = async (req, res) => {
+  try {
+    const userId = req.jwtDecode?.id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized'
+      });
+    }
+
+    // Tìm customer dựa trên userId
+    const customer = await Customer.findOne({ userId });
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin khách hàng'
+      });
+    }
+
+    // Lấy tất cả đặt bàn của customer này
+    const reservations = await Reservation.find({
+      customerId: { $in: [customer._id] }
+    })
+    .populate('bookedTable', 'tableNumber capacity')
+    .sort({ startTime: -1 }); // Sắp xếp theo thời gian mới nhất
+
+    // Format dữ liệu trả về
+    const formattedReservations = reservations.map(reservation => ({
+      id: reservation._id,
+      code: reservation.reservationCode,
+      status: reservation.status,
+      startTime: reservation.startTime,
+      endTime: reservation.endTime,
+      numberOfPeople: reservation.numberOfPeople,
+      note: reservation.note,
+      tables: reservation.bookedTable.map(table => ({
+        id: table._id,
+        number: table.tableNumber,
+        capacity: table.capacity
+      })),
+      paymentStatus: reservation.paymentStatus
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: 'Lấy lịch sử đặt bàn thành công',
+      reservations: formattedReservations
+    });
+  } catch (error) {
+    console.error('Error getting user reservations:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi lấy lịch sử đặt bàn',
+      error: error.message
+    });
+  }
+};
+
+// Cập nhật trạng thái đặt bàn
+const updateReservationStatus = async (req, res) => {
+  try {
+    const { code } = req.params;
+    const { status } = req.body;
+
+    if (!code || !status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Thiếu thông tin mã đặt bàn hoặc trạng thái'
+      });
+    }
+
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Trạng thái không hợp lệ'
+      });
+    }
+
+    const reservation = await Reservation.findOne({ reservationCode: code });
+    if (!reservation) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy đặt bàn với mã này'
+      });
+    }
+
+    reservation.status = status;
+    await reservation.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cập nhật trạng thái đặt bàn thành công',
+      reservation
+    });
+  } catch (error) {
+    console.error('Error updating reservation status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi khi cập nhật trạng thái đặt bàn',
+      error: error.message
+    });
+  }
+};
+
+// Export all controllers
 module.exports = {
   getAvailableTables,
   createReservation,
   getReservation,
-  getReservationsFromToday
+  updateReservationStatus,
+  getReservationsFromToday,
+  getUserReservations
 };
