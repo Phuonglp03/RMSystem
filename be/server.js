@@ -33,7 +33,11 @@ const comboRoutes = require('./routes/combo.routes');
 
 const tableOrderRoutes = require('./routes/tableOrder.routes');
 const couponRoutes = require('./routes/coupon.routes');
-
+const chefRoutes = require('./routes/chef.routes');
+const inventoryRoutes = require('./routes/inventory.routes');
+const categoryRoutes = require('./routes/inventoryCategory.routes');
+const ingredientRoutes = require('./routes/ingredient.routes');
+const reportRoutes = require("./routes/reports");
 
 const dotenv = require('dotenv');
 dotenv.config(); // Load biến từ .env vào process.env
@@ -69,6 +73,15 @@ app.use('/api/tables', require('./routes/table.routes'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/notification', require('./routes/notification.routes'))
+
+app.use('/api/chef', chefRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/ingredients', ingredientRoutes);
+app.use("/api/reports", reportRoutes);
+
+
+
 
 
 const PORT = process.env.PORT || 9999;

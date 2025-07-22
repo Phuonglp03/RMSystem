@@ -41,6 +41,10 @@ import Servant_Notification_Page from '../pages/Servant_Notification_Page';
 import VoucherManage from '../pages/AdminDashboard/Voucher_Manage';
 import TableOrder_Detail from '../pages/TableOrder_Detail';
 
+import ChefDashboard from '../pages/Chef/ChefDashboard';
+import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
+import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
+
 const AppRoutes = () => (
     <BrowserRouter>
         <Routes>
@@ -77,6 +81,12 @@ const AppRoutes = () => (
                 <Route path="foods" element={<FoodManage />} />
                 <Route path="combos" element={<ComboManage />} />
                 <Route path="voucher" element={<VoucherManage />} />
+
+                <Route path="chef" element={<ChefDashboard />} />
+                <Route path="inventory" element={<InventoryDashboard />} />
+                <Route path="revenue" element={<RevenueReport />} />
+
+
             </Route>
 
             {/* Servant Routes - Protected */}
