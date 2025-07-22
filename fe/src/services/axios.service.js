@@ -2,11 +2,7 @@ import axios from "axios";
 // 'http://localhost:9999'
 // 'https://rm-system-4tru.vercel.app'
 const axiosInstance = axios.create({
-<<<<<<< Updated upstream
-  baseURL: 'https://rm-system-4tru.vercel.app' , 
-=======
-  baseURL: 'http://localhost:9999',
->>>>>>> Stashed changes
+  baseURL: 'http://localhost:9999' , 
   timeout: 10000,
   withCredentials: true, // Important for cookies
   headers: {
@@ -15,11 +11,7 @@ const axiosInstance = axios.create({
 });
 
 const axiosRaw = axios.create({
-<<<<<<< Updated upstream
-  baseURL: 'https://rm-system-4tru.vercel.app' ,
-=======
-  baseURL: 'http://localhost:9999',
->>>>>>> Stashed changes
+  baseURL: 'http://localhost:9999' ,
   timeout: 10000,
   withCredentials: true,
   headers: { "Content-Type": "application/json" }

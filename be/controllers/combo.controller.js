@@ -165,40 +165,9 @@ exports.getAllCombos = async (req, res) => {
 exports.getComboById = async (req, res) => {
   try {
     const comboId = req.params.id;
-<<<<<<< Updated upstream
     if (!mongoose.Types.ObjectId.isValid(comboId)) {
       return res.status(400).json({ status: 'fail', message: 'ID combo không hợp lệ' });
     }
-=======
-    
-    if (!mongoose.Types.ObjectId.isValid(comboId)) {
-      return res.status(400).json({ status: 'fail', message: 'ID combo không hợp lệ' });
-    }
-
-    const combo = await Combo.findById(comboId);
-    if (!combo) {
-      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy combo' });
-    }
-
-    // Lấy items của combo
-    const items = await ComboItem.find({ comboId })
-      .populate('foodId', 'name price images description');
-
-    const comboWithItems = {
-      ...combo.toObject(),
-      items
-    };
-
-    res.status(200).json({ 
-      status: 'success', 
-      data: comboWithItems 
-    });
-  } catch (error) {
-    console.error('Error fetching combo by ID:', error);
-    res.status(400).json({ status: 'fail', message: error.message });
-  }
-};
->>>>>>> Stashed changes
 
     const combo = await Combo.findById(comboId);
     if (!combo) {
