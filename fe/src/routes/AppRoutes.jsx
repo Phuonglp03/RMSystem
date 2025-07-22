@@ -22,6 +22,7 @@ import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
 import Signup from '../pages/SignUp';
 import PaymentCallback from '../pages/payment-callback';
+import Vouchers from '../pages/Vouchers';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
@@ -52,6 +53,7 @@ const AppRoutes = () => (
                         <HomePage />
                     </>
                 } />
+                <Route path='vouchers' element={<Vouchers />} />
                 <Route path='menu' element={<Menu />} />
                 <Route path='food/:id' element={<FoodDetail />} />
                 <Route path='combo/:id' element={<ComboDetail />} />

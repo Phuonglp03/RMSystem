@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const couponController = require('../controllers/coupon.controller');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 // Lấy tất cả coupon
 router.get('/', couponController.getAllCoupons);
@@ -16,5 +17,8 @@ router.put('/:id', couponController.updateCoupon);
 
 // Xóa coupon
 router.delete('/:id', couponController.deleteCoupon);
+
+// Áp dụng coupon vào đơn hàng
+router.post('/apply', authMiddleware, couponController.applyCoupon);
 
 module.exports = router; 

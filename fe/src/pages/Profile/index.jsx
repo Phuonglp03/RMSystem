@@ -34,10 +34,13 @@ import {
   TrophyOutlined,
   CalendarOutlined,
   DollarOutlined,
-  HomeOutlined
+  HomeOutlined,
+  CopyOutlined
 } from '@ant-design/icons';
 import './profile.css';
 import { useNavigate } from 'react-router-dom';
+import moment from 'moment';
+import ReservationHistory from './ReservationHistory';
 
 const { Sider, Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
@@ -48,13 +51,11 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [loadingLoyalty, setLoadingLoyalty] = useState(false);
   const [updating, setUpdating] = useState(false);
   
   // Real data states
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [loyaltyInfo, setLoyaltyInfo] = useState(null);
   const [coupons, setCoupons] = useState([]);
 
   useEffect(() => {
@@ -107,25 +108,7 @@ const UserProfile = () => {
     }
   };
 
-  // Fetch loyalty information
-  const fetchLoyaltyInfo = async () => {
-    if (!userData?.userId) return;
-    
-    setLoadingLoyalty(true);
-    try {
-      const response = await userService.getUserLoyalty(userData.userId);
-      
-      if (response.success) {
-        setLoyaltyInfo(response.data);
-      } else {
-        console.error('Lỗi khi lấy thông tin tích điểm:', response.message);
-      }
-    } catch (error) {
-      console.error('Lỗi khi lấy thông tin tích điểm:', error);
-    } finally {
-      setLoadingLoyalty(false);
-    }
-  };
+
 
   // Fetch user coupons
   const fetchCoupons = async () => {
@@ -153,9 +136,6 @@ const UserProfile = () => {
 
   const handleTabChange = (key) => {
     setActiveTab(key);
-    if (key === 'loyalty' && !loyaltyInfo) {
-      fetchLoyaltyInfo();
-    }
     if (key === 'coupons' && coupons.length === 0) {
       fetchCoupons();
     }
@@ -207,27 +187,14 @@ const UserProfile = () => {
     <Layout className="profile-layout">
       <Sider width={260} theme="light" className="profile-sider">
         <div className="sider-content">
-          <Badge 
-            count={loyaltyInfo ? <TrophyOutlined style={{ color: loyaltyInfo.membershipLevel.color }} /> : 0} 
-            offset={[-5, 5]}
-          >
-            <Avatar 
-              size={80} 
-              icon={<UserOutlined />} 
-              className="user-avatar"
-              src={user.avatar}
-            />
-          </Badge>
+          <Avatar 
+            size={80} 
+            icon={<UserOutlined />} 
+            className="user-avatar"
+            src={user.avatar}
+          />
           <Title level={4} className="username">{user.fullname || user.username}</Title>
           <Text type="secondary">{user.email}</Text>
-          
-          <div className="membership-badge">
-            {loyaltyInfo && (
-              <Text strong style={{ color: loyaltyInfo.membershipLevel.color }}>
-                Thành viên {loyaltyInfo.membershipLevel.name}
-              </Text>
-            )}
-          </div>
         </div>
         
         <Menu 
@@ -238,9 +205,6 @@ const UserProfile = () => {
         >
           <Menu.Item key="profile" icon={<UserOutlined className="menu-icon" />} className="menu-item">
             Thông tin cá nhân
-          </Menu.Item>
-          <Menu.Item key="loyalty" icon={<TrophyOutlined className="menu-icon" />} className="menu-item">
-            Điểm tích lũy & Hạng thành viên
           </Menu.Item>
           <Menu.Item key="reservations" icon={<HistoryOutlined className="menu-icon" />} className="menu-item">
             Lịch sử đặt bàn
@@ -257,13 +221,11 @@ const UserProfile = () => {
             <Col span={16}>
               <Title level={3} className="header-title">
                 {activeTab === 'profile' && 'Thông tin cá nhân'}
-                {activeTab === 'loyalty' && 'Điểm tích lũy & Hạng thành viên'}
                 {activeTab === 'reservations' && 'Lịch sử đặt bàn'}
                 {activeTab === 'coupons' && 'Mã giảm giá của tôi'}
               </Title>
               <Paragraph className="header-subtitle">
                 {activeTab === 'profile' && 'Quản lý thông tin cá nhân của bạn'}
-                {activeTab === 'loyalty' && 'Theo dõi điểm tích lũy và cấp độ thành viên'}
                 {activeTab === 'reservations' && 'Xem lại lịch sử đặt bàn của bạn'}
                 {activeTab === 'coupons' && 'Danh sách mã giảm giá hiện có'}
               </Paragraph>
@@ -386,132 +348,12 @@ const UserProfile = () => {
           </>
         )}
 
-        {/* Loyalty Tab */}
-        {activeTab === 'loyalty' && (
-          <Spin spinning={loadingLoyalty}>
-            {loyaltyInfo ? (
-              <Row gutter={24} className="stats-row">
-                <Col span={24}>
-                  <Card className="loyalty-card">
-                    <Row>
-                      <Col span={8}>
-                        <Statistic 
-                          title="Điểm tích lũy hiện tại" 
-                          value={loyaltyInfo.points} 
-                          prefix={<TrophyOutlined />} 
-                          valueStyle={{ color: '#1890ff', fontSize: '2rem' }}
-                          className="loyalty-statistic"
-                        />
-                      </Col>
-                      <Col span={8}>
-                        <div className="membership-info">
-                          <Title level={4}>Hạng thành viên</Title>
-                          <div className="membership-badge-large" style={{ backgroundColor: loyaltyInfo.membershipLevel.color }}>
-                            <Text strong style={{ color: '#fff', fontSize: '1.5rem' }}>
-                              {loyaltyInfo.membershipLevel.name}
-                            </Text>
-                          </div>
-                        </div>
-                      </Col>
-                      <Col span={8}>
-                        {loyaltyInfo.nextLevel ? (
-                          <Statistic 
-                            title={`Điểm để lên hạng ${loyaltyInfo.nextLevel.name}`} 
-                            value={loyaltyInfo.nextLevel.pointsToNext} 
-                            valueStyle={{ color: '#f5222d' }}
-                            className="loyalty-statistic"
-                          />
-                        ) : (
-                          <Statistic 
-                            title="Trạng thái" 
-                            value="Đã đạt hạng cao nhất" 
-                            valueStyle={{ color: '#52c41a' }}
-                            className="loyalty-statistic"
-                          />
-                        )}
-                      </Col>
-                    </Row>
-                    
-                    {loyaltyInfo.nextLevel && (
-                      <div className="progress-wrapper">
-                        <Title level={5}>Tiến độ lên hạng {loyaltyInfo.nextLevel.name}</Title>
-                        <Progress 
-                          percent={loyaltyInfo.progressPercentage} 
-                          status="active" 
-                          strokeColor={loyaltyInfo.membershipLevel.color}
-                        />
-                      </div>
-                    )}
-                    
-                    <Divider />
-                    
-                    <Title level={4}>Quyền lợi thành viên</Title>
-                    <Row gutter={16} className="benefits-row">
-                      <Col span={6}>
-                        <Card className="benefit-card bronze">
-                          <Title level={5} style={{ color: '#CD7F32' }}>Thành viên Đồng</Title>
-                          <List size="small">
-                            <List.Item>Đổi điểm lấy voucher</List.Item>
-                            <List.Item>Tích điểm 5% giá trị đơn</List.Item>
-                          </List>
-                        </Card>
-                      </Col>
-                      <Col span={6}>
-                        <Card className="benefit-card silver">
-                          <Title level={5} style={{ color: '#C0C0C0' }}>Thành viên Bạc</Title>
-                          <List size="small">
-                            <List.Item>Tích điểm 7% giá trị đơn</List.Item>
-                            <List.Item>Voucher đặc biệt sinh nhật</List.Item>
-                            <List.Item>Ưu tiên đặt bàn</List.Item>
-                          </List>
-                        </Card>
-                      </Col>
-                      <Col span={6}>
-                        <Card className="benefit-card gold">
-                          <Title level={5} style={{ color: '#FFD700' }}>Thành viên Vàng</Title>
-                          <List size="small">
-                            <List.Item>Tích điểm 10% giá trị đơn</List.Item>
-                            <List.Item>Voucher giảm giá độc quyền</List.Item>
-                            <List.Item>Gọi món đặc biệt không có trong menu</List.Item>
-                          </List>
-                        </Card>
-                      </Col>
-                      <Col span={6}>
-                        <Card className="benefit-card platinum">
-                          <Title level={5} style={{ color: '#e5e4e2' }}>Thành viên Bạch Kim</Title>
-                          <List size="small">
-                            <List.Item>Tích điểm 15% giá trị đơn</List.Item>
-                            <List.Item>Phòng VIP miễn phí</List.Item>
-                            <List.Item>Dịch vụ đón tiễn</List.Item>
-                            <List.Item>Tư vấn đầu bếp riêng</List.Item>
-                          </List>
-                        </Card>
-                      </Col>
-                    </Row>
-                  </Card>
-                </Col>
-              </Row>
-            ) : (
-              <Card>
-                <div className="empty-state">
-                  <TrophyOutlined style={{ fontSize: '48px', color: '#bfbfbf' }} />
-                  <Title level={4}>Chưa có thông tin tích điểm</Title>
-                  <Paragraph>Hãy đặt bàn để bắt đầu tích điểm!</Paragraph>
-                </div>
-              </Card>
-            )}
-          </Spin>
-        )}
+
 
         {/* Reservations Tab */}
         {activeTab === 'reservations' && (
           <Card className="reservations-card">
-            <div className="empty-state">
-              <CalendarOutlined style={{ fontSize: '48px', color: '#bfbfbf' }} />
-              <Title level={4}>Chưa có lịch đặt bàn</Title>
-              <Paragraph>Bạn chưa có đơn đặt bàn nào. Hãy đặt bàn ngay để trải nghiệm dịch vụ của chúng tôi.</Paragraph>
-              <Button type="primary" onClick={() => navigate('/booking')}>Đặt bàn ngay</Button>
-            </div>
+            <ReservationHistory />
           </Card>
         )}
 
@@ -524,19 +366,61 @@ const UserProfile = () => {
                 dataSource={coupons}
                 renderItem={(coupon) => (
                   <List.Item>
-                    <Card className="coupon-item">
-                      <div className="coupon-info">
-                        <Title level={4}>{coupon.couponName}</Title>
-                        <Paragraph>{coupon.description}</Paragraph>
-                        <div className="coupon-value">
-                          <DollarOutlined /> <Text strong>{coupon.discountValue}{coupon.discountType === 'percent' ? '%' : ' VND'}</Text>
-                        </div>
-                      </div>
-                      <div className="coupon-validity">
-                        <Text type="secondary">
-                          Hạn sử dụng: {coupon.validUntil ? new Date(coupon.validUntil).toLocaleDateString('vi-VN') : 'Không giới hạn'}
-                        </Text>
-                      </div>
+                    <Card className="coupon-item" style={{ 
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                    }}>
+                      <Row gutter={16}>
+                        <Col span={8}>
+                          <div className="coupon-visual" style={{
+                            background: `linear-gradient(135deg, ${coupon.discount_type === 'percent' ? '#52c41a' : '#faad14'} 0%, #ffd700 100%)`,
+                            minHeight: 150
+                          }}>
+                            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold', marginBottom: 8 }}>
+                              Coupon
+                            </Text>
+                            <Text style={{ color: 'white', fontSize: 28, fontWeight: 'bold' }}>
+                              {coupon.discount_type === 'percent' ? 
+                                `${coupon.discount_value}%` : 
+                                `${Number(coupon.discount_value).toLocaleString('vi-VN')}đ`}
+                            </Text>
+                          </div>
+                        </Col>
+                        <Col span={16}>
+                          <div className="coupon-content">
+                            <div style={{ marginBottom: 16 }}>
+                              <Title level={4} style={{ margin: 0 }}>{coupon.coupon_name}</Title>
+                              <Text type="secondary">{coupon.description}</Text>
+                            </div>
+                            
+                            <div style={{ flex: 1 }}>
+                              <Text type="secondary">
+                                Hạn sử dụng: {coupon.valid_to ? moment(coupon.valid_to).format('DD/MM/YYYY') : 'Không giới hạn'}
+                              </Text>
+                            </div>
+                            
+                            <div className="coupon-code-section">
+                              <div>
+                                <Text strong>Mã: </Text>
+                                <Text code style={{ fontSize: 16, fontWeight: 'bold' }}>
+                                  {coupon.coupon_code}
+                                </Text>
+                              </div>
+                              <Button 
+                                type="primary" 
+                                icon={<CopyOutlined />}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(coupon.coupon_code);
+                                  message.success(`Đã sao chép mã: ${coupon.coupon_code}`);
+                                }}
+                              >
+                                Sao chép
+                              </Button>
+                            </div>
+                          </div>
+                        </Col>
+                      </Row>
                     </Card>
                   </List.Item>
                 )}
@@ -546,7 +430,7 @@ const UserProfile = () => {
                 <GiftOutlined style={{ fontSize: '48px', color: '#bfbfbf' }} />
                 <Title level={4}>Chưa có mã giảm giá</Title>
                 <Paragraph>Bạn chưa có mã giảm giá nào. Hãy tích điểm để đổi lấy những ưu đãi hấp dẫn!</Paragraph>
-                <Button type="primary" onClick={() => handleTabChange('loyalty')}>Xem điểm tích lũy</Button>
+                <Button type="primary" onClick={() => navigate('/vouchers')}>Xem ưu đãi</Button>
               </div>
             )}
           </Card>

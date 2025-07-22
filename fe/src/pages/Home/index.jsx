@@ -377,14 +377,14 @@ const HomePage = () => {
         </Row>
       </div>
 
-      {/* Promotion Banner - Moved here */}
+      {/* Voucher Banner - Moved here */}
       <div style={{ 
         background: 'linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%)', 
         padding: '15px 50px',
         textAlign: 'center',
         cursor: 'pointer'
       }}
-      onClick={() => navigate('/voucher')}
+      onClick={() => navigate('/vouchers')}
       >
         <Row align="middle" justify="center" gutter={16}>
           <Col>

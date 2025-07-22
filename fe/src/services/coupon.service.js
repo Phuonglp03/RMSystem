@@ -6,6 +6,7 @@ const couponService = {
   updateCoupon: (id, data) => axiosService.put(`/api/coupons/${id}`, data),
   deleteCoupon: (id) => axiosService.delete(`/api/coupons/${id}`),
   getCouponById: (id) => axiosService.get(`/api/coupons/${id}`),
+  redeemCoupon: (userId, couponId) => axiosService.post(`/api/users/${userId}/redeem-coupon`, { couponId }),
 };
 
 export default couponService; 
