@@ -1,18 +1,19 @@
 import axiosInstance from "./axios.service";
 
 const notificationAPI = {
-    getNotifications: () => {
-        return axiosInstance.get('/api/notification');
-    },
+  getNotifications: () => {
+    return axiosInstance.get('/api/notification');
+  },
 
-    markNotificationAsRead: (notificationId) => {
-        return axiosInstance.patch('/api/notification/read', { notificationId });
-    },
+  markNotificationAsRead: (notificationId) => {
+    return axiosInstance.patch(`/api/notification/read/${notificationId}`);
+  },
 
-    deleteNotification: (notificationId) => {
-        return axiosInstance.delete('/api/notification/delete', { data: { notificationId } });
-    }
-}
+  deleteNotification: (notificationId) => {
+    return axiosInstance.delete(`/api/notification/delete/${notificationId}`);
+  }
+};
+
 
 const notificationService = {
     getNotifications: async () => {

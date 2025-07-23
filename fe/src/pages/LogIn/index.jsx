@@ -32,7 +32,7 @@ const Login = () => {
       case 'admin':
         return '/admin';
       case 'servant':
-        return '/servant';
+        return '/servant/statistics';
       case 'chef':
         return '/';
       default:
