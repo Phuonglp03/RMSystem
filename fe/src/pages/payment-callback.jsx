@@ -59,7 +59,7 @@ const PaymentCallback = () => {
     resultProps = {
       status: 'success',
       title: 'Thanh toán thành công!',
-      subTitle: `Đặt bàn của bạn đã được thanh toán. Mã đặt bàn: ${order?.id || order?._id || ''}`,
+      subTitle: `Đặt bàn của bạn đã được thanh toán. `,
     };
   } else if (status === 'FAILED' || status === 'CANCELLED') {
     resultProps = {
