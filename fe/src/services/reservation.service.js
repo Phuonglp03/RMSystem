@@ -230,7 +230,7 @@ const reservationService = {
 
   getUserReservations: async () => {
     try {
-      const response = await axiosClient.get('/api/reservations/user/history');
+      const response = await axiosInstance.get('/api/reservations/user/history');
       return response;
     } catch (error) {
       console.error("Error fetching user reservations:", error);

@@ -7,12 +7,11 @@ const mongoose = require('mongoose')
 const NOTIFICATION_TYPES = require('../constants/notificationTypes.js')
 const notificationService = require('../services/notificationService.js')
 const crypto = require('crypto');
-const moment = require('moment-timezone');
 
 //Lay tat ca danh sach dat ban cua khach hang phia servant
 const getUnAssignedReservations = async (req, res) => {
     try {
-        const reservations = await Reservation.find({ servantId: null, status: 'pending' })
+        const reservations = await Reservation.find({ servantId: null, status: 'confirmed' })
             .populate({
                 path: 'bookedTable',
                 select: 'tableNumber capacity status '
