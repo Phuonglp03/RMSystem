@@ -73,16 +73,16 @@ const deleteNotification = async (req, res) => {
     try {
         const { notificationId } = req.params;
         const userId = req.jwtDecode.id;
-
+        console.log(`Xóa thông báo với ID: ${notificationId} cho người dùng: ${userId}`);
         if (!mongoose.isValidObjectId(notificationId)) {
             return res.status(400).json({ success: false, message: 'ID thông báo không hợp lệ' });
         }
 
         const notification = await Notification.findOneAndDelete({
             _id: notificationId,
-            relatedEntityId: userId
+            // relatedEntityId: userId
         });
-
+        console.log(`Thông báo tìm thấy: ${notification ? 'Có' : 'Không'}`);
         if (!notification) {
             return res.status(404).json({ success: false, message: 'Thông báo không tồn tại hoặc bạn không có quyền truy cập' });
         }

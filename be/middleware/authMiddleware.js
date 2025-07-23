@@ -40,11 +40,11 @@ const authMiddleware = async (req, res, next) => {
         console.log('Error from authMiddleware: ', err);
 
         // Case 1: accessToken expired
-        // if (err?.message?.includes('jwt expired')) {
-        //     return res.status(StatusCodes.GONE).json({
-        //         message: 'Access Token expired! Need to refresh token.'
-        //     });
-        // }
+        if (err?.message?.includes('jwt expired')) {
+            return res.status(StatusCodes.GONE).json({
+                message: 'Access Token expired! Need to refresh token.'
+            });
+        }
 
         // Case 2: accessToken invalid
         return res.status(StatusCodes.UNAUTHORIZED).json({
