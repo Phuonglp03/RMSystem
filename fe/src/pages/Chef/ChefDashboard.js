@@ -24,7 +24,7 @@ const ChefDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:9999/api/chef");
+      const res = await axios.get("https://rm-system-4tru.vercel.app/api/chef");
       setOrders(res.data);
     } catch (err) {
       console.error(err);
@@ -34,7 +34,7 @@ const ChefDashboard = () => {
 
   const completeOrder = async (id) => {
     try {
-      await axios.post(`http://localhost:9999/api/chef/${id}/complete`);
+      await axios.post(`https://rm-system-4tru.vercel.app/api/chef/${id}/complete`);
       message.success("✅ Đã hoàn thành đơn!");
       fetchOrders();
     } catch (err) {
@@ -45,7 +45,7 @@ const ChefDashboard = () => {
   const updatePaymentStatus = async (id) => {
     try {
       await axios.post(
-        `http://localhost:9999/api/chef/${id}/update-payment-status`,
+        `https://rm-system-4tru.vercel.app/api/chef/${id}/update-payment-status`,
         {
           paymentStatus: "success",
         }
