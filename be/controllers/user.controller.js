@@ -6,6 +6,7 @@ const Customer = require('../models/Customer')
 const Admin = require('../models/Admin')
 const Chef = require('../models/Chef')
 const Servant = require('../models/Servant')
+const Coupon = require('../models/Coupon') // Added Coupon model import
 
 const login = async (req, res) => {
     try {
@@ -563,6 +564,109 @@ const getUserCoupons = async (req, res) => {
     }
 };
 
+// New API: Redeem coupon with points
+const redeemCoupon = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.jwtDecode.id;
+        const { couponId } = req.body;
+        
+        if (!couponId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Thiếu thông tin mã giảm giá'
+            });
+        }
+
+        // Check if user exists and is a customer
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User không tồn tại'
+            });
+        }
+
+        if (user.role !== 'customer') {
+            return res.status(403).json({
+                success: false,
+                message: 'Chỉ khách hàng mới có thể đổi điểm lấy mã giảm giá'
+            });
+        }
+
+        // Get customer data
+        const customer = await Customer.findOne({ userId }).populate('coupons');
+        if (!customer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Thông tin khách hàng không tồn tại'
+            });
+        }
+
+        // Get coupon data
+        const coupon = await Coupon.findById(couponId);
+        if (!coupon) {
+            return res.status(404).json({
+                success: false,
+                message: 'Mã giảm giá không tồn tại'
+            });
+        }
+
+        // Check if coupon is valid
+        if (!coupon.is_active || new Date() > coupon.valid_to || coupon.quantity <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mã giảm giá không hợp lệ hoặc đã hết hạn'
+            });
+        }
+
+        // Check if user already has this coupon
+        const alreadyOwned = customer.coupons.some(userCoupon => 
+            userCoupon._id.toString() === couponId
+        );
+        
+        if (alreadyOwned) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bạn đã sở hữu mã giảm giá này'
+            });
+        }
+
+        // Check if user has enough points
+        if (customer.points < coupon.point_required) {
+            return res.status(400).json({
+                success: false,
+                message: 'Không đủ điểm để đổi mã giảm giá này'
+            });
+        }
+
+        // Update customer points and add coupon
+        customer.points -= coupon.point_required;
+        customer.coupons.push(couponId);
+        await customer.save();
+
+        // Giảm số lượng coupon khi đổi điểm
+        coupon.quantity -= 1;
+        await coupon.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Đổi mã giảm giá thành công',
+            data: {
+                coupon,
+                remainingPoints: customer.points
+            }
+        });
+
+    } catch (err) {
+        console.error('Redeem coupon error:', err);
+        return res.status(500).json({
+            success: false,
+            message: 'Đã xảy ra lỗi khi đổi mã giảm giá',
+            error: err.message
+        });
+    }
+};
+
 const getAllUsers = async (req, res) => {
     try {
         const { page = 1, limit = 10, role, active } = req.query;
@@ -629,6 +733,7 @@ module.exports = {
     updateUserProfile,
     getLoyaltyInfo,
     getUserCoupons,
+    redeemCoupon, // Added redeemCoupon to exports
     getAllUsers,
     getStaffUsers
 }

@@ -39,12 +39,27 @@ const Reservation_Statistics = () => {
                 params.endDate = selectedDate.endOf('year').toISOString();
             }
 
-            const data = await reservationService.getDailyStatistics(params);
-            setStats(data.statistics);
+            const response = await reservationService.getDailyStatistics(params);
+            const statsData = response?.statistics || response?.data?.statistics || {};
+            
+            // Validate and set safe default values
+            setStats({
+                totalReservations: safeNumber(statsData.totalReservations),
+                confirmed: safeNumber(statsData.confirmed),
+                cancelled: safeNumber(statsData.cancelled),
+                completed: safeNumber(statsData.completed),
+                noShow: safeNumber(statsData.noShow)
+            });
         } catch (err) {
             console.error('Error fetching stats:', err);
-            setStats(null);
-            message.error(err.message || 'Lỗi lấy dữ liệu');
+            setStats({
+                totalReservations: 0,
+                confirmed: 0,
+                cancelled: 0,
+                completed: 0,
+                noShow: 0
+            });
+            message.error(err?.response?.data?.message || err.message || 'Lỗi lấy dữ liệu thống kê');
         } finally {
             setLoading(false);
         }
@@ -58,6 +73,12 @@ const Reservation_Statistics = () => {
         }
     };
 
+    // Safe number function
+    const safeNumber = (value) => {
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+    };
+
     // Bar chart data
     const barData = {
         labels: ['Tổng số đơn', 'Đã nhận', 'Đã hủy', 'Hoàn thành', 'Không đến'],
@@ -65,11 +86,11 @@ const Reservation_Statistics = () => {
             {
                 label: 'Số lượng',
                 data: stats ? [
-                    stats.totalReservations,
-                    stats.confirmed,
-                    stats.cancelled,
-                    stats.completed,
-                    stats.noShow,
+                    safeNumber(stats.totalReservations),
+                    safeNumber(stats.confirmed),
+                    safeNumber(stats.cancelled),
+                    safeNumber(stats.completed),
+                    safeNumber(stats.noShow),
                 ] : [0, 0, 0, 0, 0],
                 backgroundColor: [
                     '#1890ff', '#52c41a', '#f5222d', '#13c2c2', '#faad14'
@@ -131,27 +152,27 @@ const Reservation_Statistics = () => {
                     <Row gutter={[16, 16]} justify="center" className="statistics-row">
                         <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
-                                <Statistic title="Tổng số đơn" value={stats.totalReservations} valueStyle={{ color: '#1890ff' }} />
+                                <Statistic title="Tổng số đơn" value={safeNumber(stats.totalReservations)} valueStyle={{ color: '#1890ff' }} />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
-                                <Statistic title="Đã nhận" value={stats.confirmed} valueStyle={{ color: '#52c41a' }} />
+                                <Statistic title="Đã nhận" value={safeNumber(stats.confirmed)} valueStyle={{ color: '#52c41a' }} />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
-                                <Statistic title="Đã hủy" value={stats.cancelled} valueStyle={{ color: '#f5222d' }} />
+                                <Statistic title="Đã hủy" value={safeNumber(stats.cancelled)} valueStyle={{ color: '#f5222d' }} />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
-                                <Statistic title="Hoàn thành" value={stats.completed} valueStyle={{ color: '#13c2c2' }} />
+                                <Statistic title="Hoàn thành" value={safeNumber(stats.completed)} valueStyle={{ color: '#13c2c2' }} />
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8} className="statistics-card">
                             <Card loading={loading}>
-                                <Statistic title="Không đến" value={stats.noShow} valueStyle={{ color: '#faad14' }} />
+                                <Statistic title="Không đến" value={safeNumber(stats.noShow)} valueStyle={{ color: '#faad14' }} />
                             </Card>
                         </Col>
                     </Row>

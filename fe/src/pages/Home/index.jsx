@@ -1,210 +1,184 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Typography, Row, Col, Card, Carousel, Divider, Form, Input, DatePicker, TimePicker, Select, InputNumber, Modal, Badge, Avatar, message, Tabs } from 'antd';
-import { UserOutlined, ShoppingCartOutlined, CalendarOutlined, HomeOutlined, MenuOutlined, EnvironmentOutlined, PhoneOutlined, ClockCircleOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
-import { useOutletContext } from 'react-router-dom';
-import moment from 'moment';
+import { Layout, Button, Typography, Row, Col, Card, Carousel, Divider, Tabs, Alert } from 'antd';
+import { CalendarOutlined, EnvironmentOutlined, PhoneOutlined, ClockCircleOutlined, LeftOutlined, RightOutlined, GiftOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { MinimalLogo } from '../../components/Logo';
+import { foodService } from '../../services/food.service';
+import { foodCategoryService } from '../../services/foodCategory.service';
+import comboService from '../../services/combo.service';
 
 const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { Meta } = Card;
-const { Option } = Select;
 const { TabPane } = Tabs;
 
-// Fake data
-const fakeCategories = [
-  { _id: 'cat1', title: 'Món khai vị' },
-  { _id: 'cat2', title: 'Món chính' },
-  { _id: 'cat3', title: 'Món tráng miệng' },
-  { _id: 'cat4', title: 'Đồ uống' }
-];
-
-const fakeFoods = [
-  {
-    _id: 'food1',
-    name: 'Salad Caesar',
-    description: 'Salad tươi mát với sốt Caesar đặc biệt',
-    price: 120000,
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop',
-    categoryId: 'cat1'
-  },
-  {
-    _id: 'food2',
-    name: 'Chả cá Lã Vọng',
-    description: 'Món chả cá truyền thống Hà Nội',
-    price: 280000,
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=300&fit=crop',
-    categoryId: 'cat2'
-  },
-  {
-    _id: 'food3',
-    name: 'Tiramisu',
-    description: 'Bánh tiramisu Italy chính hiệu',
-    price: 85000,
-    image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&h=300&fit=crop',
-    categoryId: 'cat3'
-  },
-  {
-    _id: 'food4',
-    name: 'Trà đào cam sả',
-    description: 'Thức uống giải khát tự nhiên',
-    price: 45000,
-    image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=300&fit=crop',
-    categoryId: 'cat4'
-  },
-  {
-    _id: 'food5',
-    name: 'Gỏi cuốn tôm thịt',
-    description: 'Gỏi cuốn tươi ngon với tôm và thịt',
-    price: 95000,
-    image: 'https://images.unsplash.com/photo-1559847844-d7b4ac063cd4?w=400&h=300&fit=crop',
-    categoryId: 'cat1'
-  },
-  {
-    _id: 'food6',
-    name: 'Bò lúc lắc',
-    description: 'Thịt bò áp chảo với rau củ',
-    price: 320000,
-    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop',
-    categoryId: 'cat2'
-  },
-  {
-    _id: 'food7',
-    name: 'Kem vani',
-    description: 'Kem vani thơm ngon mát lạnh',
-    price: 55000,
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop',
-    categoryId: 'cat3'
-  },
-  {
-    _id: 'food8',
-    name: 'Cà phê sữa đá',
-    description: 'Cà phê Việt Nam truyền thống',
-    price: 35000,
-    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&h=300&fit=crop',
-    categoryId: 'cat4'
-  }
-];
-
-const fakeFeedbacks = [
-  {
-    _id: 'fb1',
-    userId: { userName: 'Nguyễn Văn A' },
-    rating: 5,
-    comment: 'Món ăn rất ngon, phục vụ tận tình. Tôi sẽ quay lại!',
-    createdAt: '2024-01-15T10:30:00Z'
-  },
-  {
-    _id: 'fb2',
-    userId: { userName: 'Trần Thị B' },
-    rating: 4,
-    comment: 'Không gian đẹp, thức ăn chất lượng. Giá cả hợp lý.',
-    createdAt: '2024-01-12T14:20:00Z'
-  },
-  {
-    _id: 'fb3',
-    userId: { userName: 'Lê Minh C' },
-    rating: 5,
-    comment: 'Dịch vụ xuất sắc, đồ ăn tuyệt vời. Highly recommended!',
-    createdAt: '2024-01-10T19:45:00Z'
-  },
-  {
-    _id: 'fb4',
-    userId: { userName: 'Phạm Thị D' },
-    rating: 4,
-    comment: 'Món ăn ngon, nhân viên thân thiện. Sẽ giới thiệu bạn bè.',
-    createdAt: '2024-01-08T12:15:00Z'
-  },
-  {
-    _id: 'fb5',
-    userId: { userName: 'Hoàng Văn E' },
-    rating: 5,
-    comment: 'Trải nghiệm tuyệt vời! Cả gia đình đều hài lòng.',
-    createdAt: '2024-01-05T18:30:00Z'
-  },
-  {
-    _id: 'fb6',
-    userId: { userName: 'Vũ Thị F' },
-    rating: 4,
-    comment: 'Không gian ấm cúng, thức ăn đậm đà hương vị.',
-    createdAt: '2024-01-03T16:00:00Z'
-  }
-];
-
 const HomePage = () => {
-  const { 
-    cartItems, 
-    setCartItems, 
-    setReservationModal, 
-    cartModal, 
-    setCartModal 
-  } = useOutletContext();
-    
   const [categories, setCategories] = useState([]);
   const [foods, setFoods] = useState([]);
+  const [combos, setCombos] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [reservationForm] = Form.useForm();
-  const [tableTypes, setTableTypes] = useState([
-    { type: 2, description: "Bàn 2 người" },
-    { type: 4, description: "Bàn 4 người" },
-    { type: 6, description: "Bàn 6 người" },
-    { type: 8, description: "Bàn 8 người" }
-  ]);
-  const [featuredFoods, setFeaturedFoods] = useState([]);
-  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Load fake data
   useEffect(() => {
-    setFeedbacks(fakeFeedbacks);
-    setCategories(fakeCategories);
-    setFoods(fakeFoods);
-    setFeaturedFoods(fakeFoods.slice(0, 4));
-    if (fakeCategories.length > 0) {
-      setSelectedCategory(fakeCategories[0]._id);
-    }
+    loadData();
   }, []);
 
-  const handleAddToCart = (food) => {
-    const existingItem = cartItems.find(item => item.foodId === food._id);
-    
-    if (existingItem) {
-      setCartItems(cartItems.map(item => 
-        item.foodId === food._id ? { ...item, quantity: item.quantity + 1 } : item
-      ));
-    } else {
-      setCartItems([...cartItems, { foodId: food._id, food: food, quantity: 1 }]);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load data từ API
+      const [categoriesData, foodsData, combosData] = await Promise.all([
+        foodCategoryService.getAllFoodCategories(),
+        foodService.getAllFoods(),
+        comboService.getAllCombos()
+      ]);
+
+      console.log('Categories loaded:', categoriesData);
+      console.log('Foods loaded:', foodsData);
+      console.log('Combos loaded:', combosData);
+
+      setCategories(categoriesData || []);
+      setFoods(foodsData || []);
+      setCombos(combosData || []);
+
+      if (categoriesData && categoriesData.length > 0) {
+        setSelectedCategory(categoriesData[0]._id);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      // Fallback to empty arrays
+      setCategories([]);
+      setFoods([]);
+      setCombos([]);
+    } finally {
+      setLoading(false);
     }
-    
-    message.success(`Đã thêm ${food.name} vào giỏ hàng`);
   };
 
-  const calculateTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.food.price * item.quantity), 0);
+  const handleFoodClick = (food) => {
+    navigate(`/food/${food._id}`);
   };
 
-  const handleReservationSubmit = (values) => {
-    console.log('Đặt bàn:', values);
-    message.success('Đặt bàn thành công!');
-    setReservationModal(false);
-    reservationForm.resetFields();
+  const handleComboClick = (combo) => {
+    navigate(`/combo/${combo._id}`);
   };
 
-  const handlePlaceOrder = () => {
-    if (cartItems.length === 0) {
-      message.warning('Vui lòng chọn món trước khi đặt hàng');
-      return;
-    }
-    
-    console.log('Đặt món:', cartItems);
-    message.success('Đặt món thành công!');
-    setCartItems([]);
-    setCartModal(false);
+  // Custom carousel component for 3 items per slide
+  const CustomCarousel = ({ items, renderItem, title }) => {
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const itemsPerSlide = 3;
+    const totalSlides = Math.ceil(items.length / itemsPerSlide);
+
+    const nextSlide = () => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    };
+
+    const prevSlide = () => {
+      setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    };
+
+    const getCurrentItems = () => {
+      const startIndex = currentSlide * itemsPerSlide;
+      return items.slice(startIndex, startIndex + itemsPerSlide);
+    };
+
+    if (items.length === 0) return null;
+
+    return (
+      <div style={{ position: 'relative' }}>
+        {/* Title centered */}
+        <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>{title}</Title>
+        
+        {/* Navigation arrows positioned at sides of cards */}
+        <div style={{ position: 'relative' }}>
+          {totalSlides > 1 && (
+            <>
+              <Button 
+                type="text" 
+                icon={<LeftOutlined />} 
+                onClick={prevSlide}
+                style={{ 
+                  position: 'absolute',
+                  left: -60,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  borderRadius: '50%', 
+                  width: 40, 
+                  height: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}
+              />
+              <Button 
+                type="text" 
+                icon={<RightOutlined />} 
+                onClick={nextSlide}
+                style={{ 
+                  position: 'absolute',
+                  right: -60,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 10,
+                  borderRadius: '50%', 
+                  width: 40, 
+                  height: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}
+              />
+            </>
+          )}
+
+          <Row gutter={[16, 16]}>
+            {getCurrentItems().map((item, index) => (
+              <Col xs={24} sm={12} md={8} key={item._id || index}>
+                {renderItem(item)}
+              </Col>
+            ))}
+          </Row>
+        </div>
+
+        {totalSlides > 1 && (
+          <div style={{ 
+            textAlign: 'center', 
+            marginTop: 20,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 8
+          }}>
+            {Array.from({ length: totalSlides }).map((_, index) => (
+              <div
+                key={index}
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: currentSlide === index ? '#1890ff' : '#d9d9d9',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.3s'
+                }}
+                onClick={() => setCurrentSlide(index)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderFoodItems = () => {
-    const filteredFoods = selectedCategory ? foods.filter(food => food.categoryId === selectedCategory) : foods;
+    const filteredFoods = selectedCategory 
+      ? foods.filter(food => food.categoryId === selectedCategory || food.categoryId?._id === selectedCategory)
+      : foods;
     
     return (
       <Row gutter={[16, 16]}>
@@ -212,16 +186,44 @@ const HomePage = () => {
           <Col xs={24} sm={12} md={8} key={food._id}>
             <Card
               hoverable
-              cover={<img alt={food.name} src={food.image} style={{ height: 200, objectFit: 'cover' }} />}
-              actions={[
-                <Button type="primary" onClick={() => handleAddToCart(food)}>
-                  <ShoppingCartOutlined /> Thêm vào giỏ
-                </Button>
-              ]}
+              cover={
+                <img 
+                  alt={food.name} 
+                  src={food.images && food.images.length > 0 ? food.images[0] : 'https://via.placeholder.com/300x200?text=No+Image'} 
+                  style={{ height: 200, objectFit: 'cover' }} 
+                />
+              }
+              onClick={() => handleFoodClick(food)}
+              style={{ cursor: 'pointer' }}
             >
               <Meta
-                title={<span>{food.name} <span style={{ color: '#ff4d4f', float: 'right' }}>{food.price.toLocaleString('vi-VN')}đ</span></span>}
-                description={food.description}
+                title={
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {food.name}
+                    </span>
+                    <span style={{ color: '#ff4d4f', fontWeight: 'bold', marginLeft: 8 }}>
+                      {food.price?.toLocaleString('vi-VN')}đ
+                    </span>
+                  </div>
+                }
+                description={
+                  <div>
+                    <Text type="secondary" style={{ 
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {food.description}
+                    </Text>
+                    {!food.isAvailable && (
+                      <div style={{ marginTop: 8 }}>
+                        <Text type="danger" strong>Hết món</Text>
+                      </div>
+                    )}
+                  </div>
+                }
               />
             </Card>
           </Col>
@@ -230,69 +232,50 @@ const HomePage = () => {
     );
   };
 
-  const renderCartItems = () => {
-    return (
-      <div>
-        {cartItems.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px' }}>
-            <ShoppingCartOutlined style={{ fontSize: 48, color: '#ccc' }} />
-            <p>Giỏ hàng trống</p>
+  const renderComboCard = (combo) => (
+    <Card
+      hoverable
+      cover={
+        <img 
+          alt={combo.name} 
+          src={combo.image || 'https://via.placeholder.com/300x200?text=Combo'} 
+          style={{ height: 200, objectFit: 'cover' }} 
+        />
+      }
+      onClick={() => handleComboClick(combo)}
+      style={{ cursor: 'pointer' }}
+    >
+      <Meta
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {combo.name}
+            </span>
+            <span style={{ color: '#ff4d4f', fontWeight: 'bold', marginLeft: 8 }}>
+              {combo.price?.toLocaleString('vi-VN')}đ
+            </span>
           </div>
-        ) : (
-          <>
-            {cartItems.map((item, index) => (
-              <Row key={index} style={{ marginBottom: 10, padding: 10, borderBottom: '1px solid #f0f0f0' }}>
-                <Col span={16}>
-                  <Text strong>{item.food.name}</Text>
-                  <br />
-                  <Text type="secondary">{item.food.price.toLocaleString('vi-VN')}đ x {item.quantity}</Text>
-                </Col>
-                <Col span={8} style={{ textAlign: 'right' }}>
-                  <Text strong>{(item.food.price * item.quantity).toLocaleString('vi-VN')}đ</Text>
-                  <br />
-                  <Button.Group size="small">
-                    <Button 
-                      onClick={() => setCartItems(cartItems.map(cartItem => 
-                        cartItem.foodId === item.foodId && cartItem.quantity > 1 
-                          ? { ...cartItem, quantity: cartItem.quantity - 1 } 
-                          : cartItem
-                      ))}
-                    >-</Button>
-                    <Button>{item.quantity}</Button>
-                    <Button 
-                      onClick={() => setCartItems(cartItems.map(cartItem => 
-                        cartItem.foodId === item.foodId 
-                          ? { ...cartItem, quantity: cartItem.quantity + 1 } 
-                          : cartItem
-                      ))}
-                    >+</Button>
-                  </Button.Group>
-                </Col>
-              </Row>
-            ))}
-            <Divider />
-            <Row>
-              <Col span={12}>
-                <Text strong>Tổng cộng:</Text>
-              </Col>
-              <Col span={12} style={{ textAlign: 'right' }}>
-                <Text strong style={{ fontSize: 18, color: '#ff4d4f' }}>
-                  {calculateTotal().toLocaleString('vi-VN')}đ
-                </Text>
-              </Col>
-            </Row>
-            <Row style={{ marginTop: 20 }}>
-              <Col span={24}>
-                <Button type="primary" block size="large" onClick={handlePlaceOrder}>
-                  Đặt món
-                </Button>
-              </Col>
-            </Row>
-          </>
-        )}
-      </div>
-    );
-  };
+        }
+        description={
+          <div>
+            <Text type="secondary" style={{ 
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
+              {combo.description}
+            </Text>
+            {!combo.isActive && (
+              <div style={{ marginTop: 8 }}>
+                <Text type="danger" strong>Không có sẵn</Text>
+              </div>
+            )}
+          </div>
+        }
+      />
+    </Card>
+  );
 
   return (
     <>
@@ -315,7 +298,6 @@ const HomePage = () => {
                 }}
                 showTagline={false}
               />
-              <Title style={{ color: '#fff' }}></Title>
               <Title level={3} style={{ color: '#fff', marginTop: 0 }}>Nơi hội tụ tinh hoa ẩm thực</Title>
               <Button type="primary" size="large" onClick={() => navigate('/test-table-order')}>
                 Đặt bàn ngay
@@ -336,8 +318,8 @@ const HomePage = () => {
             }}>
               <Title style={{ color: '#fff' }}>Trải nghiệm ẩm thực đỉnh cao</Title>
               <Title level={3} style={{ color: '#fff', marginTop: 0 }}>Với các món ăn đặc sắc</Title>
-              <Button type="primary" size="large" onClick={() => document.getElementById('menu').scrollIntoView({ behavior: 'smooth' })}>
-                Xem thực đơn
+              <Button type="primary" size="large" onClick={() => document.getElementById('combo').scrollIntoView({ behavior: 'smooth' })}>
+                Xem combo
               </Button>
             </div>
           </div>
@@ -388,95 +370,73 @@ const HomePage = () => {
           <Col xs={24} md={12}>
             <img 
               src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop" 
-              alt="Nhà hàng BỰ" 
+              alt="Nhà hàng" 
               style={{ width: '100%', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }} 
             />
           </Col>
         </Row>
       </div>
 
-      {/* Món ăn nổi bật */}
-      <div style={{ padding: '50px 50px', background: '#f5f5f5' }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>Món ăn đặc sắc</Title>
-
-        <Row gutter={[16, 16]}>
-          {featuredFoods.map(food => (
-            <Col xs={24} sm={12} md={6} key={food._id} >
-              <Card
-                hoverable
-                style={{height: '45vh'}}
-                cover={<img alt={food.name} src={food.image} style={{ height: 200, objectFit: 'cover' }} />}
-                actions={[
-                  <Button type="primary" onClick={() => handleAddToCart(food)}>
-                    <ShoppingCartOutlined /> Thêm vào giỏ
-                  </Button>
-                ]}
-              >
-                <Meta
-                  title={<span>{food.name} <span style={{ color: '#ff4d4f', float: 'right', }}>{food.price.toLocaleString('vi-VN')}đ</span></span>}
-                  description={food.description}
-                />
-              </Card>
-            </Col>
-          ))}
+      {/* Voucher Banner - Moved here */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%)', 
+        padding: '15px 50px',
+        textAlign: 'center',
+        cursor: 'pointer'
+      }}
+      onClick={() => navigate('/vouchers')}
+      >
+        <Row align="middle" justify="center" gutter={16}>
+          <Col>
+            <GiftOutlined style={{ fontSize: 24, color: 'white' }} />
+          </Col>
+          <Col>
+            <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold' }}>
+              🎉 Ưu đãi đặc biệt! - Nhấn để xem chi tiết
+            </Text>
+          </Col>
         </Row>
-        <div style={{ textAlign: 'center', marginTop: 40 }}>
-          <Button type="primary" size="large" onClick={() => document.getElementById('menu').scrollIntoView({ behavior: 'smooth' })}>
-            Xem tất cả món ăn
-          </Button>
-        </div>
       </div>
+
+      {/* Combo đặc biệt */}
+      {combos.length > 0 && (
+        <div id="combo" style={{ padding: '50px 50px', background: '#f5f5f5' }}>
+          <CustomCarousel
+            items={combos}
+            renderItem={renderComboCard}
+            title="Combo đặc biệt"
+          />
+        </div>
+      )}
 
       {/* Thực đơn */}
       <div id="menu" style={{ padding: '50px 50px', background: '#fff' }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>Thực đơn</Title>
-        <Tabs 
-          centered 
-          activeKey={selectedCategory} 
-          onChange={setSelectedCategory}
-        >
-          {categories.map(category => (
-            <TabPane tab={category.title} key={category._id}>
-              {renderFoodItems()}
-            </TabPane>
-          ))}
-        </Tabs>
+        <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>Thực đơn theo danh mục</Title>
+        
+        {categories.length > 0 ? (
+          <Tabs 
+            centered 
+            activeKey={selectedCategory} 
+            onChange={setSelectedCategory}
+          >
+            {categories.map(category => (
+              <TabPane tab={category.title} key={category._id}>
+                {renderFoodItems()}
+              </TabPane>
+            ))}
+          </Tabs>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <Text type="secondary">Đang tải dữ liệu thực đơn...</Text>
+          </div>
+        )}
+        
+        <div style={{ textAlign: 'center', marginTop: 40 }}>
+          <Button type="primary" size="large" onClick={() => navigate('/menu')}>
+            Xem Menu
+          </Button>
+        </div>
       </div>
-
-      {/* Đánh giá */}
-      <div style={{ padding: '50px 50px', background: '#f5f5f5' }}>
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>Đánh giá từ khách hàng</Title>
-        <Row gutter={[16, 16]} justify="center">
-          {feedbacks.map(feedback => (
-            <Col xs={24} sm={12} md={8} key={feedback._id}>
-              <Card style={{ height: '100%' }}>
-                <Meta
-                  avatar={<Avatar icon={<UserOutlined />} />}
-                  title={
-                    <div>
-                      {feedback.userId.userName}
-                      <div style={{ float: 'right' }}>
-                        {[...Array(5)].map((_, i) => (
-                          i < feedback.rating ? 
-                          <StarFilled key={i} style={{ color: '#ffc53d' }} /> : 
-                          <StarOutlined key={i} style={{ color: '#ffc53d' }} />
-                        ))}
-                      </div>
-                    </div>
-                  }
-                  description={
-                    <div>
-                      <p>{feedback.comment}</p>
-                      <Text type="secondary">{moment(feedback.createdAt).format('DD/MM/YYYY')}</Text>
-                    </div>
-                  }
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </div>
-      
     </>
   );
 };

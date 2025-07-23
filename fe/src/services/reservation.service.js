@@ -227,6 +227,16 @@ const reservationService = {
       throw error.response ? error.response.data : new Error('Error confirming customer arrival');
     }
   },
+
+  getUserReservations: async () => {
+    try {
+      const response = await axiosClient.get('/api/reservations/user/history');
+      return response;
+    } catch (error) {
+      console.error("Error fetching user reservations:", error);
+      throw error.response ? error.response.data : new Error('Error fetching user reservations');
+    }
+  }
 };
 
 export default reservationService;

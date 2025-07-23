@@ -18,6 +18,7 @@ router.get('/:userId/profile', authMiddleware, userController.getUserProfile);
 router.put('/:userId/profile', authMiddleware, userController.updateUserProfile);
 router.get('/:userId/loyalty', authMiddleware, userController.getLoyaltyInfo);
 router.get('/:userId/coupons', authMiddleware, userController.getUserCoupons);
+router.post('/:userId/redeem-coupon', authMiddleware, userController.redeemCoupon);
 
 // Admin only routes
 router.get('/all', authMiddleware, adminOnly, userController.getAllUsers);

@@ -11,6 +11,8 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   BarChartOutlined,
+  CalendarOutlined,
+  ContainerOutlined
 } from '@ant-design/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../redux/authSlice';
@@ -60,6 +62,21 @@ const AdminLayout = () => {
       icon: <TagsOutlined />,
       label: 'Quản lý voucher',
     },
+    {
+      key: '/admin/chef',
+      icon: <CalendarOutlined />,
+      label: 'Quản lý đầu bếp',
+    },
+    {
+      key: '/admin/inventory',
+      icon: <ContainerOutlined />,
+      label: 'Quản lý kho',
+    },
+    {
+      key: '/admin/revenue',
+      icon: <ContainerOutlined />,
+      label: 'Thông kê doanh thu',
+    }
   ];
 
   const handleMenuClick = ({ key }) => {

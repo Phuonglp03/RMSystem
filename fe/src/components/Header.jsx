@@ -12,7 +12,8 @@ import {
     DownOutlined,
     AppstoreOutlined,
     CheckCircleOutlined,
-    TableOutlined
+    TableOutlined,
+    PercentageOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,14 +35,71 @@ const Header = () => {
         }
     };
 
-    const userMenu = (
-        <Menu>
-            <Menu.Item key="profile" icon={<UserOutlined />} onClick={() => navigate('/profile')}>
-                Hồ sơ
-            </Menu.Item>
+    const userMenuItems = [
+        {
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: 'Hồ sơ',
+            onClick: () => navigate('/profile')
+        }
+    ];
 
-        </Menu>
-    );
+    const menuItems = [
+        {
+            key: '1',
+            icon: <HomeOutlined />,
+            label: 'Trang chủ',
+            onClick: () => navigate('/')
+        },
+        {
+            key: '2',
+            icon: <MenuOutlined />,
+            label: 'Thực đơn',
+            onClick: () => navigate('/menu')
+        },
+        {
+            key: 'voucher',
+            icon: <PercentageOutlined />,
+            label: 'Ưu đãi',
+            onClick: () => navigate('/vouchers')
+        },
+        {
+            key: '3',
+            icon: <CalendarOutlined />,
+            label: 'Đặt món ăn',
+            onClick: () => navigate('/test-table-order')
+        },
+        {
+            key: 'booking',
+            icon: <GiftOutlined />,
+            label: 'Đặt bàn',
+            onClick: () => navigate('/book-table')
+        },
+        {
+            key: '4',
+            icon: <SettingOutlined />,
+            label: 'Quản lý đặt bàn',
+            onClick: () => navigate('/servant/manage-reservation')
+        },
+        {
+            key: 'foodlistmanage',
+            icon: <AppstoreOutlined />,
+            label: 'Quản lý đơn đặt món',
+            onClick: () => navigate('/servant/manage-order')
+        },
+        {
+            key: 'profile',
+            icon: <UserOutlined />,
+            label: 'Tài khoản',
+            onClick: () => navigate('/profile')
+        },
+        {
+            key: '7',
+            icon: <TableOutlined />,
+            label: 'Lịch sử đặt đơn',
+            onClick: () => navigate('/order-history')
+        }
+    ];
 
     return (
         <header style={{
@@ -59,70 +117,14 @@ const Header = () => {
             <Menu
                 mode="horizontal"
                 defaultSelectedKeys={['1']}
+                items={menuItems}
                 style={{
                     border: 'none',
                     flex: 1,
                     display: 'flex',
                     justifyContent: 'center'
                 }}
-            >
-                <Menu.Item key="1" icon={<HomeOutlined />} onClick={() => navigate('/')}>Trang chủ</Menu.Item>
-
-
-                <Menu.Item key="2" icon={<MenuOutlined />} onClick={() => navigate('/menu')}>
-                    Thực đơn
-                </Menu.Item>
-
-                <Menu.Item key="3" icon={<CalendarOutlined />} onClick={() => navigate('/test-table-order')}>
-                    Đặt món ăn
-                </Menu.Item>
-                <Menu.Item key="vouchers" icon={<GiftOutlined />} onClick={() => navigate('/book-table')}>
-                    Đặt bàn
-                </Menu.Item>
-
-{/* 
-                <Menu.Item key="foodmanager" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
-                    Quản lý món ăn
-                </Menu.Item>
-
-                <Menu.Item key="vouchermanager" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
-                    Quản lý Voucher
-                </Menu.Item> */}
-
-
-                {/* <Menu.Item key="orderconfirmation" icon={<CheckCircleOutlined />} onClick={() => navigate('/')}>
-                    Xác nhận món ăn
-                </Menu.Item> */}
-
-                <Menu.Item key="4" icon={<SettingOutlined />} onClick={() => navigate('/servant/manage-reservation')}>
-                    Quản lý đặt bàn
-                </Menu.Item>
-
-                <Menu.Item key="foodlistmanage" icon={<AppstoreOutlined />} onClick={() => navigate('/servant/manage-order')}>
-                    Quản lý đơn đặt món
-                </Menu.Item>
-
-                {/* <Menu.Item key="5" icon={<BarChartOutlined />} onClick={() => navigate('/')}>
-                    Thống kê
-                </Menu.Item>
-
-                <Menu.Item key="foodlistmanage" icon={<AppstoreOutlined />} onClick={() => navigate('/')}>
-                    Quản lý món ăn
-                </Menu.Item> */}
-
-
-                <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/coupon-exchange')}>
-                    Đổi voucher
-                </Menu.Item>
-                <Menu.Item key="6" icon={<UserOutlined />} onClick={() => navigate('/profile')}>
-                    Tài khoản
-
-                </Menu.Item>
-                <Menu.Item key="7" icon={<TableOutlined />} onClick={() => navigate('/order-history')}>
-                    Lịch sử đặt đơn
-                </Menu.Item>
-
-            </Menu>
+            />
 
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 {!isAuthenticated ? (
@@ -161,6 +163,5 @@ const Header = () => {
         </header>
     );
 };
-
 
 export default Header;

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Tabs, Spin, Empty, Tag, Button, Modal, Image, Descriptions, Divider } from 'antd';
-import { ShoppingCartOutlined, EyeOutlined, StarOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Tabs, Spin, Empty, Tag, Typography } from 'antd';
+import { StarOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { foodService } from '../../services/food.service';
+import { foodCategoryService } from '../../services/foodCategory.service';
 import comboService from '../../services/combo.service';
 import './Menu.css';
 
 const { TabPane } = Tabs;
+const { Title, Text } = Typography;
 
 const Menu = () => {
+  const navigate = useNavigate();
   const [foods, setFoods] = useState([]);
   const [combos, setCombos] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -23,16 +26,19 @@ const Menu = () => {
       setLoading(true);
       console.log('Fetching data from API...');
       
-      const [foodsData, combosData] = await Promise.all([     
+      const [foodsData, combosData, categoriesData] = await Promise.all([     
         foodService.getAllFoods(),
         comboService.getAllCombos(),
+        foodCategoryService.getAllFoodCategories()
       ]);
 
       console.log('Foods data:', foodsData);
       console.log('Combos data:', combosData);
+      console.log('Categories data:', categoriesData);
 
       setFoods(foodsData || []);
       setCombos(combosData || []);
+      setCategories(categoriesData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       console.error('Error details:', error.response?.data);
@@ -42,16 +48,6 @@ const Menu = () => {
     }
   };
 
-  const showDetailModal = (item, type) => {
-    setSelectedItem({ ...item, type });
-    setDetailModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setDetailModalVisible(false);
-    setSelectedItem(null);
-  };
-
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -59,68 +55,74 @@ const Menu = () => {
     }).format(price);
   };
 
+  const handleFoodClick = (food) => {
+    navigate(`/food/${food._id}`);
+  };
+
+  const handleComboClick = (combo) => {
+    navigate(`/combo/${combo._id}`);
+  };
+
   const renderFoodCard = (food) => (
-    <Col xs={24} sm={12} md={8} lg={6} key={food._id}>
+    <Col xs={24} sm={12} md={8} key={food._id}>
       <Card
         hoverable
         className="menu-card"
         cover={
-          <div className="card-image-container">
+          <div 
+            className="card-image-container"
+            onClick={() => handleFoodClick(food)}
+            style={{ cursor: 'pointer' }}
+          >
             {food.images && food.images.length > 0 ? (
               <img
                 alt={food.name}
                 src={food.images[0]}
                 className="card-image"
+                style={{ height: 200, objectFit: 'cover', width: '100%' }}
               />
             ) : (
-              <div className="no-image-placeholder">
+              <div className="no-image-placeholder" style={{ 
+                height: 200, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                background: '#f5f5f5' 
+              }}>
                 <span>Không có ảnh</span>
               </div>
             )}
-            <div className="card-overlay">
-              <Button
-                type="primary"
-                icon={<EyeOutlined />}
-                onClick={() => showDetailModal(food, 'food')}
-                className="view-detail-btn"
-              >
-                Xem chi tiết
-              </Button>
-            </div>
           </div>
         }
-        // actions={[
-        //   <Button
-        //     type="primary"
-        //     icon={<ShoppingCartOutlined />}
-        //     onClick={() => console.log('Add to cart:', food.name)}
-        //   >
-        //     Thêm vào giỏ
-        //   </Button>
-        // ]}
+        onClick={() => handleFoodClick(food)}
+        style={{ cursor: 'pointer' }}
       >
         <Card.Meta
           title={
-            <div className="card-title">
-              <span>{food.name}</span>
-              {!food.isAvailable && (
-                <Tag color="red" className="availability-tag">
-                  Hết hàng
-                </Tag>
-              )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {food.name}
+              </span>
+              <span style={{ color: '#ff4d4f', fontWeight: 'bold', marginLeft: 8 }}>
+                {formatPrice(food.price)}
+              </span>
             </div>
           }
           description={
-            <div className="card-description">
-              <p className="food-description">{food.description}</p>
-              <div className="price-section">
-                <span className="price">{formatPrice(food.price)}</span>
-                {food.categoryId && (
-                  <Tag color="blue" className="category-tag">
-                    {food.categoryId.name}
-                  </Tag>
-                )}
-              </div>
+            <div>
+              <Text type="secondary" style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}>
+                {food.description}
+              </Text>
+              {!food.isAvailable && (
+                <div style={{ marginTop: 8 }}>
+                  <Tag color="red">Hết món</Tag>
+                </div>
+              )}
             </div>
           }
         />
@@ -129,68 +131,71 @@ const Menu = () => {
   );
 
   const renderComboCard = (combo) => (
-    <Col xs={24} sm={12} md={8} lg={6} key={combo._id}>
+    <Col xs={24} sm={12} md={8} key={combo._id}>
       <Card
         hoverable
         className="menu-card combo-card"
         cover={
-          <div className="card-image-container">
+          <div 
+            className="card-image-container"
+            onClick={() => handleComboClick(combo)}
+            style={{ cursor: 'pointer' }}
+          >
             {combo.image ? (
               <img
                 alt={combo.name}
                 src={combo.image}
                 className="card-image"
+                style={{ height: 200, objectFit: 'cover', width: '100%' }}
               />
             ) : (
-              <div className="no-image-placeholder">
-                <span>Không có ảnh</span>
+              <div className="no-image-placeholder" style={{ 
+                height: 200, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <Title level={4} style={{ color: 'white', margin: 0 }}>COMBO</Title>
+                  <Text style={{ color: 'white' }}>{combo.name}</Text>
+                </div>
               </div>
             )}
-            <div className="card-overlay">
-              <Button
-                type="primary"
-                icon={<EyeOutlined />}
-                onClick={() => showDetailModal(combo, 'combo')}
-                className="view-detail-btn"
-              >
-                Xem chi tiết
-              </Button>
-            </div>
           </div>
         }
-        // actions={[
-        //   <Button
-        //     type="primary"
-        //     icon={<ShoppingCartOutlined />}
-        //     onClick={() => console.log('Add combo to cart:', combo.name)}
-        //   >
-        //     Thêm vào giỏ
-        //   </Button>
-        // ]}
+        onClick={() => handleComboClick(combo)}
+        style={{ cursor: 'pointer' }}
       >
         <Card.Meta
           title={
-            <div className="card-title">
-              <span>{combo.name}</span>
-              <Tag color="orange" className="combo-tag">
-                COMBO
-              </Tag>
-              {!combo.isActive && (
-                <Tag color="red" className="availability-tag">
-                  Không khả dụng
-                </Tag>
-              )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {combo.name}
+              </span>
+              <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <Tag color="orange">COMBO</Tag>
+                <span style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+                  {formatPrice(combo.price)}
+                </span>
+              </div>
             </div>
           }
           description={
-            <div className="card-description">
-              <p className="food-description">{combo.description}</p>
-              <div className="price-section">
-                <span className="price">{formatPrice(combo.price)}</span>
-                {combo.quantity && (
-                  <Tag color="green" className="quantity-tag">
-                    Còn {combo.quantity}
-                  </Tag>
+            <div>
+              <Text type="secondary" style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}>
+                {combo.description}
+              </Text>
+              <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                {!combo.isActive && <Tag color="red">Không có sẵn</Tag>}
+                {combo.items && combo.items.length > 0 && (
+                  <Tag color="blue">{combo.items.length} món</Tag>
                 )}
               </div>
             </div>
@@ -200,149 +205,90 @@ const Menu = () => {
     </Col>
   );
 
-  const renderDetailModal = () => {
-    if (!selectedItem) return null;
-
-    const { type, ...item } = selectedItem;
+  const renderFoodsByCategory = (categoryId) => {
+    const filteredFoods = foods.filter(food => 
+      food.categoryId === categoryId || food.categoryId?._id === categoryId
+    );
+    
+    if (filteredFoods.length === 0) {
+      return (
+        <Empty 
+          description="Chưa có món ăn nào trong danh mục này" 
+          className="empty-state"
+        />
+      );
+    }
 
     return (
-      <Modal
-        title={
-          <div className="modal-title">
-            <span>{item.name}</span>
-            {type === 'combo' && (
-              <Tag color="orange" className="combo-tag">
-                COMBO
-              </Tag>
-            )}
-          </div>
-        }
-        open={detailModalVisible}
-        onCancel={handleCloseModal}
-        footer={[
-          <Button key="close" onClick={handleCloseModal}>
-            Đóng
-          </Button>,
-          <Button
-            key="addToCart"
-            type="primary"
-            icon={<ShoppingCartOutlined />}
-            onClick={() => {
-              console.log('Add to cart:', item.name);
-              handleCloseModal();
-            }}
-          >
-            Thêm vào giỏ hàng
-          </Button>
-        ]}
-        width={600}
-      >
-        <div className="detail-content">
-          {item.images && item.images.length > 0 ? (
-            <Image.PreviewGroup>
-              <div className="detail-images">
-                {item.images.map((image, index) => (
-                  <Image
-                    key={index}
-                    width={120}
-                    height={120}
-                    src={image}
-                    alt={`${item.name} ${index + 1}`}
-                    className="detail-image"
-                  />
-                ))}
-              </div>
-            </Image.PreviewGroup>
-          ) : item.image ? (
-            <Image
-              width="100%"
-              height={300}
-              src={item.image}
-              alt={item.name}
-              className="detail-image"
-            />
-          ) : (
-            <div className="no-image-placeholder detail">
-              <span>Không có ảnh</span>
-            </div>
-          )}
-
-          <Divider />
-
-          <Descriptions column={1} bordered>
-            <Descriptions.Item label="Tên">{item.name}</Descriptions.Item>
-            <Descriptions.Item label="Mô tả">{item.description}</Descriptions.Item>
-            <Descriptions.Item label="Giá">{formatPrice(item.price)}</Descriptions.Item>
-            
-            {type === 'food' && (
-              <>
-                {item.categoryId && (
-                  <Descriptions.Item label="Danh mục">
-                    {item.categoryId.name}
-                  </Descriptions.Item>
-                )}
-                <Descriptions.Item label="Trạng thái">
-                  <Tag color={item.isAvailable ? 'green' : 'red'}>
-                    {item.isAvailable ? 'Có sẵn' : 'Hết hàng'}
-                  </Tag>
-                </Descriptions.Item>
-              </>
-            )}
-
-            {type === 'combo' && (
-              <>
-                <Descriptions.Item label="Số lượng còn lại">
-                  {item.quantity || 'Không giới hạn'}
-                </Descriptions.Item>
-                <Descriptions.Item label="Trạng thái">
-                  <Tag color={item.isActive ? 'green' : 'red'}>
-                    {item.isActive ? 'Khả dụng' : 'Không khả dụng'}
-                  </Tag>
-                </Descriptions.Item>
-              </>
-            )}
-          </Descriptions>
-        </div>
-      </Modal>
+      <Row gutter={[16, 16]} className="menu-grid">
+        {filteredFoods.map(renderFoodCard)}
+      </Row>
     );
   };
 
   if (loading) {
     return (
-      <div className="loading-container">
+      <div className="loading-container" style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '400px' 
+      }}>
         <Spin size="large" />
-        <p>Đang tải dữ liệu...</p>
+        <p style={{ marginTop: 16 }}>Đang tải dữ liệu...</p>
       </div>
     );
   }
 
   return (
-    <div className="menu-container">
-      <div className="menu-header">
-        <h1 className="menu-title">
-          <StarOutlined className="title-icon" />
+    <div className="menu-container" style={{ padding: '20px 50px', background: '#fff', minHeight: '100vh' }}>
+      <div className="menu-header" style={{ textAlign: 'center', marginBottom: 40 }}>
+        <Title level={1} className="menu-title">
+          <StarOutlined className="title-icon" style={{ marginRight: 8 }} />
           Thực Đơn Nhà Hàng
-        </h1>
-        <p className="menu-subtitle">
+        </Title>
+        <Text className="menu-subtitle" style={{ fontSize: 18, color: '#666' }}>
           Khám phá những món ăn ngon và combo hấp dẫn của chúng tôi
-        </p>
+        </Text>
       </div>
 
-      <Tabs defaultActiveKey="foods" className="menu-tabs">
-        <TabPane tab="Món Ăn" key="foods">
-          {foods.length > 0 ? (
-            <Row gutter={[16, 16]} className="menu-grid">
-              {foods.map(renderFoodCard)}
-            </Row>
-          ) : (
-            <Empty
-              description="Chưa có món ăn nào"
-              className="empty-state"
-            />
-          )}
-        </TabPane>
+      <Tabs defaultActiveKey="all" className="menu-tabs" centered>
+        {/* Tab Combo đầu tiên */}
+        <TabPane tab="Tất Cả" key="all">
+          <div className="all-items-section">
+            {/* Combo section */}
+            <div style={{ marginBottom: 40 }}>
+              <Title level={3} style={{ marginBottom: 24 }}>🍱 Combo Đặc Biệt</Title>
+              {combos.length > 0 ? (
+                <Row gutter={[16, 16]} className="menu-grid">
+                  {combos.map(renderComboCard)}
+                </Row>
+              ) : (
+                <Empty description="Chưa có combo nào" />
+              )}
+            </div>
 
-        <TabPane tab="Combo" key="combos">
+            {/* Food categories sections */}
+            {categories.map(category => {
+              const categoryFoods = foods.filter(food => 
+                food.categoryId === category._id || food.categoryId?._id === category._id
+              );
+              
+              if (categoryFoods.length === 0) return null;
+
+              return (
+                <div key={category._id} style={{ marginBottom: 40 }}>
+                  <Title level={3} style={{ marginBottom: 24 }}>🍽️ {category.title}</Title>
+                  <Row gutter={[16, 16]} className="menu-grid">
+                    {categoryFoods.map(renderFoodCard)}
+                  </Row>
+                </div>
+              );
+            })}
+          </div>
+        </TabPane>
+        <TabPane tab="Combo Đặc Biệt" key="combos">
           {combos.length > 0 ? (
             <Row gutter={[16, 16]} className="menu-grid">
               {combos.map(renderComboCard)}
@@ -355,32 +301,16 @@ const Menu = () => {
           )}
         </TabPane>
 
-        <TabPane tab="Tất Cả" key="all">
-          <div className="all-items-section">
-            <h3 className="section-title">Món Ăn</h3>
-            {foods.length > 0 ? (
-              <Row gutter={[16, 16]} className="menu-grid">
-                {foods.map(renderFoodCard)}
-              </Row>
-            ) : (
-              <Empty description="Chưa có món ăn nào" />
-            )}
+        {/* Các tab danh mục món ăn */}
+        {categories.map(category => (
+          <TabPane tab={category.title} key={category._id}>
+            {renderFoodsByCategory(category._id)}
+          </TabPane>
+        ))}
 
-            <Divider />
-
-            <h3 className="section-title">Combo</h3>
-            {combos.length > 0 ? (
-              <Row gutter={[16, 16]} className="menu-grid">
-                {combos.map(renderComboCard)}
-              </Row>
-            ) : (
-              <Empty description="Chưa có combo nào" />
-            )}
-          </div>
-        </TabPane>
+        {/* Tab tất cả */}
+        
       </Tabs>
-
-      {renderDetailModal()}
     </div>
   );
 };

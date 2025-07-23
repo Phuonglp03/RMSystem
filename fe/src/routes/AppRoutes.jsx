@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AdminProtectedRoute, ServantProtectedRoute } from '../components/ProtectedRoute';
+import ScrollToTop from '../components/ScrollToTop';
 import AdminLayout from '../layouts/AdminLayout';
 import MainLayout from '../layouts/MainLayout';
 import ServantLayout from '../layouts/ServantLayout';
@@ -10,6 +11,8 @@ import BookingTable from '../pages/BookTable';
 import HomePage from '../pages/Home';
 import Login from '../pages/LogIn';
 import Menu from '../pages/Menu';
+import FoodDetail from '../pages/FoodDetail';
+import ComboDetail from '../pages/ComboDetail';
 import UserProfile from '../pages/Profile';
 import Reservation_Create_By_Servant from '../pages/Reservation_Create_By_Servant';
 import Reservation_Detail from '../pages/Reservation_Detail';
@@ -19,6 +22,7 @@ import Reservation_Statistics from '../pages/Reservation_Statistics';
 import Servant_Manage_Reservation from '../pages/Servant_Manage_Reservations';
 import Signup from '../pages/SignUp';
 import PaymentCallback from '../pages/payment-callback';
+import Vouchers from '../pages/Vouchers';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
@@ -41,8 +45,13 @@ import Servant_Notification_Page from '../pages/Servant_Notification_Page';
 import VoucherManage from '../pages/AdminDashboard/Voucher_Manage';
 import TableOrder_Detail from '../pages/TableOrder_Detail';
 
+import ChefDashboard from '../pages/Chef/ChefDashboard';
+import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
+import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
+
 const AppRoutes = () => (
     <BrowserRouter>
+        <ScrollToTop />
         <Routes>
             {/* Main Public Routes */}
             <Route path="/" element={<MainLayout />}>
@@ -52,7 +61,10 @@ const AppRoutes = () => (
                         <HomePage />
                     </>
                 } />
+                <Route path='vouchers' element={<Vouchers />} />
                 <Route path='menu' element={<Menu />} />
+                <Route path='food/:id' element={<FoodDetail />} />
+                <Route path='combo/:id' element={<ComboDetail />} />
                 <Route path='book-table' element={<BookingTable />} />
                 <Route path='test-table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
@@ -77,6 +89,12 @@ const AppRoutes = () => (
                 <Route path="foods" element={<FoodManage />} />
                 <Route path="combos" element={<ComboManage />} />
                 <Route path="voucher" element={<VoucherManage />} />
+
+                <Route path="chef" element={<ChefDashboard />} />
+                <Route path="inventory" element={<InventoryDashboard />} />
+                <Route path="revenue" element={<RevenueReport />} />
+
+
             </Route>
 
             {/* Servant Routes - Protected */}
