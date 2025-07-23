@@ -300,6 +300,34 @@ const tableService = {
       throw error.response ? error.response.data : new Error('Error creating table order');
     }
   },
+  // --- ADD THESE METHODS FOR ADMIN TABLE MANAGE ---
+  createTable: async (data) => {
+    try {
+      const response = await axiosClient.post('/api/tables', data);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating table:", error);
+      throw error.response ? error.response.data : new Error('Error creating table');
+    }
+  },
+  updateTable: async (id, data) => {
+    try {
+      const response = await axiosClient.put(`/api/tables/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating table:", error);
+      throw error.response ? error.response.data : new Error('Error updating table');
+    }
+  },
+  deleteTable: async (id) => {
+    try {
+      const response = await axiosClient.delete(`/api/tables/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting table:", error);
+      throw error.response ? error.response.data : new Error('Error deleting table');
+    }
+  },
 };
 
 export default tableService; 

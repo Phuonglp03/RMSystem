@@ -44,6 +44,7 @@ import Servant_Daily_Statistics_Page from '../pages/Servant_Daily_Statistics_Pag
 import Servant_Notification_Page from '../pages/Servant_Notification_Page';
 import VoucherManage from '../pages/AdminDashboard/Voucher_Manage';
 import TableOrder_Detail from '../pages/TableOrder_Detail';
+import TableManage from '../pages/AdminDashboard/Table_Manage';
 
 import ChefDashboard from '../pages/Chef/ChefDashboard';
 import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
@@ -83,6 +84,7 @@ const AppRoutes = () => (
                 </AdminProtectedRoute>
             }>
                 <Route index element={<AdminStatistics />} />
+                <Route path="tables" element={<TableManage />} />
                 <Route path="statistics" element={<AdminStatistics />} />
                 <Route path="users" element={<UserManagement />} />
                 <Route path="food-categories" element={<FoodCategoryManage />} />

@@ -329,5 +329,8 @@ module.exports = {
     getTablesByCapacity,
     getActiveTables,
     getAvailableTableForCreateReservation,
-    getAssignedTableByServant
+    getAssignedTableByServant,
+    createTable,
+    updateTable,
+    deleteTable
 };

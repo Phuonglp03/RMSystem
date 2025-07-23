@@ -58,6 +58,11 @@ const AdminLayout = () => {
       label: 'Quản lý combo',
     },
     {
+      key: '/admin/tables',
+      icon: <AppstoreOutlined />,
+      label: 'Quản lý bàn',
+    },
+    {
       key: '/admin/voucher',
       icon: <TagsOutlined />,
       label: 'Quản lý voucher',

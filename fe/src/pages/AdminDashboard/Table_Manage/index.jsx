@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, Form, InputNumber, Input, Space, Popconfirm, message, Typography } from 'antd';
+import { Table, Button, Modal, Form, InputNumber, Input, Space, Popconfirm, message, Typography, Select } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import tableService from '../../../services/table.service';
 
@@ -20,7 +20,7 @@ const TableManage = () => {
     setLoading(true);
     try {
       const res = await tableService.getAllTables();
-      setTables(res.data || []);
+      setTables(res.tables || []);
     } catch (err) {
       message.error('Không thể tải danh sách bàn');
     } finally {
@@ -79,12 +79,6 @@ const TableManage = () => {
       key: 'capacity',
     },
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => status || 'Hoạt động',
-    },
-    {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
@@ -127,9 +121,6 @@ const TableManage = () => {
             rules={[{ required: true, message: 'Vui lòng nhập sức chứa' }]}
           >
             <InputNumber min={1} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="status" label="Trạng thái">
-            <Input placeholder="Hoạt động" />
           </Form.Item>
         </Form>
       </Modal>
