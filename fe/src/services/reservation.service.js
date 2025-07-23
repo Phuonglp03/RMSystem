@@ -21,40 +21,8 @@ const reservationAPI = {
     return axiosInstance.get(`/api/reservations/from?date=${date}`);
   },
 
-  getUnAssignedReservations: () => {
-    return axiosInstance.get('/api/reservations/servant/unassigned');
-  },
-
-  getCustomerReservationByServant: () => {
-    return axiosInstance.get('/api/reservations/servant/customer')
-  },
-
-  servantCreateReservation: (data) => {
-    return axiosInstance.post('/api/reservations/servant/create', data)
-  },
-
-  servantUpdateReservation: (resvId, updateData) => {
-    return axiosInstance.put(`/api/reservations/servant/update/${resvId}`, updateData);
-  },
-
-  getReservationDetailById: (resvId) => {
-    return axiosInstance.get(`/api/reservations/servant/view/${resvId}`);
-  },
-
-  servantDeleteReservation: (resvId) => {
-    return axiosInstance.delete(`/api/reservations/servant/delete/${resvId}`);
-  },
-
-  confirmOrRejectReservation: (resvId, action) => {
-    return axiosInstance.post(`/api/reservations/servant/confirm-reject/${resvId}`, { action });
-  },
-
-  getDailyStatistics: (params) => {
-    return axiosInstance.get(`/api/reservations/servant/daily-statistics`, { params });
-  },
-
-  confirmCustomerArrival: (reservationCode) => {
-    return axiosInstance.post(`/api/reservations/servant/confirm-arrival`, { reservationCode });
+  getUserReservations: () => {
+    return axiosInstance.get('/api/reservations/user/history');
   }
 };
 
@@ -132,105 +100,9 @@ const reservationService = {
     }
   },
 
-  getUnAssignedReservations: async () => {
-    try {
-      const response = await reservationAPI.getUnAssignedReservations()
-      console.log('response: ', response);
-      return response
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error fetching unassigned reservations');
-    }
-  },
-
-  getCustomerReservationByServant: async () => {
-    try {
-      const response = await reservationAPI.getCustomerReservationByServant();
-      console.log('response: ', response);
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error fetching customer reservations by servant');
-    }
-  },
-
-  servantCreateReservation: async (data) => {
-    try {
-      const response = await reservationAPI.servantCreateReservation(data);
-      console.log('response: ', response);
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error creating reservation for customer by servant');
-    }
-  },
-
-  servantUpdateReservation: async (resvId, updateData) => {
-    try {
-      const response = await reservationAPI.servantUpdateReservation(resvId, updateData);
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error updating reservation by servant');
-    }
-  },
-
-  getReservationDetailById: async (resvId) => {
-    try {
-      const response = await reservationAPI.getReservationDetailById(resvId);
-      console.log('response: ', response)
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error fetching reservation detail');
-    }
-  },
-
-  servantDeleteReservation: async (resvId) => {
-    try {
-      const response = await reservationAPI.servantDeleteReservation(resvId);
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error deleting reservation by servant');
-    }
-  },
-
-  confirmOrRejectReservation: async (resvId, action) => {
-    try {
-      const response = await reservationAPI.confirmOrRejectReservation(resvId, action);
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error confirming or rejecting reservation');
-    }
-  },
-
-  getDailyStatistics: async ({ period, startDate, endDate }) => {
-    try {
-      let params = {};
-      if (period) {
-        params.period = period;
-      } else if (startDate && endDate) {
-        params.startDate = startDate;
-        params.endDate = endDate;
-      }
-
-      const response = await reservationAPI.getDailyStatistics(params);
-      console.log('Daily statistics response:', response);
-      return response;
-    } catch (error) {
-      throw error.response ? error.response.data : new Error('Error fetching daily statistics');
-    }
-  },
-
-
-  confirmCustomerArrival: async (reservationCode) => {
-    try {
-      const response = await reservationAPI.confirmCustomerArrival(reservationCode);
-      return response;
-    } catch (error) {
-      console.error("Error confirming customer arrival:", error);
-      throw error.response ? error.response.data : new Error('Error confirming customer arrival');
-    }
-  },
-
   getUserReservations: async () => {
     try {
-      const response = await axiosInstance.get('/api/reservations/user/history');
+      const response = await reservationAPI.getUserReservations();
       return response;
     } catch (error) {
       console.error("Error fetching user reservations:", error);

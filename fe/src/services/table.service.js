@@ -9,10 +9,6 @@ const tableAPI = {
     return axiosInstance.post('/api/tables/available', data)
   },
 
-  getAssignedTableByServant: () => {
-    return axiosInstance.get('/api/tables/servant/assigned')
-  },
-
   getAllTableOrders: (url) => {
     return axiosInstance.get(url)
   },
@@ -21,44 +17,12 @@ const tableAPI = {
     return axiosInstance.get(`/api/table-orders/${id}`);
   },
 
-  servantGetAllTableOrders: (url) => {
-    return axiosInstance.get(url)
-  },
-
-  servantConfirmTableOrder: (orderId) => {
-    return axiosInstance.post('/api/table-orders/servant/confirm/' + orderId);
-  },
-
-  getTableOrderFromCustomerByReservationCode: (reservationCode) => {
-    return axiosInstance.post('/api/table-orders/servant', { reservationCode });
-  },
-
-  servantCreateTableOrderForCustomer: (reservationCode, orders) => {
-    return axiosInstance.post('/api/table-orders/servant/create', { reservationCode, orders });
-  },
-
-  servantUpdateTableOrder: (orderId, updateData) => {
-    return axiosInstance.put(`/api/table-orders/servant/update?orderId=${orderId}`, updateData);
-  },
-
-  servantSendTableOrderToChef: (orderId) => {
-    return axiosInstance.post(`/api/table-orders/servant/send?orderId=${orderId}`);
-  },
-
-  servantDeleteTableOrder: (orderId) => {
-    return axiosInstance.delete(`/api/table-orders/servant/delete?orderId=${orderId}`);
-  },
-
   updateFoodItemStatusInTableOrder: (orderId, foodId) => {
     return axiosInstance.patch(`/api/table-orders/update-item/${orderId}/${foodId}`);
   },
 
   deleteFoodItemFromTableOrder: (orderId, foodId) => {
     return axiosInstance.patch(`/api/table-orders/delete-item/${orderId}/${foodId}`);
-  },
-
-  servantTransferTableOrderToCustomer: (orderId, newTableId) => {
-    return axiosInstance.post(`/api/table-orders/change-table/${orderId}`, { newTableId });
   },
 
   getTableOrderStats: (type, from, to) => {
@@ -92,7 +56,7 @@ const checkPayosPaymentStatus = async (transactionCode) => {
 // --- PAYOS RESERVATION PAYMENT ---
 const createPayosReservationPayment = async (reservationCode) => {
   try {
-    return await axiosClient.post('/api/payos-reservation/create-payment', { reservationCode });
+    return await axiosInstance.post('/api/payos-reservation/create-payment', { reservationCode });
   } catch (error) {
     throw error.response ? error.response.data : new Error('Error creating PayOS reservation payment');
   }
@@ -100,7 +64,7 @@ const createPayosReservationPayment = async (reservationCode) => {
 
 const checkPayosReservationPaymentStatus = async (transactionCode) => {
   try {
-    const response = await axiosClient.get(`/api/payos-reservation/check-status/${transactionCode}`);
+    const response = await axiosInstance.get(`/api/payos-reservation/check-status/${transactionCode}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Error checking PayOS reservation payment status');
@@ -126,23 +90,6 @@ const tableService = {
       console.log('getAllTableOrders response: ', response)
       console.log('getAllTableOrders url: ', url);
 
-      return response
-    } catch (error) {
-      console.error("Error fetching all table orders:", error);
-      throw error.response ? error.response.data : new Error('Error fetching all table orders');
-    }
-  },
-
-  servantGetAllTableOrders: async ({ page = 1, limit = 10, status } = {}) => {
-    try {
-      let url = `/api/table-orders/servant?page=${page}&limit=${limit}`;
-      if (status) url += `&status=${status}`;
-      const response = await tableAPI.servantGetAllTableOrders(url)
-      console.log('servantGetAllTableOrders response: ', response)
-      // console.log('getAllTableOrders url: ', url);
-      // if (!response || !response.data) {
-      //   throw new Error('No data returned from servantGetAllTableOrders');
-      // }
       return response
     } catch (error) {
       console.error("Error fetching all table orders:", error);
@@ -192,79 +139,6 @@ const tableService = {
     }
   },
 
-  getAssignedTableByServant: async () => {
-    try {
-      const res = tableAPI.getAssignedTableByServant()
-      console.log('getAssignedTableByServant: ', res)
-      return res
-    } catch (error) {
-      console.error("Error fetching assigned tables:", error);
-      throw error.response ? error.response.data : new Error('Error fetching assigned tables');
-    }
-  },
-
-  getTableOrderFromCustomerByReservationCode: async (reservationCode) => {
-    try {
-      const response = await tableAPI.getTableOrderFromCustomerByReservationCode(reservationCode);
-      console.log('response: ', response.reservation)
-      return response.reservation;
-    } catch (error) {
-      console.error("Error getting table orders by reservationCode:", error);
-      throw error.response ? error.response.data : new Error('Error getting table orders by reservationCode');
-    }
-  },
-
-  servantConfirmTableOrder: async (orderId) => {
-    try {
-      const response = await tableAPI.servantConfirmTableOrder(orderId);
-      return response.data;
-    } catch (error) {
-      console.error("Error confirming table order:", error);
-      throw error.response ? error.response.data : new Error('Error confirming table order');
-    }
-  },
-
-  servantCreateTableOrderForCustomer: async (reservationCode, orders) => {
-    try {
-      const response = await tableAPI.servantCreateTableOrderForCustomer(reservationCode, orders);
-      console.log('response: ', response)
-      return response;
-    } catch (error) {
-      console.error("Error creating table order for customer:", error);
-      throw error.response ? error.response.data : new Error('Error creating table order for customer');
-    }
-  },
-
-  servantUpdateTableOrder: async (orderId, updateData) => {
-    try {
-      const response = await tableAPI.servantUpdateTableOrder(orderId, updateData);
-      return response.data;
-    } catch (error) {
-      console.error("Error updating table order:", error);
-      throw error.response ? error.response.data : new Error('Error updating table order');
-    }
-  },
-
-  servantSendTableOrderToChef: async (orderId) => {
-    try {
-      const response = await tableAPI.servantSendTableOrderToChef(orderId);
-      return response.data;
-    } catch (error) {
-      console.error("Error sending table order to chef:", error);
-      throw error.response ? error.response.data : new Error('Error sending table order to chef');
-    }
-  },
-
-  servantDeleteTableOrder: async (orderId) => {
-    try {
-      const response = await tableAPI.servantDeleteTableOrder(orderId);
-      return response.data;
-    } catch (error) {
-      console.error("Error deleting table order:", error);
-      throw error.response ? error.response.data : new Error('Error deleting table order');
-    }
-  },
-
   updateFoodItemStatusInTableOrder: async (orderId, foodId) => {
     try {
       const response = await tableAPI.updateFoodItemStatusInTableOrder(orderId, foodId);
@@ -282,16 +156,6 @@ const tableService = {
     } catch (error) {
       console.error("Error deleting food item from table order:", error);
       throw error.response ? error.response.data : new Error('Error deleting food item from table order');
-    }
-  },
-
-  servantTransferTableOrderToCustomer: async (orderId, newTableId) => {
-    try {
-      const response = await tableAPI.servantTransferTableOrderToCustomer(orderId, newTableId);
-      return response.data;
-    } catch (error) {
-      console.error("Error changing table for table order:", error);
-      throw error.response ? error.response.data : new Error('Error changing table for table order');
     }
   },
 
@@ -323,7 +187,7 @@ const tableService = {
   // --- ADD THESE METHODS FOR ADMIN TABLE MANAGE ---
   createTable: async (data) => {
     try {
-      const response = await axiosClient.post('/api/tables', data);
+      const response = await axiosInstance.post('/api/tables', data);
       return response.data;
     } catch (error) {
       console.error("Error creating table:", error);
@@ -332,7 +196,7 @@ const tableService = {
   },
   updateTable: async (id, data) => {
     try {
-      const response = await axiosClient.put(`/api/tables/${id}`, data);
+      const response = await axiosInstance.put(`/api/tables/${id}`, data);
       return response.data;
     } catch (error) {
       console.error("Error updating table:", error);
@@ -341,7 +205,7 @@ const tableService = {
   },
   deleteTable: async (id) => {
     try {
-      const response = await axiosClient.delete(`/api/tables/${id}`);
+      const response = await axiosInstance.delete(`/api/tables/${id}`);
       return response.data;
     } catch (error) {
       console.error("Error deleting table:", error);

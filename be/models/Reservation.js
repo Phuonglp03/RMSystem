@@ -11,7 +11,7 @@ const reservationSchema = new mongoose.Schema(
     ],
     customerId: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Customer',
       required: false,
     }],
     servantId: {
@@ -36,7 +36,7 @@ const reservationSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      enum: ['pending', 'confirmed', 'cancelled', 'completed', 'no-show'],
+      enum: ['pending', 'confirmed', 'served', 'completed', 'cancelled'],
       default: 'pending',
     },
     numberOfPeople: {

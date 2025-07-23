@@ -11,26 +11,6 @@ router.get('/', tableOrderController.getAllTableOrders);
 
 // Lấy TableOrder theo userId
 router.get('/user/:userId', tableOrderController.getTableOrdersByUserId);
-/* https://rm-system-4tru.vercel.app//table-orders/servant */
-router.get('/servant', authMiddleware, tableOrderController.servantGetAllTableOrders)
-
-/* https://rm-system-4tru.vercel.app//table-orders/servant */
-router.post('/servant', authMiddleware, tableOrderController.getTableOrderFromCustomerByReservationCode)
-
-/* https://rm-system-4tru.vercel.app//table-orders/servant/confirm */
-router.post('/servant/confirm/:orderId', authMiddleware, tableOrderController.servantConfirmTableOrder)
-
-/* https://rm-system-4tru.vercel.app//table-orders/servant/create */
-router.post('/servant/create', authMiddleware, tableOrderController.servantCreateTableOrderForCustomer)
-
-/* https://rm-system-4tru.vercel.app//table-orders/servant/update */
-router.put('/servant/update', authMiddleware, tableOrderController.servantUpdateTableOrder)
-
-/* https://rm-system-4tru.vercel.app//table-orders/servant/send */
-router.post('/servant/send', authMiddleware, tableOrderController.servantSendTableOrderToChef)
-
-/* https://rm-system-4tru.vercel.app//table-orders/servant/delete */
-router.delete('/servant/delete', authMiddleware, tableOrderController.servantDeleteTableOrder)
 
 /* https://rm-system-4tru.vercel.app//table-orders/update-item/:orderId/:foodId */
 router.patch('/update-item/:orderId/:foodId', authMiddleware, tableOrderController.updateFoodItemStatusInTableOrder);
@@ -59,6 +39,9 @@ router.post('/payos/create-payment', payosController.createPayment);
 router.post('/payos/webhook', payosController.handleWebhook);
 // Route kiểm tra trạng thái thanh toán
 router.get('/payos/check-status/:transactionCode', payosController.checkPaymentStatus);
+
+// Thêm route xác nhận thanh toán tiền mặt
+router.patch('/:id/confirm-cash', require('../controllers/tableOrder.controller').confirmCashPayment);
 
 
 module.exports = router; 
