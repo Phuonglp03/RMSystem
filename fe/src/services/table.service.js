@@ -89,6 +89,24 @@ const checkPayosPaymentStatus = async (transactionCode) => {
   }
 };
 
+// --- PAYOS RESERVATION PAYMENT ---
+const createPayosReservationPayment = async (reservationCode) => {
+  try {
+    return await axiosClient.post('/api/payos-reservation/create-payment', { reservationCode });
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Error creating PayOS reservation payment');
+  }
+};
+
+const checkPayosReservationPaymentStatus = async (transactionCode) => {
+  try {
+    const response = await axiosClient.get(`/api/payos-reservation/check-status/${transactionCode}`);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Error checking PayOS reservation payment status');
+  }
+};
+
 const tableService = {
   getAllTables: async () => {
     try {
@@ -279,6 +297,8 @@ const tableService = {
 
   createPayosPayment,
   checkPayosPaymentStatus,
+  createPayosReservationPayment,
+  checkPayosReservationPaymentStatus,
 
   getTableOrderStats: async (type, from, to) => {
     try {

@@ -17,7 +17,8 @@ import {
   Badge,
   Space,
   Tag,
-  Tooltip
+  Tooltip,
+  Table as AntTable
 } from 'antd';
 import { 
   ShoppingCartOutlined, 
@@ -56,6 +57,11 @@ const TableOrderTest = () => {
   const [placedOrders, setPlacedOrders] = useState({});
   const [payingOrderId, setPayingOrderId] = useState(null);
   const [orders, setOrders] = useState([]);
+  const [showPlacedOrdersModal, setShowPlacedOrdersModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [completedOrders, setCompletedOrders] = useState([]);
+  const [totalCompleted, setTotalCompleted] = useState(0);
 
   // Check reservation code
   const handleCheckCode = async () => {
@@ -271,6 +277,64 @@ const TableOrderTest = () => {
     }
   };
 
+  // Xem đơn đã gọi
+  const handleShowPlacedOrders = async () => {
+    if (reservation?._id) {
+      await fetchPlacedOrders(reservation._id);
+    }
+    setShowPlacedOrdersModal(true);
+  };
+
+  // Mở modal thanh toán
+  const handleShowPaymentModal = async () => {
+    // Lấy lại danh sách orders mới nhất
+    if (reservation?._id) {
+      const ordersRes = await tableService.getOrdersByReservationId(reservation._id);
+      // Lọc các order status = completed
+      const completed = (ordersRes || []).filter(o => o.status === 'completed');
+      setCompletedOrders(completed);
+      setTotalCompleted(completed.reduce((sum, o) => sum + (o.totalprice || 0), 0));
+    }
+    setShowPaymentModal(true);
+  };
+
+  // Thanh toán online
+  const handlePayOnline = async () => {
+    setPaying(true);
+    try {
+      const res = await tableService.createPayosReservationPayment(reservation.reservationCode);
+      if (res && res.data && res.data.paymentUrl) {
+        window.location.href = res.data.paymentUrl;
+      } else {
+        message.error('Không lấy được link thanh toán');
+      }
+    } catch (err) {
+      message.error(err.message || 'Lỗi khi tạo thanh toán online');
+    }
+    setPaying(false);
+  };
+
+  // Helper: gom, sort đơn đã gọi
+  const getSortedPlacedOrders = () => {
+    // Gom tất cả đơn từ các bàn thành 1 mảng
+    let allOrders = [];
+    Object.entries(placedOrders).forEach(([tableId, orders]) => {
+      orders.forEach(order => {
+        allOrders.push({ ...order, tableId });
+      });
+    });
+    // Sort: trạng thái (pending lên đầu, completed xuống dưới), rồi theo createdAt tăng dần
+    allOrders.sort((a, b) => {
+      if (a.status === b.status) {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      }
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      return 0;
+    });
+    return allOrders;
+  };
+
   return (
     <div style={{ padding: '24px', minHeight: '100vh', background: 'linear-gradient(135deg, #e0e7ff 0%, #f4f6fb 100%)' }}>
       {/* Code Entry Modal */}
@@ -314,7 +378,12 @@ const TableOrderTest = () => {
                   Đặt món cho bàn
                 </Title>
                 <Text type="secondary" style={{ fontSize: 16 }}>
-                  Khách hàng: {reservation.customerId?.fullname || reservation.customerId}
+                  Khách hàng: {
+                    reservation.customerId?.fullname ||
+                    (Array.isArray(reservation.customerId) && reservation.customerId[0]?.fullname) ||
+                    reservation.customerId?.name ||
+                    "Khách lẻ"
+                  }
                 </Text>
               </Col>
               <Col>
@@ -395,38 +464,6 @@ const TableOrderTest = () => {
                             )}
                           </div>
                           <Text type="secondary" style={{ fontSize: 15 }}>Sức chứa: {table.capacity} người</Text>
-                          {ordersForThisTable.length > 0 && (
-                            <div style={{ marginTop: 8 }}>
-                              {ordersForThisTable.map((order, idx) => (
-                                <div key={order._id || idx} style={{ marginBottom: 8 }}>
-                                  <b>Đơn #{idx + 1} ({order.status}):</b>
-                                  <ul>
-                                    {(order.foods || []).map(f => (
-                                      <li key={f.foodId?._id || f.foodId}>
-                                        {f.foodId?.name || ''} x {f.quantity}
-                                        {typeof f.foodId?.price !== 'undefined' &&
-                                          <span> ({f.foodId.price?.toLocaleString('vi-VN')}đ)</span>
-                                        }
-                                      </li>
-                                    ))}
-                                    {(order.combos || []).map(c => (
-                                      <li key={c._id}>
-                                        Combo: {c.comboId} x {c.quantity}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                  <Button
-                                    type="primary"
-                                    style={{ marginTop: 8, background: '#6366f1', border: 'none' }}
-                                    loading={payingOrderId === order._id}
-                                    onClick={() => handlePayWithPayos(order._id)}
-                                  >
-                                    Thanh toán PayOS
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       </List.Item>
                     );
@@ -678,10 +715,141 @@ const TableOrderTest = () => {
                   </div>
                 )}
               </Card>
+              <Card style={{ marginTop: 40, boxShadow: '0 2px 12px #6366f122', borderRadius: 14 }}>
+                <Button
+                  type="default"
+                  block
+                  style={{ marginBottom: 12, fontWeight: 600 }}
+                  onClick={handleShowPlacedOrders}
+                >
+                  Xem đơn đã gọi
+                </Button>
+                <Button
+                  type="primary"
+                  block
+                  style={{ fontWeight: 600, background: '#10b981', border: 'none', borderRadius: 8, boxShadow: '0 2px 8px #10b98133', marginBottom: 8 }}
+                  onClick={handleShowPaymentModal}
+                >
+                  Thanh toán
+                </Button>
+              </Card>
             </Col>
           </Row>
+          
         </div>
       )}
+      {/* Modal xem đơn đã gọi */}
+      <Modal
+        open={showPlacedOrdersModal}
+        title="Đơn đã gọi"
+        onCancel={() => setShowPlacedOrdersModal(false)}
+        footer={null}
+        width={700}
+      >
+        {getSortedPlacedOrders().length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#888' }}>Chưa có đơn nào.</div>
+        ) : (
+          getSortedPlacedOrders().map((order, idx) => (
+            <div key={order._id || idx} style={{
+              marginBottom: 18,
+              background: order.status === 'pending' ? '#f0fdfa' : '#f8fafc',
+              border: order.status === 'pending' ? '2px solid #10b981' : '1.5px solid #e0e7ff',
+              borderRadius: 10,
+              padding: 16,
+              boxShadow: order.status === 'pending' ? '0 2px 8px #10b98122' : '0 1px 4px #6366f111',
+              transition: 'all 0.2s',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <b>Bàn: {reservation.bookedTable.find(t => t._id === order.tableId)?.tableNumber || order.tableId}</b>
+                <span style={{ fontWeight: 500 }}>Đơn số: {idx + 1}</span>
+                <span style={{ color: order.status === 'pending' ? '#10b981' : '#6366f1', fontWeight: 600 }}>{order.status}</span>
+              </div>
+              <ul style={{ marginTop: 8, marginBottom: 8 }}>
+                {(order.foods || []).map(f => (
+                  <li key={f.foodId?._id || f.foodId}>
+                    {f.foodId?.name || ''} x {f.quantity} ({f.foodId?.price?.toLocaleString('vi-VN')}đ)
+                  </li>
+                ))}
+                {(order.combos || []).map(c => (
+                  <li key={c._id}>
+                    Combo: {c.comboId} x {c.quantity}
+                  </li>
+                ))}
+              </ul>
+              <div style={{ textAlign: 'right', fontWeight: 600 }}>
+                Tổng đơn: {order.totalprice?.toLocaleString('vi-VN')}đ
+              </div>
+            </div>
+          ))
+        )}
+      </Modal>
+
+      {/* Modal thanh toán */}
+      <Modal
+        open={showPaymentModal}
+        title="Thanh toán các món đã hoàn thành"
+        onCancel={() => setShowPaymentModal(false)}
+        footer={null}
+        width={800}
+      >
+        {completedOrders.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#888' }}>Chưa có món nào hoàn thành để thanh toán.</div>
+        ) : (
+          <>
+            <AntTable
+              dataSource={completedOrders.map((order, idx) => ({
+                key: order._id || idx,
+                table: order.tableId?.tableNumber || '',
+                orderIndex: idx + 1,
+                foods: order.foods,
+                combos: order.combos,
+                total: order.totalprice,
+              }))}
+              pagination={false}
+              bordered
+              style={{ marginBottom: 24 }}
+              columns={[
+                { title: 'Bàn', dataIndex: 'table', key: 'table', align: 'center' },
+                { title: 'Đơn số', dataIndex: 'orderIndex', key: 'orderIndex', align: 'center' },
+                {
+                  title: 'Món ăn',
+                  dataIndex: 'foods',
+                  key: 'foods',
+                  render: (foods, record) => (
+                    <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                      {(foods || []).map(f => (
+                        <li key={f.foodId?._id || f.foodId}>
+                          {f.foodId?.name || ''} x {f.quantity} ({f.foodId?.price?.toLocaleString('vi-VN')}đ)
+                        </li>
+                      ))}
+                      {(record.combos || []).map(c => (
+                        <li key={c._id}>
+                          Combo: {c.comboId} x {c.quantity}
+                        </li>
+                      ))}
+                    </ul>
+                  ),
+                },
+                {
+                  title: 'Tổng đơn',
+                  dataIndex: 'total',
+                  key: 'total',
+                  align: 'right',
+                  render: (total) => <b>{total?.toLocaleString('vi-VN')}đ</b>,
+                },
+              ]}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 24 }}>
+              <span style={{ fontWeight: 700, fontSize: 18, marginRight: 16 }}>Tổng cộng:</span>
+              <span style={{ color: '#ff4d4f', fontWeight: 700, fontSize: 22 }}>{totalCompleted.toLocaleString('vi-VN')}đ</span>
+            </div>
+            <div style={{ marginTop: 40, display: 'flex', justifyContent: 'flex-end', gap: 24 }}>
+              <Button type="default" size="large" style={{ fontWeight: 600, borderRadius: 8, background: '#f3f4f6', color: '#6366f1', border: '1.5px solid #e0e7ff' }} onClick={() => message.info('Chức năng đang phát triển')}>Thanh toán tiền mặt</Button>
+              <Button type="primary" size="large" style={{ fontWeight: 700, borderRadius: 8, background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', border: 'none', boxShadow: '0 2px 8px #6366f133', letterSpacing: 1 }} loading={paying} onClick={handlePayOnline}>Thanh toán online</Button>
+            </div>
+          </>
+        )}
+      </Modal>
 
       {/* Detail Modal */}
       <Modal
@@ -716,38 +884,6 @@ const TableOrderTest = () => {
         )}
       </Modal>
 
-      {/* Display placed orders */}
-      {orders.length > 0 && (
-        <div style={{ marginTop: 32, background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 12px #eee' }}>
-          <Title level={4}>Danh sách món đã đặt</Title>
-          <List
-            className="ant-list"
-            dataSource={orders}
-            renderItem={order => (
-              <List.Item style={{ marginBottom: 18 }}>
-                <div>
-                  <b>Bàn:</b> {order.tableId?.tableNumber || ''} | <b>Trạng thái:</b> {order.status}
-                  <ul>
-                    {(order.foods || []).map(f => (
-                      <li key={f.foodId?._id || f.foodId}>
-                        {f.foodId?.name || ''} x {f.quantity}
-                        {typeof f.foodId?.price !== 'undefined' &&
-                          <span> ({f.foodId.price?.toLocaleString('vi-VN')}đ)</span>
-                        }
-                      </li>
-                    ))}
-                    {(order.combos || []).map(c => (
-                      <li key={c._id}>
-                        Combo: {c.comboId} x {c.quantity}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </List.Item>
-            )}
-          />
-        </div>
-      )}
     </div>
   );
 };
