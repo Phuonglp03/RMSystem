@@ -6,7 +6,7 @@ const whitelist = [
     'https://rm-system-beta.vercel.app', // Frontend production (Vercel)
     'https://rmsystem.store', // Custom domain
     'https://www.rmsystem.store', // Custom domain with www
-    'https://rm-system-test-fe-te.vercel.app/'
+    'https://rm-system-test-fe-te.vercel.app'
 ];
 
 const corsOptions = {
