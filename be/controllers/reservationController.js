@@ -11,7 +11,7 @@ const crypto = require('crypto');
 //Lay tat ca danh sach dat ban cua khach hang phia servant
 const getUnAssignedReservations = async (req, res) => {
     try {
-        const reservations = await Reservation.find({ servantId: null, status: 'pending' })
+        const reservations = await Reservation.find({ servantId: null, status: 'confirmed' })
             .populate({
                 path: 'bookedTable',
                 select: 'tableNumber capacity status '
@@ -73,7 +73,6 @@ const getCustomerReservationByServantId = async (req, res) => {
                 select: '_id fullname email phone dateOfBirth gender'
             })
 
-        console.log('reservation: ', reservations)
         const formattedReservations = await Promise.all(reservations.map(async (reservation) => {
             const customerDetail = reservation.customerId
                 ? await Customer.findOne({ userId: reservation.customerId._id }).lean()
@@ -113,7 +112,8 @@ const getCustomerReservationByServantId = async (req, res) => {
         res.status(200).json({
             success: true,
             message: `Danh sách đặt bàn của khách hàng được phục vụ bởi bạn`,
-            reservations: formattedReservations
+            reservations: formattedReservations,
+            length: formattedReservations.length
         });
 
     } catch (err) {
@@ -203,6 +203,7 @@ const confirmCustomerArrival = async (req, res) => {
                 path: 'customerId',
                 select: 'fullname email phone avatar'
             });
+
         if (!reservation) {
             return res.status(404).json({ success: false, message: 'Đặt bàn không tồn tại' });
         }
@@ -210,26 +211,26 @@ const confirmCustomerArrival = async (req, res) => {
         if (reservation.servantId.toString() !== servantId) {
             return res.status(403).json({ success: false, message: 'Bạn không có quyền thực hiện hành động này' });
         }
-
-        //Kiem tra thoi gian thuc te
-        const now = new Date()
-        const startTime = new Date(reservation.startTime)
-        const endTime = new Date(reservation.endTime)
-
-        //Cho phep khach check-in truoc 30p
-        const earliest = new Date(startTime.getTime() - 30 * 60000)
-
+        console.log(`Xác nhận khách hàng đã đến với mã đặt bàn: ${reservationCode}`);
+        // Chuyển tất cả về múi giờ Việt Nam
+        const now = new Date();
+        const startTime = new Date(reservation.startTime);
+        const endTime = new Date(reservation.endTime);
+        console.log(`Xác nhận khách hàng đã đến: ${now} - Bắt đầu: ${startTime} - Kết thúc: ${endTime}`);
+        // Cho phép check-in trước 30 phút
+        const earliest = new Date(startTime.getTime() - 30 * 60 * 1000);
+        console.log(`Thời gian sớm nhất cho phép check-in: ${earliest}`);
         if (now < earliest) {
             return res.status(400).json({
                 success: false,
-                message: `Khách đến quá sớm. Có thể xác nhận từ ${earliest.toLocaleTimeString()}`
+                message: `Khách đến quá sớm. Có thể xác nhận từ ${earliest}`
             });
         }
 
         if (now > endTime) {
             return res.status(400).json({
                 success: false,
-                message: `Đặt bàn đã quá hạn từ ${endTime.toLocaleTimeString()}`
+                message: `Đặt bàn đã quá hạn từ ${endTime}`
             });
         }
 
@@ -242,25 +243,38 @@ const confirmCustomerArrival = async (req, res) => {
             end: reservation.endTime,
             numberOfPeople: reservation.numberOfPeople,
             status: reservation.status,
-            table: [{
-                number: reservation.bookedTable.tableNumber,
-                capacity: reservation.bookedTable.capacity,
-                status: reservation.bookedTable.status
-            }],
+            table: Array.isArray(reservation.bookedTable)
+                ? reservation.bookedTable.map(t => ({
+                    number: t.tableNumber,
+                    capacity: t.capacity,
+                    status: t.status
+                }))
+                : [{
+                    number: reservation.bookedTable.tableNumber,
+                    capacity: reservation.bookedTable.capacity,
+                    status: reservation.bookedTable.status
+                }],
             customer: reservation.customerId ? {
                 name: reservation.customerId.fullname,
                 email: reservation.customerId.email,
                 phone: reservation.customerId.phone,
                 avatar: reservation.customerId.avatar
             } : null,
-        }
+        };
 
-        res.status(200).json({ success: true, message: 'Xác nhận khách hàng đã đến thành công', reservation: formattedReservations });
+        res.status(200).json({
+            success: true,
+            message: 'Xác nhận khách hàng đã đến thành công',
+            reservation: formattedReservations,
+            reservationCode
+        });
+
     } catch (err) {
         console.error(`Lỗi khi xác nhận khách hàng đã tới: ${err.message}`);
         res.status(500).json({ success: false, message: `Lỗi máy chủ: ${err.message}` });
     }
 }
+
 
 //Xac nhan khach hang khong den
 const confirmCustomerNotArrival = async (req, res) => {
@@ -320,7 +334,6 @@ const getDailyReservationStatistics = async (req, res) => {
     try {
         const servantUserId = req.jwtDecode.id;
         let { startDate, endDate, period } = req.query;
-
         const today = new Date();
 
         if (period) {
@@ -366,11 +379,12 @@ const getDailyReservationStatistics = async (req, res) => {
         }
 
         const reservations = await Reservation.find({
-            servantId: servantUserId,
-            bookingTime: { $gte: startDate, $lte: endDate }
+            servantId: new mongoose.Types.ObjectId(servantUserId),
+            startTime: { $gte: startDate, $lte: endDate }
         }, { status: 1 });
-
+        console.log('reservations: ', reservations);
         const totalReservations = reservations.length;
+        console.log('totalReservations: ', totalReservations);
         const confirmed = reservations.filter(r => r.status === 'confirmed').length;
         const cancelled = reservations.filter(r => r.status === 'cancelled').length;
         const completed = reservations.filter(r => r.status === 'completed').length;
@@ -396,7 +410,15 @@ const getDailyReservationStatistics = async (req, res) => {
 };
 
 
-const MS_PER_HOUR = 60 * 60 * 1000;
+// Hàm parse ISO string (local time) sang Date theo GMT+7
+function parseLocalTimeFromISOString(isoString) {
+    // Parse datetime-local input (ví dụ "2025-07-23T20:30") thành local time chính xác
+    const parts = isoString.split(/[-T:]/).map(Number);
+    const [year, month, day, hour, minute] = parts;
+
+    return new Date(year, month - 1, day, hour, minute);
+}
+
 
 const servantCreateReservation = async (req, res) => {
     try {
@@ -410,7 +432,7 @@ const servantCreateReservation = async (req, res) => {
         }
 
         //Kiem tra khoang thoi gian
-        const start = new Date(startTime)
+        const start = parseLocalTimeFromISOString(startTime);
         if (!startTime) {
             return res.status(400).json({ success: false, message: 'Vui lòng nhập thời gian bắt đầu' });
         }
@@ -421,7 +443,6 @@ const servantCreateReservation = async (req, res) => {
         }
 
         const bookedTables = await Table.find({ _id: { $in: bookedTableId } })
-        console.log('bookedTables: ', bookedTables)
         if (bookedTables.length !== bookedTableId.length) {
             return res.status(404).json({ success: false, message: 'Có bàn đặt không tồn tại' });
         }
@@ -452,8 +473,8 @@ const servantCreateReservation = async (req, res) => {
         const newReservation = new Reservation({
             bookedTable: tableIds,
             customerId: null,
-            startTime,
-            endTime,
+            startTime: start,
+            endTime: endTime,
             numberOfPeople,
             note: isWalkIn ? (note || 'Khách dùng luôn') : note,
             servantId,  //servant.userId._id, // Lưu ID của servant

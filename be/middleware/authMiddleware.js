@@ -18,7 +18,7 @@ const authMiddleware = async (req, res, next) => {
             message: 'Unauthorized, access token not found'
         });
     }
-    
+
     try {
         // Remove 'Bearer ' prefix if present
         const tokenValue = accessToken.startsWith('Bearer ')

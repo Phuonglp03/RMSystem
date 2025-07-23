@@ -153,7 +153,11 @@ const TableOrder_Create_By_Servant = () => {
                 return acc;
             }, { ...placedOrders }));
             setCart({});
-            message.success('Đặt món thành công!');
+            setCreatedOrders(data.createdOrders); // ✅ Cập nhật danh sách đơn vừa tạo
+            setFirstCreatedOrderId(data.createdOrders?.[0]?._id); // ✅ Lưu id đơn đầu tiên
+            setLastTotal(data.totalPrice || 0); // ✅ Tổng tiền
+            setShowPaymentChoice(true); // ✅ Hiển thị modal lựa chọn thanh toán
+            toast.success('Đặt món thành công!');
         } catch (err) {
             console.error(err);
             toast.error('Đặt món thất bại');
