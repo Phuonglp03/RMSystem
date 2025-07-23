@@ -172,7 +172,7 @@ const TableOrderTest = () => {
   // Hàm fetch lại danh sách đơn đã đặt theo reservationId
   const fetchPlacedOrders = async (reservationId) => {
     try {
-      const res = await axios.get(`https://rm-system-4tru.vercel.app/api/table-orders/reservation/${reservationId}`);
+      const res = await axios.get(`https://rm-system-test-be.vercel.app/api/table-orders/reservation/${reservationId}`);
       const orders = res.data.data;
       console.log('[DEBUG] Orders từ API:', orders); // Log dữ liệu trả về từ API
       // Gom nhóm theo tableId (key là string)
@@ -212,7 +212,7 @@ const TableOrderTest = () => {
         orders: ordersForAPI
       };
 
-      const response = await axios.post('https://rm-system-4tru.vercel.app/api/table-orders', orderData);
+      const response = await axios.post('https://rm-system-test-be.vercel.app/api/table-orders', orderData);
       const returnedOrders = response.data.data;
 
       // Cập nhật placedOrders để luôn giữ lại đơn cũ và thêm đơn mới
