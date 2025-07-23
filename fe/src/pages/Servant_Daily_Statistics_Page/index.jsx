@@ -58,13 +58,12 @@ const Servant_Daily_Statistics_Page = () => {
                 params.endDate = selectedDate.endOf('year').toISOString();
             }
 
-            const [res, order] = await Promise.all([
-                reservationService.getDailyStatistics(params),
-                tableService.getTableOrderStats(mode)
-            ]);
+            // 🔧 Luôn gọi reservationService
+            const res = await reservationService.getDailyStatistics(params);
+            setResStats(res?.statistics || null);
 
-            setResStats(res || null);
-            setOrderStats(order || []);
+            const order = await tableService.getTableOrderStats(mode, params.startDate, params.endDate);
+            setOrderStats(order?.stats || []);
         } catch (err) {
             console.error('Error:', err);
             message.error('Lỗi khi tải dữ liệu');

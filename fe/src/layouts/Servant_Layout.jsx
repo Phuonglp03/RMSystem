@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Avatar, Dropdown, Space, Typography } from 'antd';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-    UserOutlined,
-    ShoppingCartOutlined,
-    AppstoreOutlined,
-    TagsOutlined,
+    BarChartOutlined,
+    BellOutlined,
+    CalendarOutlined,
     LogoutOutlined,
-    SettingOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    BarChartOutlined,
+    ShoppingCartOutlined,
+    UserOutlined
 } from '@ant-design/icons';
-import { useSelector, useDispatch } from 'react-redux';
+import { Avatar, Dropdown, Layout, Menu, Space, theme, Typography } from 'antd';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logoutUser } from '../redux/authSlice';
 
 const { Header, Sider, Content } = Layout;
@@ -37,17 +36,17 @@ const Servant_Layout = () => {
         },
         {
             key: '/servant/notifications',
-            icon: <AppstoreOutlined />,
+            icon: <BellOutlined />,
             label: 'Thông báo',
         },
         {
             key: '/servant/manage-reservation',
-            icon: <UserOutlined />,
+            icon: <CalendarOutlined />,
             label: 'Quản lý đặt bàn',
         },
         {
             key: '/servant/manage-tableOrder',
-            icon: <TagsOutlined />,
+            icon: <ShoppingCartOutlined />,
             label: 'Quản lý đặt món',
         },
 

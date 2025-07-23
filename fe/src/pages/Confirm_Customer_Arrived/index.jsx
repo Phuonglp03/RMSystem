@@ -12,6 +12,7 @@ const Confirm_Customer_Arrived = () => {
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [reservation, setReservation] = useState(null);
+    const [resCode, setResCode] = useState('')
     const navigate = useNavigate();
 
     const handleConfirm = async () => {
@@ -24,6 +25,7 @@ const Confirm_Customer_Arrived = () => {
             const response = await reservationService.confirmCustomerArrival(code.trim());
             if (response.success) {
                 setReservation(response.reservation);
+                setResCode(response.reservationCode);
                 toast.success('Xác nhận khách đã đến thành công');
             } else {
                 toast.error(response.message || 'Không tìm thấy đặt bàn');
@@ -95,7 +97,7 @@ const Confirm_Customer_Arrived = () => {
                         </div>
 
                         <div style={{ textAlign: 'center', marginTop: 18 }}>
-                            <Button type="primary" onClick={() => navigate('/servant/order')}>
+                            <Button type="primary" onClick={() => navigate(`/servant/table-order-create?code=${resCode}`)} disabled={loading}>
                                 Đặt món giúp khách
                             </Button>
                         </div>

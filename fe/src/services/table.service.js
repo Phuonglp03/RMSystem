@@ -1,64 +1,64 @@
-import axiosClient from "./axios.service";
+import axiosInstance from "./axios.service";
 
 const tableAPI = {
   getAllTables: () => {
-    return axiosClient.get('/api/tables/all');
+    return axiosInstance.get('/api/tables/all');
   },
 
   getAvailableTableForCreateReservation: (data) => {
-    return axiosClient.post('/api/tables/available', data)
+    return axiosInstance.post('/api/tables/available', data)
   },
 
   getAssignedTableByServant: () => {
-    return axiosClient.get('/api/tables/servant/assigned')
+    return axiosInstance.get('/api/tables/servant/assigned')
   },
 
   getAllTableOrders: (url) => {
-    return axiosClient.get(url)
+    return axiosInstance.get(url)
   },
 
   getTableOrderById: (id) => {
-    return axiosClient.get(`/api/table-orders/${id}`);
+    return axiosInstance.get(`/api/table-orders/${id}`);
   },
 
   servantGetAllTableOrders: (url) => {
-    return axiosClient.get(url)
+    return axiosInstance.get(url)
   },
 
   servantConfirmTableOrder: (orderId) => {
-    return axiosClient.post('/api/table-orders/servant/confirm/' + orderId);
+    return axiosInstance.post('/api/table-orders/servant/confirm/' + orderId);
   },
 
   getTableOrderFromCustomerByReservationCode: (reservationCode) => {
-    return axiosClient.post('/api/table-orders/servant', { reservationCode });
+    return axiosInstance.post('/api/table-orders/servant', { reservationCode });
   },
 
   servantCreateTableOrderForCustomer: (reservationCode, orders) => {
-    return axiosClient.post('/api/table-orders/servant/create', { reservationCode, orders });
+    return axiosInstance.post('/api/table-orders/servant/create', { reservationCode, orders });
   },
 
   servantUpdateTableOrder: (orderId, updateData) => {
-    return axiosClient.put(`/api/table-orders/servant/update?orderId=${orderId}`, updateData);
+    return axiosInstance.put(`/api/table-orders/servant/update?orderId=${orderId}`, updateData);
   },
 
   servantSendTableOrderToChef: (orderId) => {
-    return axiosClient.post(`/api/table-orders/servant/send?orderId=${orderId}`);
+    return axiosInstance.post(`/api/table-orders/servant/send?orderId=${orderId}`);
   },
 
   servantDeleteTableOrder: (orderId) => {
-    return axiosClient.delete(`/api/table-orders/servant/delete?orderId=${orderId}`);
+    return axiosInstance.delete(`/api/table-orders/servant/delete?orderId=${orderId}`);
   },
 
   updateFoodItemStatusInTableOrder: (orderId, foodId) => {
-    return axiosClient.patch(`/api/table-orders/update-item/${orderId}/${foodId}`);
+    return axiosInstance.patch(`/api/table-orders/update-item/${orderId}/${foodId}`);
   },
 
   deleteFoodItemFromTableOrder: (orderId, foodId) => {
-    return axiosClient.patch(`/api/table-orders/delete-item/${orderId}/${foodId}`);
+    return axiosInstance.patch(`/api/table-orders/delete-item/${orderId}/${foodId}`);
   },
 
   servantTransferTableOrderToCustomer: (orderId, newTableId) => {
-    return axiosClient.post(`/api/table-orders/change-table/${orderId}`, { newTableId });
+    return axiosInstance.post(`/api/table-orders/change-table/${orderId}`, { newTableId });
   },
 
   getTableOrderStats: (type, from, to) => {
@@ -67,14 +67,14 @@ const tableAPI = {
     let url = `/api/table-orders/servant/stats?type=${type}`;
     if (from) url += `&from=${from}`;
     if (to) url += `&to=${to}`;
-    return axiosClient.get(url);
+    return axiosInstance.get(url);
   }
 };
 
 const createPayosPayment = async (orderId) => {
   try {
     // response đã là .data do interceptor, nên chỉ cần return luôn
-    return await axiosClient.post('/api/table-orders/payos/create-payment', { orderId });
+    return await axiosInstance.post('/api/table-orders/payos/create-payment', { orderId });
   } catch (error) {
     throw error.response ? error.response.data : new Error('Error creating PayOS payment');
   }
@@ -82,7 +82,7 @@ const createPayosPayment = async (orderId) => {
 
 const checkPayosPaymentStatus = async (transactionCode) => {
   try {
-    const response = await axiosClient.get(`/api/table-orders/payos/check-status/${transactionCode}`);
+    const response = await axiosInstance.get(`/api/table-orders/payos/check-status/${transactionCode}`);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error('Error checking PayOS payment status');
@@ -152,7 +152,7 @@ const tableService = {
 
   getOrdersByReservationId: async (reservationId) => {
     try {
-      const response = await axiosClient.get(`/api/table-orders/reservation/${reservationId}`);
+      const response = await axiosInstance.get(`/api/table-orders/reservation/${reservationId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching orders by reservationId:", error);
@@ -173,7 +173,7 @@ const tableService = {
 
   getOrdersByUserId: async (userId) => {
     try {
-      const response = await axiosClient.get(`/api/table-orders/user/${userId}`);
+      const response = await axiosInstance.get(`/api/table-orders/user/${userId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching orders by userId:", error);
@@ -304,7 +304,7 @@ const tableService = {
     try {
       const response = await tableAPI.getTableOrderStats(type, from, to);
       console.log('getTableOrderStats response: ', response);
-      return response.data;
+      return response;
     } catch (error) {
       console.error("Error fetching table order stats:", error);
       throw error.response ? error.response.data : new Error('Error fetching table order stats');
@@ -313,7 +313,7 @@ const tableService = {
 
   createTableOrder: async (orderData) => {
     try {
-      const response = await axiosClient.post('/api/table-orders', orderData);
+      const response = await axiosInstance.post('/api/table-orders', orderData);
       return response.data;
     } catch (error) {
       console.error("Error creating table order:", error);

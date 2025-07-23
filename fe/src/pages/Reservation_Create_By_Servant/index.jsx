@@ -33,11 +33,16 @@ const Reservation_Create_By_Servant = () => {
         });
     };
 
-
     const formatDateTimeLocal = (date) => {
-        const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-        return offsetDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+        const pad = num => num.toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1);
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
+
 
     const handleTableCheck = (id) => {
         setForm(f => {
@@ -60,7 +65,7 @@ const Reservation_Create_By_Servant = () => {
 
             try {
                 const response = await tableService.getAvailableTableForCreateReservation({
-                    startTime: new Date(form.startTime).toISOString(),
+                    startTime: form.startTime,
                     endTime
                 })
                 setAvailableTables(response.tables.filter(t => t.status === 'available'))
@@ -171,13 +176,13 @@ const Reservation_Create_By_Servant = () => {
                     </label>
                     <label>
                         Kết thúc (tự động sau 3 giờ):
-                        <input
+                        {/* <input
                             type="datetime-local"
                             value={endTime ? new Date(endTime).toISOString().slice(0, 16) : ''}
                             className="resv-create-input"
                             readOnly
                             disabled
-                        />
+                        /> */}
                     </label>
 
                     <div>
