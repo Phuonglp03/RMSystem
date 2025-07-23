@@ -48,10 +48,26 @@ const reservationSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    paymentStatus: {
-      type: Boolean,
-      default: false,
-    },
+    paymentStatus: { 
+      type: String, 
+      enum: ['pending', 'success', 'failed'], 
+      default: 'pending' 
+  },
+  paymentMethod: { 
+      type: String, 
+      enum: ['cash', 'momo', 'vnpay', 'payos'], 
+      default: null 
+  },
+  totalAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+  },
+  paidAt: Date,
+  reservation_payment_id: { 
+      type: String, 
+      index: true 
+  },
 
   },
   {
