@@ -21,19 +21,17 @@ const PaymentCallback = () => {
     const fetchStatus = async () => {
       setLoading(true);
       try {
-        console.log('[FE] Gọi API checkPayosPaymentStatus với transactionCode:', transactionCode);
-        const res = await tableService.checkPayosPaymentStatus(transactionCode);
-        console.log('[FE] Nhận response checkPayosPaymentStatus:', res);
+        // Sử dụng API mới cho reservation
+        const res = await tableService.checkPayosReservationPaymentStatus(transactionCode);
         const data = res.data || res;
-        setOrder(data?.order || null);
+        setOrder(data?.reservation || null);
         setStatus(data?.payment?.status || 'error');
       } catch (err) {
-        console.error('[FE] Lỗi khi checkPayosPaymentStatus:', err);
         setStatus('error');
       }
       setLoading(false);
     };
-    fetchStatus(); // Gọi lần đầu
+    fetchStatus();
     if (status === 'PENDING' || status === null) {
       interval = setInterval(fetchStatus, 3000);
     }
@@ -45,23 +43,10 @@ const PaymentCallback = () => {
     if (status === 'PAID') {
       const timer = setTimeout(() => {
         navigate('/');
-      }, 2000); // 2 giây
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [status, navigate]);
-
-  const fetchStatus = async (transactionCode) => {
-    setLoading(true);
-    try {
-      const res = await tableService.checkPayosPaymentStatus(transactionCode);
-      const data = res.data || res;
-      setOrder(data?.order || null);
-      setStatus(data?.payment?.status || 'error');
-    } catch (err) {
-      setStatus('error');
-    }
-    setLoading(false);
-  };
 
   if (loading) return <Spin style={{ display: 'block', margin: '100px auto' }} />;
 
@@ -74,7 +59,7 @@ const PaymentCallback = () => {
     resultProps = {
       status: 'success',
       title: 'Thanh toán thành công!',
-      subTitle: `Đơn hàng của bạn đã được thanh toán. Mã đơn: ${order?.id}`,
+      subTitle: `Đặt bàn của bạn đã được thanh toán. Mã đặt bàn: ${order?.id || order?._id || ''}`,
     };
   } else if (status === 'FAILED' || status === 'CANCELLED') {
     resultProps = {
@@ -95,8 +80,8 @@ const PaymentCallback = () => {
       <Result
         {...resultProps}
         extra={
-          <Button type="primary" onClick={() => navigate(`/table-order/${order?.id || ''}`)}>
-            Xem chi tiết đơn hàng
+          <Button type="primary" onClick={() => navigate(`/`)}>
+            Về trang chủ
           </Button>
         }
       />
