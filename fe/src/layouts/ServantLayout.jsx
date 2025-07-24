@@ -37,7 +37,7 @@ const ServantLayout = () => {
 
   const menuItems = [
     {
-      key: '/servant/tables',
+      key: '/servant/',
       icon: <TableOutlined />,
       label: 'Quản lý bàn',
     },

@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { AdminProtectedRoute, ServantProtectedRoute } from '../components/ProtectedRoute';
+
 import ScrollToTop from '../components/ScrollToTop';
 import AdminLayout from '../layouts/AdminLayout';
 import MainLayout from '../layouts/MainLayout';
@@ -21,7 +21,6 @@ import Vouchers from '../pages/Vouchers';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
-import RootRedirect from '../components/RootRedirect';
 import ComboManage from '../pages/AdminDashboard/Combo_Manage';
 import FoodManage from '../pages/AdminDashboard/Food_Manage';
 import FoodCategoryManage from '../pages/AdminDashboard/FoodCategory_Manage';
@@ -36,6 +35,8 @@ import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
 import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
 import ReservationManage from '../pages/ServantDashboard/ReservationManage';
 import ServantOrder from '../pages/ServantDashboard/ServantOrder';
+import { AdminProtectedRoute, ServantProtectedRoute, ChefProtectedRoute } from '../components/ProtectedRoute';
+import UnauthorizedAccess from '../components/UnauthorizedAccess';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -43,12 +44,7 @@ const AppRoutes = () => (
         <Routes>
             {/* Main Public Routes */}
             <Route path="/" element={<MainLayout />}>
-                <Route index element={
-                    <>
-                        <RootRedirect />
-                        <HomePage />
-                    </>
-                } />
+                <Route index element={  <HomePage /> } />
                 <Route path='vouchers' element={<Vouchers />} />
                 <Route path='menu' element={<Menu />} />
                 <Route path='food/:id' element={<FoodDetail />} />
@@ -64,38 +60,40 @@ const AppRoutes = () => (
             <Route path='/signup' element={<Signup />} />
             <Route path='/login' element={<Login />} />
 
-            {/* Servant Routes - Protected */}
-            <Route path="/servant" element={<ServantLayout />}>
-                <Route path="tables" element={<ServantTableManage />} />
-                <Route path="reservations" element={<ReservationManage />} />
-                <Route path="orders" element={<ServantOrder />} />
+            {/* Servant Protected Routes */}
+            <Route path="/servant" element={<ServantProtectedRoute />}>
+                <Route element={<ServantLayout />}>
+                    <Route index element={<ServantTableManage />} />
+                    <Route path="reservations" element={<ReservationManage />} />
+                    <Route path="orders" element={<ServantOrder />} />
+                </Route>
             </Route>
 
-            {/* Admin Routes - Protected */}
-            <Route path="/admin" element={
-                <AdminProtectedRoute>
-                    <AdminLayout />
-                </AdminProtectedRoute>
-            }>
-                <Route index element={<AdminStatistics />} />
-                <Route path="tables" element={<TableManage />} />
-                <Route path="statistics" element={<AdminStatistics />} />
-                <Route path="users" element={<UserManagement />} />
-                <Route path="food-categories" element={<FoodCategoryManage />} />
-                <Route path="foods" element={<FoodManage />} />
-                <Route path="combos" element={<ComboManage />} />
-                <Route path="voucher" element={<Voucher_Manage />} />
-
-                
-                <Route path="inventory" element={<InventoryDashboard />} />
-                <Route path="revenue" element={<RevenueReport />} />
-
-
+            {/* Admin Protected Routes */}
+            <Route path="/admin" element={<AdminProtectedRoute />}>
+                <Route element={<AdminLayout />}>
+                    <Route index element={<AdminStatistics />} />
+                    <Route path="tables" element={<TableManage />} />
+                    <Route path="statistics" element={<AdminStatistics />} />
+                    <Route path="users" element={<UserManagement />} />
+                    <Route path="food-categories" element={<FoodCategoryManage />} />
+                    <Route path="foods" element={<FoodManage />} />
+                    <Route path="combos" element={<ComboManage />} />
+                    <Route path="voucher" element={<Voucher_Manage />} />
+                    <Route path="inventory" element={<InventoryDashboard />} />
+                    <Route path="revenue" element={<RevenueReport />} />
+                </Route>
             </Route>
-            <Route path="chef" element={<ChefLayout />}>
-                    <Route path="orders" element={<ChefOrders />} />
+
+            {/* Chef Protected Routes */}
+            <Route path="/chef" element={<ChefProtectedRoute />}>
+                <Route element={<ChefLayout />}>
+                    <Route  index element={<ChefOrders />} />
+                </Route>
             </Route>
+
             {/* 404 Route */}
+            <Route path="unauthorized" element={<UnauthorizedAccess />} />
             <Route path="*" element={<NotFound />} />
         </Routes>
     </BrowserRouter>
