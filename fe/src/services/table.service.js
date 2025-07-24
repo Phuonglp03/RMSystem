@@ -212,6 +212,24 @@ const tableService = {
       throw error.response ? error.response.data : new Error('Error deleting table');
     }
   },
+  getReservationByCode: async (code) => {
+    try {
+      const response = await axiosInstance.get(`/api/table-orders/reservation/by-code/${code}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching reservation by code:', error);
+      throw error.response ? error.response.data : new Error('Error fetching reservation by code');
+    }
+  },
+  updateReservationStatus: async (reservationCode, data) => {
+    try {
+      const response = await axiosInstance.put(`/api/reservations/${reservationCode}/status`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating reservation status:', error);
+      throw error.response ? error.response.data : new Error('Error updating reservation status');
+    }
+  },
 };
 
 export default tableService; 

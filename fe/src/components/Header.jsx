@@ -67,7 +67,7 @@ const Header = () => {
             key: '3',
             icon: <CalendarOutlined />,
             label: 'Đặt món ăn',
-            onClick: () => navigate('/test-table-order')
+            onClick: () => navigate('/booking-food/table-order')
         },
         {
             key: 'booking',

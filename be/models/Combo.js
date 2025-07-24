@@ -17,10 +17,14 @@ const comboSchema = new mongoose.Schema(
       required: [true, 'Giá combo là bắt buộc'],
       min: [0, 'Giá combo không thể âm'],
     },
-    image: {
-      type: String,
-      trim: true,
-    },
+    images: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+      
+    
     isActive: {
       type: Boolean,
       default: true,

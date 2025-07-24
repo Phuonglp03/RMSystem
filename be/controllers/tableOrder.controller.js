@@ -7,6 +7,7 @@ const Combo = require('../models/Combo');
 const notificationService = require('../services/notificationService');
 const NOTIFICATION_TYPES = require('../constants/notificationTypes');
 const Servant = require('../models/Servant');
+const ComboItem = require('../models/ComboItem');
 
 // Tạo nhiều TableOrder cho 1 user với cùng 1 bookingCode
 exports.createTableOrders = async (req, res) => {
@@ -244,7 +245,17 @@ exports.getTableOrdersByReservationId = async (req, res) => {
     const orders = await TableOrder.find({ reservationId })
       .populate('tableId', 'tableNumber')
       .populate('foods.foodId', 'name price')
-      .populate('combos', 'comboId foodId quantity');
+      .populate('combos', 'comboId foodId quantity')
+      .populate({
+        path: 'reservationId',
+        populate: {
+          path: 'customerId',
+          populate: {
+            path: 'userId',
+            select: 'fullname email phone'
+          }
+        }
+      });
     res.status(200).json({ success: true, data: orders });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -629,6 +640,63 @@ exports.getTableOrderStats = async (req, res) => {
   } catch (err) {
     console.error('[DEBUG] Error in getTableOrderStats:', err);
     res.status(500).json({ status: 'fail', message: err.message });
+  }
+};
+
+// API cho chef: chuyển trạng thái TableOrder sang completed
+exports.chefCompleteTableOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ status: 'fail', message: 'ID không hợp lệ' });
+    }
+    const order = await TableOrder.findById(id);
+    if (!order) {
+      return res.status(404).json({ status: 'fail', message: 'Không tìm thấy TableOrder' });
+    }
+    if (order.status !== 'pending') {
+      return res.status(400).json({ status: 'fail', message: 'Chỉ có thể hoàn thành đơn ở trạng thái pending' });
+    }
+    order.status = 'completed';
+    order.completedAt = new Date();
+    await order.save();
+    res.status(200).json({ status: 'success', data: order });
+  } catch (error) {
+    res.status(500).json({ status: 'fail', message: error.message });
+  }
+};
+
+// API cho chef: lấy danh sách đơn pending, kèm chi tiết combo
+exports.chefGetPendingOrders = async (req, res) => {
+  try {
+    const orders = await TableOrder.find({ status: 'pending' })
+      .populate('tableId', 'tableNumber')
+      .populate('reservationId')
+      .populate('foods.foodId', 'name price')
+      .populate({
+        path: 'combos',
+        select: 'name',
+      });
+
+  
+    for (const order of orders) {
+      for (const combo of order.combos) {
+        const items = await ComboItem.find({ comboId: combo._id })
+          .populate('foodId', 'name');
+        combo.items = items;
+      }
+    }
+    const formattedOrders = orders.map(order => ({
+      ...order.toObject(),
+      combos: order.combos.map(combo => ({
+        _id: combo._id,
+        name: combo.name,
+        items: combo.items 
+      }))
+    }));
+    res.status(200).json({ status: 'success', data: formattedOrders });
+  } catch (error) {
+    res.status(500).json({ status: 'fail', message: error.message });
   }
 };
 

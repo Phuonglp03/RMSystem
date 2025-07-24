@@ -26,7 +26,9 @@ class ComboService {
   // Create new combo
   createCombo = async (comboData) => {
     try {
-      const response = await axiosInstance.post('/api/combos', comboData);
+      const response = await axiosInstance.post('/api/combos', comboData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data || response;
     } catch (error) {
       console.error('Error creating combo:', error);
@@ -37,7 +39,9 @@ class ComboService {
   // Update combo
   updateCombo = async (id, comboData) => {
     try {
-      const response = await axiosInstance.put(`/api/combos/${id}`, comboData);
+      const response = await axiosInstance.put(`/api/combos/${id}`, comboData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return response.data || response;
     } catch (error) {
       console.error('Error updating combo:', error);

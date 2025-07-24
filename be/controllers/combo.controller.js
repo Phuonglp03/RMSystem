@@ -4,8 +4,9 @@ const Food = require('../models/Food');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const { uploadImages } = require('../services/UploadService');
+const cloudinary = require('cloudinary').v2;
 
-// Multer config cho combo (1 ảnh)
+// Multer config cho combo (nhiều ảnh)
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -53,11 +54,10 @@ exports.createCombo = async (req, res) => {
       }
     }
     
-    // Xử lý upload ảnh
-    let image = '';
-    if (req.file) {
-      const urls = await uploadImages([req.file], 'combos');
-      image = urls[0];
+    // Xử lý upload nhiều ảnh
+    let images = [];
+    if (req.files && req.files.length > 0) {
+      images = await uploadImages(req.files, 'combos');
     }
 
     // Tạo combo mới
@@ -67,7 +67,7 @@ exports.createCombo = async (req, res) => {
       price: Number(price), 
       isActive: isActive === 'true' || isActive === true, 
       quantity: Number(quantity), 
-      image 
+      images
     });
     
     const savedCombo = await combo.save({ session });
@@ -239,10 +239,11 @@ exports.updateCombo = async (req, res) => {
     if (isActive !== undefined) updateData.isActive = isActive === 'true' || isActive === true;
     if (quantity !== undefined) updateData.quantity = Number(quantity);
 
-    // Xử lý upload ảnh mới
-    if (req.file) {
-      const urls = await uploadImages([req.file], 'combos');
-      updateData.image = urls[0];
+    // Xử lý upload nhiều ảnh mới
+    let images = [];
+    if (req.files && req.files.length > 0) {
+      images = await uploadImages(req.files, 'combos');
+      updateData.images = images;
     }
 
     // Cập nhật combo
@@ -340,11 +341,26 @@ exports.deleteCombo = async (req, res) => {
     // Xóa tất cả combo items trước
     await ComboItem.deleteMany({ comboId }, { session });
 
-    // Xóa combo
+    // Xóa combo và ảnh trên Cloudinary nếu có
     const deletedCombo = await Combo.findByIdAndDelete(comboId, { session });
     if (!deletedCombo) {
       await session.abortTransaction();
       return res.status(404).json({ status: 'fail', message: 'Không tìm thấy combo' });
+    }
+    // Xóa ảnh trên Cloudinary
+    if (deletedCombo.images && deletedCombo.images.length > 0) {
+      for (const url of deletedCombo.images) {
+        // Lấy public_id từ url
+        const matches = url.match(/\/([^/]+)\.[a-zA-Z]+$/);
+        if (matches && matches[1]) {
+          const publicId = `combos/${matches[1]}`;
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (e) {
+            console.error('Cloudinary delete error:', e.message);
+          }
+        }
+      }
     }
 
     await session.commitTransaction();

@@ -14,7 +14,6 @@ import {
   Select,
   Space,
   Popconfirm,
-  message,
   Tag,
   Image,
   Descriptions,
@@ -38,11 +37,13 @@ import {
 import comboService from '../../../services/combo.service';
 import { foodService } from '../../../services/food.service';
 import './index.css';
+import { App as AntdApp } from 'antd';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 const ComboManage = () => {
+  const { message } = AntdApp.useApp();
   const [combos, setCombos] = useState([]);
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -216,8 +217,12 @@ const ComboManage = () => {
       }
 
       // Thêm ảnh nếu có
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        formData.append('image', fileList[0].originFileObj);
+      if (fileList.length > 0) {
+        fileList.forEach((file) => {
+          if (file.originFileObj) {
+            formData.append('images', file.originFileObj);
+          }
+        });
       }
 
       const response = editingCombo 
@@ -580,7 +585,7 @@ const ComboManage = () => {
             {editingCombo ? 'Sửa Combo' : 'Thêm Combo Mới'}
           </div>
         }
-        visible={modalVisible}
+        open={modalVisible}
         onCancel={handleCancel}
         footer={null}
         width={700}
@@ -834,7 +839,7 @@ const ComboManage = () => {
             Chi tiết Combo
           </div>
         }
-        visible={detailModalVisible}
+        open={detailModalVisible}
         onCancel={handleCancel}
         footer={null}
         width={800}

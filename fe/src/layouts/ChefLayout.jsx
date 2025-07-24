@@ -1,23 +1,17 @@
 import React, { useState } from 'react';
-import { Layout, Menu, theme, Avatar, Dropdown, Space, Typography } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Space, Typography } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { TableOutlined, CalendarOutlined, ShoppingCartOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { TableOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../redux/authSlice';
 
 const { Sider, Content } = Layout;
 const { Text } = Typography;
 
-const ServantLayout = () => {
+const ChefLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
-
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
@@ -37,19 +31,9 @@ const ServantLayout = () => {
 
   const menuItems = [
     {
-      key: '/servant/tables',
+      key: '/chef/orders',
       icon: <TableOutlined />,
-      label: 'Quản lý bàn',
-    },
-    {
-      key: '/servant/reservations',
-      icon: <CalendarOutlined />,
-      label: 'Quản lý đơn đặt bàn',
-    },
-    {
-      key: '/servant/orders',
-      icon: <ShoppingCartOutlined />,
-      label: 'Quản lý đơn đặt món',
+      label: 'Đơn chế biến',
     },
   ];
 
@@ -58,7 +42,7 @@ const ServantLayout = () => {
   };
 
   return (
-    <div className="servant-layout">
+    <div className="chef-layout">
       <Layout>
         <Sider
           trigger={null}
@@ -74,10 +58,9 @@ const ServantLayout = () => {
             bottom: 0,
           }}
         >
-          {/* Nút thu/phóng sidebar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-end', padding: '8px 12px 0 0' }}>
             <span onClick={() => setCollapsed(!collapsed)} style={{ cursor: 'pointer', color: '#fff', fontSize: 18 }}>
-              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              {collapsed ? '<' : '>'}
             </span>
           </div>
           <div style={{
@@ -92,7 +75,7 @@ const ServantLayout = () => {
             fontWeight: 'bold',
             fontSize: collapsed ? '14px' : '16px'
           }}>
-            {collapsed ? 'SV' : 'Servant'}
+            {collapsed ? 'CF' : 'Chef'}
           </div>
           <Menu
             theme="dark"
@@ -127,11 +110,11 @@ const ServantLayout = () => {
             >
               <Space style={{ cursor: 'pointer' }}>
                 <Avatar size="small" icon={<UserOutlined />} />
-                <Text>{user?.fullname || user?.username || 'Servant'}</Text>
+                <Text>{user?.fullname || user?.username || 'Chef'}</Text>
               </Space>
             </Dropdown>
           </div>
-          <Content style={{ marginTop: 64, minHeight: 'calc(100vh - 64px - 100px)', background: colorBgContainer, borderRadius: borderRadiusLG, margin: '24px 16px', padding: 24 }}>
+          <Content style={{ marginTop: 64, minHeight: 'calc(100vh - 64px)', background: '#f4f6fb', borderRadius: 12, margin: '24px 16px', padding: 24 }}>
             <Outlet />
           </Content>
         </Layout>
@@ -140,4 +123,4 @@ const ServantLayout = () => {
   );
 };
 
-export default ServantLayout;
+export default ChefLayout; 

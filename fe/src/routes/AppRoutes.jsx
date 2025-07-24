@@ -30,10 +30,12 @@ import UserManagement from '../pages/AdminDashboard/UserManagement';
 import TableManage from '../pages/AdminDashboard/Table_Manage';
 import Voucher_Manage from '../pages/AdminDashboard/Voucher_Manage';
 
-import ChefDashboard from '../pages/Chef/ChefDashboard';
+import ChefLayout from '../layouts/ChefLayout';
+import ChefOrders from '../pages/Chef/Orders';
 import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
 import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
 import ReservationManage from '../pages/ServantDashboard/ReservationManage';
+import ServantOrder from '../pages/ServantDashboard/ServantOrder';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -52,7 +54,7 @@ const AppRoutes = () => (
                 <Route path='food/:id' element={<FoodDetail />} />
                 <Route path='combo/:id' element={<ComboDetail />} />
                 <Route path='book-table' element={<BookingTable />} />
-                <Route path='test-table-order' element={<TableOrderTest />} />
+                <Route path='booking-food/table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
                 <Route path='profile' element={<UserProfile />} />
                 <Route path='payment-callback' element={<PaymentCallback />} />
@@ -66,6 +68,7 @@ const AppRoutes = () => (
             <Route path="/servant" element={<ServantLayout />}>
                 <Route path="tables" element={<ServantTableManage />} />
                 <Route path="reservations" element={<ReservationManage />} />
+                <Route path="orders" element={<ServantOrder />} />
             </Route>
 
             {/* Admin Routes - Protected */}
@@ -83,13 +86,15 @@ const AppRoutes = () => (
                 <Route path="combos" element={<ComboManage />} />
                 <Route path="voucher" element={<Voucher_Manage />} />
 
-                <Route path="chef" element={<ChefDashboard />} />
+                
                 <Route path="inventory" element={<InventoryDashboard />} />
                 <Route path="revenue" element={<RevenueReport />} />
 
 
             </Route>
-
+            <Route path="chef" element={<ChefLayout />}>
+                    <Route path="orders" element={<ChefOrders />} />
+            </Route>
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
         </Routes>

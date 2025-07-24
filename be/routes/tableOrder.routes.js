@@ -43,5 +43,11 @@ router.get('/payos/check-status/:transactionCode', payosController.checkPaymentS
 // Thêm route xác nhận thanh toán tiền mặt
 router.patch('/:id/confirm-cash', require('../controllers/tableOrder.controller').confirmCashPayment);
 
+// Route cho chef hoàn thành đơn
+router.patch('/chef/:id/complete', require('../controllers/tableOrder.controller').chefCompleteTableOrder);
+
+// Route cho chef lấy danh sách đơn pending kèm chi tiết combo
+router.get('/chef/pending-orders', require('../controllers/tableOrder.controller').chefGetPendingOrders);
+
 
 module.exports = router; 

@@ -16,32 +16,33 @@ const reservationSchema = new mongoose.Schema(
     }],
     servantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Servant',
+      required: false,
     },
     reservationCode: {
       type: String,
-      required: true,
+      required: false,
       unique: true,
       trim: true,
     },
     startTime: {
       type: Date,
-      required: true,
+      required: false,
     },
     endTime: {
       type: Date,
-      required: true,
+      required: false,
     },
     status: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
       enum: ['pending', 'confirmed', 'served', 'completed', 'cancelled'],
       default: 'pending',
     },
     numberOfPeople: {
       type: Number,
-      required: true,
+      required: false,
       min: 1,
     },
     note: {

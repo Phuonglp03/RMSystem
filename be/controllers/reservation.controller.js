@@ -177,35 +177,35 @@ const createReservation = async (req, res) => {
         startTime,
         endTime,
         note: note || '',
-        status: 'confirmed',
+        status: 'pending', // Đặt trạng thái mặc định là pending
         numberOfPeople: guests
       });
   
       await newReservation.save();
   
-      // Gửi email xác nhận đặt bàn
+      // Gửi email cảm ơn đặt bàn (không gửi mã code, không xác nhận)
       if (email) {
-        // Gửi email chào mừng và thông tin tài khoản nếu là người dùng mới
+        // Nếu là người dùng mới, gửi email tài khoản
         if (isNewUser) {
           const welcomeEmailData = emailService.createWelcomeEmail(name, email, tempPassword);
           await emailService.sendEmail(email, welcomeEmailData.subject, welcomeEmailData.html, welcomeEmailData.text);
         }
-  
-        // Gửi email xác nhận đặt bàn
-        const confirmationEmailData = emailService.createReservationConfirmation(
-          name,
-          reservationCode,
-          date,
-          time,
-          tableNumbers,
-          guests
-        );
-        await emailService.sendEmail(email, confirmationEmailData.subject, confirmationEmailData.html, confirmationEmailData.text);
+        // Gửi email cảm ơn đặt bàn (tự tạo nội dung đơn giản)
+        const thankyouSubject = 'Cảm ơn bạn đã đặt bàn tại The Fool';
+        const thankyouHtml = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Cảm ơn bạn đã đặt bàn tại The Fool!</h2>
+            <p>Chúng tôi đã nhận được yêu cầu đặt bàn của bạn và sẽ phản hồi trong thời gian sớm nhất.</p>
+            <p>Vui lòng chờ nhân viên xác nhận đặt bàn qua email hoặc điện thoại.</p>
+            <p>Trân trọng,<br/>The Fool</p>
+          </div>
+        `;
+        await emailService.sendEmail(email, thankyouSubject, thankyouHtml, 'Cảm ơn bạn đã đặt bàn tại The Fool! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.');
       }
   
       return res.status(201).json({
         success: true,
-        message: 'Đặt bàn thành công',
+        message: 'Đặt bàn thành công, vui lòng chờ nhân viên xác nhận',
         data: {
           reservationCode: newReservation.reservationCode,
           startTime: newReservation.startTime,
@@ -368,7 +368,7 @@ const updateReservationStatus = async (req, res) => {
       });
     }
 
-    const reservation = await Reservation.findOne({ reservationCode: code });
+    const reservation = await Reservation.findOne({ reservationCode: code }).populate('bookedTable').populate('customerId');
     if (!reservation) {
       return res.status(404).json({
         success: false,
@@ -376,8 +376,45 @@ const updateReservationStatus = async (req, res) => {
       });
     }
 
+    const prevStatus = reservation.status;
     reservation.status = status;
     await reservation.save();
+
+    // Nếu chuyển sang completed thì xóa reservation khỏi currentReservation của các bàn
+    if (status === 'completed') {
+      await Table.updateMany(
+        { _id: { $in: reservation.bookedTable } },
+        { $pull: { currentReservation: reservation._id } }
+      );
+      // Thêm reservationId vào reservationHistory của customer
+      if (Array.isArray(reservation.customerId) && reservation.customerId[0]) {
+        const customer = await Customer.findById(reservation.customerId[0]._id);
+        if (customer && !customer.reservationHistory.includes(reservation._id)) {
+          customer.reservationHistory.push(reservation._id);
+          await customer.save();
+        }
+      }
+    }
+
+    // Nếu chuyển sang confirmed thì gửi email xác nhận đặt bàn (có mã code)
+    if (prevStatus !== 'confirmed' && status === 'confirmed') {
+      // Lấy thông tin khách hàng
+      let customer = Array.isArray(reservation.customerId) ? reservation.customerId[0] : reservation.customerId;
+      let user = customer && customer.userId ? await User.findById(customer.userId) : null;
+      if (user && user.email) {
+        // Lấy thông tin bàn
+        const tableNumbers = reservation.bookedTable.map(table => table.tableNumber).join(', ');
+        const confirmationEmailData = emailService.createReservationConfirmation(
+          user.fullname || user.username || 'Quý khách',
+          reservation.reservationCode,
+          reservation.startTime,
+          reservation.startTime ? reservation.startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '',
+          tableNumbers,
+          reservation.numberOfPeople
+        );
+        await emailService.sendEmail(user.email, confirmationEmailData.subject, confirmationEmailData.html, confirmationEmailData.text);
+      }
+    }
 
     return res.status(200).json({
       success: true,

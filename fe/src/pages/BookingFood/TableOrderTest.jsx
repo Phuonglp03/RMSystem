@@ -63,9 +63,27 @@ const TableOrderTest = () => {
   const [completedOrders, setCompletedOrders] = useState([]);
   const [totalCompleted, setTotalCompleted] = useState(0);
 
-  // Check reservation code
-  const handleCheckCode = async () => {
-    if (!reservationCode.trim()) {
+  // Khi trang mount, nếu có code trên URL, tự động check
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    // Nếu có code trên URL, decode base64
+    let decodedCode = code;
+    try {
+      if (code) decodedCode = atob(code);
+    } catch (e) {
+      decodedCode = code; // Nếu decode lỗi, dùng nguyên
+    }
+    if (decodedCode) {
+      setReservationCode(decodedCode);
+      setTimeout(() => handleCheckCode(decodedCode), 0);
+    }
+  }, []);
+
+  // Sửa handleCheckCode để nhận code truyền vào (hoặc lấy từ state)
+  const handleCheckCode = async (inputCode) => {
+    const codeToCheck = inputCode || reservationCode;
+    if (!codeToCheck.trim()) {
       setCodeError('Vui lòng nhập mã đặt bàn');
       return;
     }
@@ -75,7 +93,7 @@ const TableOrderTest = () => {
     
     try {
       const [res, categoryRes, foodRes, comboRes] = await Promise.all([
-        tableService.getTableOrderFromCustomerByReservationCode(reservationCode),
+        tableService.getReservationByCode(codeToCheck),
         foodService.getAllFoodCategories(),
         foodService.getAllFoods(),
         comboService.getAllCombos(),
@@ -341,7 +359,7 @@ const TableOrderTest = () => {
       <Modal
         title="Nhập mã đặt bàn"
         open={codeModalVisible}
-        onOk={handleCheckCode}
+        onOk={() => handleCheckCode()}
         onCancel={() => setCodeModalVisible(false)}
         confirmLoading={checkingCode}
         okText="Xác nhận"
@@ -356,7 +374,7 @@ const TableOrderTest = () => {
             placeholder="Nhập mã đặt bàn..."
             value={reservationCode}
             onChange={(e) => setReservationCode(e.target.value)}
-            onPressEnter={handleCheckCode}
+            onPressEnter={e => handleCheckCode(e.target.value)}
             style={{ marginBottom: '10px' }}
           />
           {codeError && (
