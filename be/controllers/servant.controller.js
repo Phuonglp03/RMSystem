@@ -2,6 +2,9 @@ const Reservation = require('../models/Reservation');
 const Table = require('../models/Table');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
+const Customer = require('../models/Customer');
+const bcrypt = require('bcrypt');
 
 // Lấy tất cả reservation (có filter status, search)
 exports.getAllReservations = async (req, res) => {
@@ -153,6 +156,100 @@ exports.getAllTablesWithStatus = async (req, res) => {
       currentReservation: table.currentReservation,
     }));
     res.json({ success: true, tables: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Tạo reservation nhanh cho bàn trống
+exports.quickCreateReservation = async (req, res) => {
+  try {
+    const { bookedTable, numberOfPeople, note } = req.body;
+    if (!bookedTable || !Array.isArray(bookedTable) || bookedTable.length === 0) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin bàn.' });
+    }
+    // Lấy userId từ token
+    const userId = req.jwtDecode?.id;
+    let servantId = undefined;
+    if (userId) {
+      const servant = await require('../models/Servant').findOne({ userId });
+      if (!servant) {
+        return res.status(400).json({ success: false, message: 'Không tìm thấy servant tương ứng với user hiện tại.' });
+      }
+      servantId = servant._id;
+    }
+    // Tạo mã reservationCode ngẫu nhiên
+    const reservationCode = crypto.randomBytes(4).toString('hex').toUpperCase();
+    // Thời gian bắt đầu là hiện tại, kết thúc +2h
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + 2 * 60 * 60 * 1000);
+    const newReservation = new Reservation({
+      bookedTable,
+      servantId,
+      reservationCode,
+      startTime,
+      endTime,
+      status: 'served',
+      numberOfPeople: numberOfPeople || 1,
+      note: note || '',
+    });
+    await newReservation.save();
+    // Cập nhật currentReservation cho các bàn
+    await Table.updateMany(
+      { _id: { $in: bookedTable } },
+      { $addToSet: { currentReservation: newReservation._id } }
+    );
+    res.json({ success: true, reservation: newReservation });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Gán customerId vào reservation khi thanh toán (tạo user/customer nếu cần)
+exports.attachCustomerToReservation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, phone, fullname } = req.body;
+    if (!email && !phone) {
+      return res.status(400).json({ success: false, message: 'Cần cung cấp email hoặc số điện thoại.' });
+    }
+    let user = null;
+    if (email) {
+      user = await User.findOne({ email });
+    }
+    if (!user && phone) {
+      user = await User.findOne({ phone });
+    }
+    let isNewUser = false;
+    let tempPassword = '';
+    if (!user) {
+      isNewUser = true;
+      tempPassword = Math.random().toString(36).slice(-8);
+      const username = email ? email.split('@')[0] : (phone || (Date.now() + ''));
+      user = new User({
+        fullname: fullname || 'Khách lẻ',
+        username: username.toLowerCase(),
+        email: email || (username + '@noemail.com'),
+        phone: phone || '',
+        password: await bcrypt.hash(tempPassword, 12),
+        role: 'customer',
+      });
+      await user.save();
+    }
+    // Tìm hoặc tạo customer
+    let customer = await Customer.findOne({ userId: user._id });
+    if (!customer) {
+      customer = new Customer({ userId: user._id });
+      await customer.save();
+    }
+    // Gán customerId vào reservation
+    const reservation = await Reservation.findByIdAndUpdate(
+      id,
+      { customerId: [customer._id] },
+      { new: true }
+    );
+    if (!reservation) return res.status(404).json({ success: false, message: 'Không tìm thấy reservation.' });
+    res.json({ success: true, reservation, isNewUser, tempPassword });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

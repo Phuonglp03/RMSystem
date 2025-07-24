@@ -50,6 +50,14 @@ const servantService = {
       throw error.response ? error.response.data : new Error('Error fetching tables with status');
     }
   },
+  quickCreateReservation: async (data) => {
+    try {
+      const res = await axiosInstance.post('/api/servant/reservations/quick-create', data);
+      return res.reservation;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Error creating quick reservation');
+    }
+  },
 };
 
 export default servantService; 
