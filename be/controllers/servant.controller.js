@@ -30,10 +30,9 @@ exports.getAllReservations = async (req, res) => {
       .populate('bookedTable', 'tableNumber capacity')
       .populate({
         path: 'customerId',
-        select: 'userId',
         populate: {
           path: 'userId',
-          select: 'fullname phone email'
+          select: 'fullname email phone'
         }
       })
       .sort({ startTime: 1 });
@@ -49,7 +48,13 @@ exports.getReservationDetail = async (req, res) => {
     const { id } = req.params;
     const reservation = await Reservation.findById(id)
       .populate('bookedTable', 'tableNumber capacity')
-      .populate('customerId', 'fullname phone email');
+      .populate({
+        path: 'customerId',
+        populate: {
+          path: 'userId',
+          select: 'fullname email phone'
+        }
+      });
     if (!reservation) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn đặt bàn' });
     res.json({ success: true, reservation });
   } catch (error) {
@@ -164,10 +169,9 @@ exports.updateReservation = async (req, res) => {
       .populate('bookedTable', 'tableNumber capacity')
       .populate({
         path: 'customerId',
-        select: 'userId',
         populate: {
           path: 'userId',
-          select: 'fullname phone email'
+          select: 'fullname email phone'
         }
       });
     if (!reservation) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn đặt bàn' });
@@ -180,8 +184,18 @@ exports.updateReservation = async (req, res) => {
 // Lấy danh sách bàn kèm trạng thái sử dụng dựa vào currentReservation
 exports.getAllTablesWithStatus = async (req, res) => {
   try {
-    const tables = await Table.find().populate('currentReservation')
-    .sort({ tableNumber: 1 });
+    const tables = await Table.find()
+      .populate({
+        path: 'currentReservation',
+        populate: {
+          path: 'customerId',
+          populate: {
+            path: 'userId',
+            select: 'fullname email phone'
+          }
+        }
+      })
+      .sort({ tableNumber: 1 });
     const result = tables.map(table => ({
       _id: table._id,
       tableNumber: table.tableNumber,
@@ -282,7 +296,15 @@ exports.attachCustomerToReservation = async (req, res) => {
       id,
       { customerId: [customer._id] },
       { new: true }
-    );
+    )
+    .populate('bookedTable', 'tableNumber capacity')
+    .populate({
+      path: 'customerId',
+      populate: {
+        path: 'userId',
+        select: 'fullname email phone'
+      }
+    });
     if (!reservation) return res.status(404).json({ success: false, message: 'Không tìm thấy reservation.' });
     res.json({ success: true, reservation, isNewUser, tempPassword });
   } catch (error) {

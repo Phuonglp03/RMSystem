@@ -34,6 +34,7 @@ import ChefDashboard from '../pages/Chef/ChefDashboard';
 import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
 import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
 import ReservationManage from '../pages/ServantDashboard/ReservationManage';
+import ServantOrder from '../pages/ServantDashboard/ServantOrder';
 
 const AppRoutes = () => (
     <BrowserRouter>
@@ -52,7 +53,7 @@ const AppRoutes = () => (
                 <Route path='food/:id' element={<FoodDetail />} />
                 <Route path='combo/:id' element={<ComboDetail />} />
                 <Route path='book-table' element={<BookingTable />} />
-                <Route path='test-table-order' element={<TableOrderTest />} />
+                <Route path='booking-food/table-order' element={<TableOrderTest />} />
                 <Route path='order-history' element={<OrderHistoryByUser />} />
                 <Route path='profile' element={<UserProfile />} />
                 <Route path='payment-callback' element={<PaymentCallback />} />
@@ -66,6 +67,7 @@ const AppRoutes = () => (
             <Route path="/servant" element={<ServantLayout />}>
                 <Route path="tables" element={<ServantTableManage />} />
                 <Route path="reservations" element={<ReservationManage />} />
+                <Route path="orders" element={<ServantOrder />} />
             </Route>
 
             {/* Admin Routes - Protected */}

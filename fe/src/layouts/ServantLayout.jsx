@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, theme } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { TableOutlined, CalendarOutlined } from '@ant-design/icons';
+import { TableOutlined, CalendarOutlined, ShoppingCartOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -26,6 +26,11 @@ const ServantLayout = () => {
       icon: <CalendarOutlined />,
       label: 'Quản lý đơn đặt bàn',
     },
+    {
+      key: '/servant/orders',
+      icon: <ShoppingCartOutlined />,
+      label: 'Quản lý đơn đặt món',
+    },
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -49,6 +54,12 @@ const ServantLayout = () => {
             bottom: 0,
           }}
         >
+          {/* Nút thu/phóng sidebar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-end', padding: '8px 12px 0 0' }}>
+            <span onClick={() => setCollapsed(!collapsed)} style={{ cursor: 'pointer', color: '#fff', fontSize: 18 }}>
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </span>
+          </div>
           <div style={{
             height: 32,
             margin: 16,

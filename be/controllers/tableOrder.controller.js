@@ -244,7 +244,17 @@ exports.getTableOrdersByReservationId = async (req, res) => {
     const orders = await TableOrder.find({ reservationId })
       .populate('tableId', 'tableNumber')
       .populate('foods.foodId', 'name price')
-      .populate('combos', 'comboId foodId quantity');
+      .populate('combos', 'comboId foodId quantity')
+      .populate({
+        path: 'reservationId',
+        populate: {
+          path: 'customerId',
+          populate: {
+            path: 'userId',
+            select: 'fullname email phone'
+          }
+        }
+      });
     res.status(200).json({ success: true, data: orders });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
