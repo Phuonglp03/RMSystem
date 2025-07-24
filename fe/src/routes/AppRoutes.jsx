@@ -30,7 +30,8 @@ import UserManagement from '../pages/AdminDashboard/UserManagement';
 import TableManage from '../pages/AdminDashboard/Table_Manage';
 import Voucher_Manage from '../pages/AdminDashboard/Voucher_Manage';
 
-import ChefDashboard from '../pages/Chef/ChefDashboard';
+import ChefLayout from '../layouts/ChefLayout';
+import ChefOrders from '../pages/Chef/Orders';
 import InventoryDashboard from '../pages/Inventory/InventoryDashboard';
 import RevenueReport from '../pages/AdminDashboard/Statistics/RevenueReport';
 import ReservationManage from '../pages/ServantDashboard/ReservationManage';
@@ -85,13 +86,15 @@ const AppRoutes = () => (
                 <Route path="combos" element={<ComboManage />} />
                 <Route path="voucher" element={<Voucher_Manage />} />
 
-                <Route path="chef" element={<ChefDashboard />} />
+                
                 <Route path="inventory" element={<InventoryDashboard />} />
                 <Route path="revenue" element={<RevenueReport />} />
 
 
             </Route>
-
+            <Route path="chef" element={<ChefLayout />}>
+                    <Route path="orders" element={<ChefOrders />} />
+            </Route>
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
         </Routes>

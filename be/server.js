@@ -33,7 +33,7 @@ const comboRoutes = require('./routes/combo.routes');
 
 const tableOrderRoutes = require('./routes/tableOrder.routes');
 const couponRoutes = require('./routes/coupon.routes');
-const chefRoutes = require('./routes/chef.routes');
+
 const inventoryRoutes = require('./routes/inventory.routes');
 const categoryRoutes = require('./routes/inventoryCategory.routes');
 const ingredientRoutes = require('./routes/ingredient.routes');
@@ -75,7 +75,7 @@ app.use('/api/notification', require('./routes/notification.routes'))
 app.use('/api/payos-reservation', require('./routes/payosReservation.routes'));
 app.use('/api/servant', require('./routes/servant.routes'));
 
-app.use('/api/chef', chefRoutes);
+
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/ingredients', ingredientRoutes);
