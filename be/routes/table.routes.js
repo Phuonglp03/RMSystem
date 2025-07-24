@@ -10,7 +10,6 @@ const {
 const { authMiddleware } = require('../middleware/authMiddleware')
 
 router.get('/all', getAllTables);
-/* https://rm-system-4tru.vercel.app/api/tables/available */
 router.post('/available', getAvailableTableForCreateReservation)
 // Route cho admin quản lý bàn
 router.post('/', createTable); // Tạo bàn mới

@@ -12,16 +12,12 @@ router.get('/', tableOrderController.getAllTableOrders);
 // Lấy TableOrder theo userId
 router.get('/user/:userId', tableOrderController.getTableOrdersByUserId);
 
-/* https://rm-system-4tru.vercel.app//table-orders/update-item/:orderId/:foodId */
 router.patch('/update-item/:orderId/:foodId', authMiddleware, tableOrderController.updateFoodItemStatusInTableOrder);
 
-/* https://rm-system-4tru.vercel.app//table-orders/delete-item/:orderId/:foodId */
 router.patch('/delete-item/:orderId/:foodId', authMiddleware, tableOrderController.deleteFoodItemFromTableOrder);
 
-/* https://rm-system-4tru.vercel.app//table-orders/change-table/:orderId */
 router.post('/change-table/:orderId', authMiddleware, tableOrderController.servantTransferTableOrderToCustomer);
 
-/* https://rm-system-4tru.vercel.app//table-orders/servant/stats */
 router.get('/servant/stats', authMiddleware, tableOrderController.getTableOrderStats);
 // Lấy TableOrder theo ID
 router.get('/:id', tableOrderController.getTableOrderById);
