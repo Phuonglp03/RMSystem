@@ -39,7 +39,7 @@ const InventoryDashboard = () => {
 
   const fetchInventory = async () => {
     try {
-      const res = await axios.get("http://localhost:9999/api/inventory");
+      const res = await axios.get("https://rm-system-4tru.vercel.app/api/inventory");
       setInventory(res.data);
     } catch (err) {
       message.error("Lỗi khi tải dữ liệu kho!");
@@ -48,7 +48,7 @@ const InventoryDashboard = () => {
 
   const fetchIngredients = async () => {
     try {
-      const res = await axios.get("http://localhost:9999/api/ingredients");
+      const res = await axios.get("https://rm-system-4tru.vercel.app/api/ingredients");
       setIngredients(res.data);
     } catch (err) {
       message.error("Không thể tải nguyên liệu!");
@@ -56,7 +56,7 @@ const InventoryDashboard = () => {
   };
 
   const fetchCategories = async () => {
-    const res = await axios.get("http://localhost:9999/api/categories");
+    const res = await axios.get("https://rm-system-4tru.vercel.app/api/categories");
     setCategories(res.data);
   };
 
@@ -78,7 +78,7 @@ const InventoryDashboard = () => {
 
   const handleRestock = async (values) => {
     try {
-      await axios.post("http://localhost:9999/api/inventory/restock", values);
+      await axios.post("https://rm-system-4tru.vercel.app/api/inventory/restock", values);
       message.success("✅ Nhập kho thành công");
       setIsModalVisible(false);
       form.resetFields();
@@ -99,7 +99,7 @@ const InventoryDashboard = () => {
 
   const handleEdit = async (values) => {
     try {
-      await axios.put(`http://localhost:9999/api/inventory/${editingItem._id}`, {
+      await axios.put(`https://rm-system-4tru.vercel.app/api/inventory/${editingItem._id}`, {
         ingredientId: values.ingredientId,
         currentQuantity: values.currentQuantity,
       });
@@ -293,7 +293,7 @@ const InventoryDashboard = () => {
           onFinish={async (values) => {
             try {
               await axios.post(
-                "http://localhost:9999/api/inventory/create-with-ingredient",
+                "https://rm-system-4tru.vercel.app/api/inventory/create-with-ingredient",
                 values
               );
               message.success("✅ Đã thêm nguyên liệu");

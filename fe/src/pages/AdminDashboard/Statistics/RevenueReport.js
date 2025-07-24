@@ -42,7 +42,7 @@ const RevenueReport = () => {
       }
 
       const res = await axios.get(
-        "http://localhost:9999/api/reports/revenue/by-updated-date",
+        "https://rm-system-4tru.vercel.app/api/reports/revenue/by-updated-date",
         {
           params,
         }
@@ -57,7 +57,7 @@ const RevenueReport = () => {
   const fetchStatusStats = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:9999/api/reports/revenue/status-stats"
+        "https://rm-system-4tru.vercel.app/api/reports/revenue/status-stats"
       );
       setStatusStats(res.data || []);
     } catch (err) {
@@ -72,7 +72,7 @@ const RevenueReport = () => {
         params.start = dateRange[0].startOf("day").toISOString();
         params.end = dateRange[1].endOf("day").toISOString();
       }
-      const res = await axios.get("http://localhost:9999/api/reports/revenue", {
+      const res = await axios.get("https://rm-system-4tru.vercel.app/api/reports/revenue", {
         params,
       });
       setData(res.data.orders || []);
