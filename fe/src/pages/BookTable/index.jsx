@@ -368,9 +368,9 @@ const BookingTable = () => {
       const response = await reservationService.createReservation(bookingData);
 
       if (response.success) {
-        setBookingId(response.data.reservationCode);
+        // Không hiển thị mã code, chỉ chuyển sang trang cảm ơn
         setBookingComplete(true);
-        messageApi.success('Đặt bàn thành công!');
+        messageApi.success('Đặt bàn thành công! Vui lòng đợi nhân viên xác nhận.');
       } else {
         messageApi.error(response.message || 'Đặt bàn thất bại!');
       }
@@ -695,13 +695,11 @@ const BookingTable = () => {
           <div className="step-content">
             <Result
               status="success"
-              title="Đặt bàn thành công!"
+              title="Cảm ơn bạn đã đặt bàn!"
               subTitle={
-                <div>
-                  <div style={{ marginBottom: 8 }}>Mã đặt bàn: <strong>{bookingId}</strong></div>
-                  <div style={{ fontSize: '16px', color: 'black' }}>
-                    Thông tin đặt bàn đã được gửi qua email của bạn
-                  </div>
+                <div style={{ fontSize: '16px', color: 'black' }}>
+                  Chúng tôi đã nhận được yêu cầu đặt bàn của bạn.<br/>
+                  Vui lòng đợi nhân viên xác nhận qua email hoặc điện thoại.
                 </div>
               }
               extra={

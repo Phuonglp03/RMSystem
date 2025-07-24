@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const crypto = require('crypto');
 const Customer = require('../models/Customer');
 const bcrypt = require('bcrypt');
+const { emailService } = require('../services/EmailService');
 
 // Lấy tất cả reservation (có filter status, search)
 exports.getAllReservations = async (req, res) => {
@@ -65,8 +66,19 @@ exports.updateReservationStatus = async (req, res) => {
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
     }
-    const reservation = await Reservation.findById(id);
+    const reservation = await Reservation.findById(id)
+      .populate('bookedTable', 'tableNumber capacity')
+      .populate({
+        path: 'customerId',
+        select: 'userId',
+        populate: {
+          path: 'userId',
+          select: 'fullname phone email username'
+        }
+      });
     if (!reservation) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn đặt bàn' });
+
+    const prevStatus = reservation.status;
     if (status === 'served') {
       // Xác nhận khách đến: cập nhật startTime = now, endTime = now + 2h
       const now = new Date();
@@ -82,6 +94,29 @@ exports.updateReservationStatus = async (req, res) => {
       reservation.status = status;
     }
     await reservation.save();
+
+    // Nếu chuyển sang confirmed thì gửi email xác nhận đặt bàn (có mã code)
+    if (prevStatus !== 'confirmed' && status === 'confirmed') {
+      // Lấy thông tin khách hàng
+      let customer = Array.isArray(reservation.customerId) ? reservation.customerId[0] : reservation.customerId;
+      let user = customer && customer.userId ? customer.userId : null;
+      if (user && user.email) {
+        // Lấy thông tin bàn
+        const tableNumbers = Array.isArray(reservation.bookedTable)
+          ? reservation.bookedTable.map(table => table.tableNumber).join(', ')
+          : '';
+        const confirmationEmailData = emailService.createReservationConfirmation(
+          user.fullname || user.username || 'Quý khách',
+          reservation.reservationCode,
+          reservation.startTime,
+          reservation.startTime ? reservation.startTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '',
+          tableNumbers,
+          reservation.numberOfPeople
+        );
+        await emailService.sendEmail(user.email, confirmationEmailData.subject, confirmationEmailData.html, confirmationEmailData.text);
+      }
+    }
+
     res.json({ success: true, message: 'Cập nhật trạng thái thành công', reservation });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
