@@ -68,20 +68,15 @@ const AdminLayout = () => {
       label: 'Quản lý voucher',
     },
     {
-      key: '/admin/chef',
-      icon: <CalendarOutlined />,
-      label: 'Quản lý đầu bếp',
-    },
-    {
       key: '/admin/inventory',
       icon: <ContainerOutlined />,
       label: 'Quản lý kho',
     },
-    {
-      key: '/admin/revenue',
-      icon: <ContainerOutlined />,
-      label: 'Thông kê doanh thu',
-    }
+    // {
+    //   key: '/admin/revenue',
+    //   icon: <ContainerOutlined />,
+    //   label: 'Thông kê doanh thu',
+    // }
   ];
 
   const handleMenuClick = ({ key }) => {

@@ -76,28 +76,10 @@ const Header = () => {
             onClick: () => navigate('/book-table')
         },
         {
-            key: '4',
-            icon: <SettingOutlined />,
-            label: 'Quản lý đặt bàn',
-            onClick: () => navigate('/servant/manage-reservation')
-        },
-        {
-            key: 'foodlistmanage',
-            icon: <AppstoreOutlined />,
-            label: 'Quản lý đơn đặt món',
-            onClick: () => navigate('/servant/manage-order')
-        },
-        {
             key: 'profile',
             icon: <UserOutlined />,
             label: 'Tài khoản',
             onClick: () => navigate('/profile')
-        },
-        {
-            key: '7',
-            icon: <TableOutlined />,
-            label: 'Lịch sử đặt đơn',
-            onClick: () => navigate('/order-history')
         }
     ];
 

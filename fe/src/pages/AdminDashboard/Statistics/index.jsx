@@ -790,7 +790,7 @@ const AdminStatistics = () => {
         <TabPane tab="Tổng Quan" key="overview">
           <OverviewTab />
         </TabPane>
-        <TabPane tab="Doanh Thu" key="revenue">
+        {/* <TabPane tab="Doanh Thu" key="revenue">
           <RevenueTab />
         </TabPane>
         <TabPane tab="Đặt Bàn" key="reservations">
@@ -801,7 +801,7 @@ const AdminStatistics = () => {
         </TabPane>
         <TabPane tab="Khách Hàng" key="customers">
           <CustomerTab />
-        </TabPane>
+        </TabPane> */}
       </Tabs>
     </div>
   );
