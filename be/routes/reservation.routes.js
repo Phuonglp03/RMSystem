@@ -19,5 +19,6 @@ router.get('/user/history', authMiddleware, getUserReservations);
 router.get('/by-user', getReservationsByUserId);
 router.get('/:code', getReservation);
 router.put('/:code/status', updateReservationStatus);
+router.get('/:reservationId/detail', require('../controllers/reservation.controller').getReservationDetail);
 
 module.exports = router;

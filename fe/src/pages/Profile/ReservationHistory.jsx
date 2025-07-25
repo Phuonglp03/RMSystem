@@ -29,8 +29,8 @@ const ReservationHistory = () => {
   const showDetail = async (reservation) => {
     setDetailModal({ visible: true, loading: true, orders: [], reservation });
     try {
-      const res = await tableService.getOrdersByReservationId(reservation.id);
-      setDetailModal({ visible: true, loading: false, orders: res.data || [], reservation });
+      const res = await axiosInstance.get(`/api/reservations/${reservation.id}/detail`);
+      setDetailModal({ visible: true, loading: false, orders: res.data ? [res.data] : [], reservation });
     } catch {
       setDetailModal({ visible: true, loading: false, orders: [], reservation });
     }
@@ -161,39 +161,36 @@ const ReservationHistory = () => {
         width={700}
       >
         {detailModal.loading ? <Spin /> : (
-          detailModal.orders.length === 0 ? <Empty description="Không có món nào." /> : (
+          (!detailModal.orders[0] || (detailModal.orders[0].foods.length === 0 && detailModal.orders[0].combos.length === 0)) ? (
+            <Empty description="Không có món nào." />
+          ) : (
             <div>
-              {detailModal.orders.map((order, idx) => (
-                <div key={order._id || idx} style={{ marginBottom: 24 }}>
-                  <Divider orientation="left">Bàn {order.tableId?.tableNumber || order.tableId || ''}</Divider>
-                  {Array.isArray(order.foods) && order.foods.length > 0 ? (
-                    <List
-                      header={<b>Danh sách món ăn</b>}
-                      dataSource={order.foods}
-                      renderItem={item => (
-                        <List.Item>
-                          {item.foodId?.name || item.foodId || 'Món'} x {item.quantity || 1} <span style={{ float: 'right' }}>{item.foodId?.price ? `${item.foodId.price.toLocaleString()}đ` : ''}</span>
-                        </List.Item>
-                      )}
-                    />
-                  ) : (
-                    <div style={{ color: '#aaa', textAlign: 'center', margin: 12 }}>Không có món nào trong đơn này.</div>
-                  )}
-                  {order.combos && order.combos.length > 0 && (
-                    <>
-                      <Divider orientation="left">Combo</Divider>
-                      <List
-                        dataSource={order.combos}
-                        renderItem={combo => (
-                          <List.Item>
-                            Combo: {combo.comboId?.name || combo.comboId || ''} x {combo.quantity || 1}
-                          </List.Item>
-                        )}
-                      />
-                    </>
-                  )}
-                </div>
-              ))}
+              <Divider orientation="left">Danh sách món ăn</Divider>
+              <List
+                dataSource={detailModal.orders[0].foods}
+                renderItem={item => (
+                  <List.Item>
+                    {item.name} x {item.quantity} <span style={{ float: 'right' }}>{item.price ? `${item.price.toLocaleString()}đ` : ''}</span>
+                  </List.Item>
+                )}
+              />
+              {detailModal.orders[0].combos && detailModal.orders[0].combos.length > 0 && (
+                <>
+                  <Divider orientation="left">Combo</Divider>
+                  <List
+                    dataSource={detailModal.orders[0].combos}
+                    renderItem={combo => (
+                      <List.Item>
+                        Combo: {combo.name} x {combo.quantity} <span style={{ float: 'right' }}>{combo.price ? `${combo.price.toLocaleString()}đ` : ''}</span>
+                      </List.Item>
+                    )}
+                  />
+                </>
+              )}
+              <Divider />
+              <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                Tổng tiền: {detailModal.orders[0].totalAmount.toLocaleString()}đ
+              </div>
             </div>
           )
         )}

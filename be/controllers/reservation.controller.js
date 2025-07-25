@@ -5,6 +5,9 @@ const Servant = require('../models/Servant');
 const Customer = require('../models/Customer');
 const crypto = require('crypto');
 const { emailService } = require('../services/EmailService');
+const TableOrder = require('../models/TableOrder');
+const Food = require('../models/Food');
+const Combo = require('../models/Combo');
 
 /* Customer reservation */
 const getAvailableTables = async (req, res) => {
@@ -493,6 +496,62 @@ const updateReservationStatus = async (req, res) => {
   }
 };
 
+const getReservationDetail = async (req, res) => {
+  try {
+    const { reservationId } = req.params;
+    // Lấy tất cả tableOrder thuộc reservation này
+    const tableOrders = await TableOrder.find({ reservationId })
+      .populate('foods.foodId')
+      .populate('combos');
+
+    let foodsMap = {};
+    let combosMap = {};
+    let totalAmount = 0;
+
+    tableOrders.forEach(order => {
+      totalAmount += order.totalprice || 0;
+
+      // Gộp món ăn
+      order.foods.forEach(f => {
+        if (!f.foodId) return;
+        const id = f.foodId._id.toString();
+        if (!foodsMap[id]) {
+          foodsMap[id] = {
+            name: f.foodId.name,
+            quantity: 0,
+            price: f.foodId.price
+          };
+        }
+        foodsMap[id].quantity += f.quantity;
+      });
+
+      // Gộp combo
+      if (order.combos && Array.isArray(order.combos)) {
+        order.combos.forEach(combo => {
+          if (!combo) return;
+          const id = combo._id.toString();
+          if (!combosMap[id]) {
+            combosMap[id] = {
+              name: combo.name,
+              quantity: 0,
+              price: combo.price
+            };
+          }
+          combosMap[id].quantity += 1;
+        });
+      }
+    });
+
+    res.json({
+      foods: Object.values(foodsMap),
+      combos: Object.values(combosMap),
+      totalAmount
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi lấy chi tiết reservation', error: err.message });
+  }
+};
+
 // Export all controllers
 module.exports = {
   getAvailableTables,
@@ -501,5 +560,6 @@ module.exports = {
   updateReservationStatus,
   getReservationsFromToday,
   getUserReservations,
-  getReservationsByUserId
+  getReservationsByUserId,
+  getReservationDetail
 };
