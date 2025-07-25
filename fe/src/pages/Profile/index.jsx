@@ -39,6 +39,7 @@ import {
 } from '@ant-design/icons';
 import './profile.css';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import moment from 'moment';
 import ReservationHistory from './ReservationHistory';
 
@@ -47,6 +48,7 @@ const { Title, Text, Paragraph } = Typography;
 
 const UserProfile = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form] = Form.useForm();
   const [activeTab, setActiveTab] = useState('profile');
   const [editMode, setEditMode] = useState(false);
@@ -78,6 +80,12 @@ const UserProfile = () => {
       navigate('/login');
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state]);
 
   // Fetch profile data when userData is available
   useEffect(() => {

@@ -245,7 +245,7 @@ exports.getTableOrdersByReservationId = async (req, res) => {
     const orders = await TableOrder.find({ reservationId })
       .populate('tableId', 'tableNumber')
       .populate('foods.foodId', 'name price')
-      .populate('combos', 'comboId foodId quantity')
+      .populate('combos', '_id name')
       .populate({
         path: 'reservationId',
         populate: {
@@ -299,7 +299,7 @@ const payReservationOrders = async (req, res) => {
     }
 
     // Cập nhật reservation
-    reservation.paymentStatus = true;
+    reservation.paymentStatus = 'success';
     await reservation.save();
 
     return res.status(200).json({

@@ -18,6 +18,7 @@ import UserProfile from '../pages/Profile';
 import Signup from '../pages/SignUp';
 import PaymentCallback from '../pages/payment-callback';
 import Vouchers from '../pages/Vouchers';
+import ReservationDetail from '../pages/Profile/ReservationDetail';
 
 // Admin Dashboard Components
 import NotFound from '../components/NotFound';
@@ -54,6 +55,7 @@ const AppRoutes = () => (
                 <Route path='order-history' element={<OrderHistoryByUser />} />
                 <Route path='profile' element={<UserProfile />} />
                 <Route path='payment-callback' element={<PaymentCallback />} />
+                <Route path="/reservation/:id" element={<ReservationDetail />} />
             </Route>
 
             {/* Auth Routes */}

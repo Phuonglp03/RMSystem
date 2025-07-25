@@ -3,6 +3,7 @@ import axiosInstance from '../../services/axios.service';
 import tableService from '../../services/table.service';
 import { Table, Tag, Badge, Button, Space, Typography, Empty, Spin, Modal, Descriptions, List, Divider } from 'antd';
 import { CheckCircleTwoTone, CloseCircleTwoTone, ClockCircleTwoTone } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -18,23 +19,14 @@ const paymentStatusColors = {
   pending: 'orange',
   success: 'green',
   failed: 'red',
+  completed: 'green', // Thêm completed
 };
 
 const ReservationHistory = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all | paid | unpaid
-  const [detailModal, setDetailModal] = useState({ visible: false, loading: false, orders: [], reservation: null });
-
-  const showDetail = async (reservation) => {
-    setDetailModal({ visible: true, loading: true, orders: [], reservation });
-    try {
-      const res = await axiosInstance.get(`/api/reservations/${reservation.id}/detail`);
-      setDetailModal({ visible: true, loading: false, orders: res.data ? [res.data] : [], reservation });
-    } catch {
-      setDetailModal({ visible: true, loading: false, orders: [], reservation });
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -57,12 +49,19 @@ const ReservationHistory = () => {
     fetchReservations();
   }, []);
 
-  const filteredReservations = reservations.filter(r => {
-    if (filter === 'all') return true;
-    if (filter === 'paid') return r.paymentStatus === true || r.paymentStatus === 'success';
-    if (filter === 'unpaid') return !r.paymentStatus || r.paymentStatus === false || r.paymentStatus === 'pending' || r.paymentStatus === 'failed';
-    return true;
-  });
+  const filteredReservations = reservations
+    .map(r => ({
+      ...r,
+      paymentStatus: r.paymentStatus === true ? 'success'
+        : r.paymentStatus === false ? 'pending'
+        : r.paymentStatus || 'pending',
+    }))
+    .filter(r => {
+      if (filter === 'all') return true;
+      if (filter === 'paid') return r.paymentStatus === 'success';
+      if (filter === 'unpaid') return r.paymentStatus === 'pending' || r.paymentStatus === 'failed';
+      return true;
+    });
 
   const columns = [
     {
@@ -106,8 +105,20 @@ const ReservationHistory = () => {
       align: 'center',
       render: status => (
         <Badge
-          status={status === 'success' ? 'success' : status === 'failed' ? 'error' : 'processing'}
-          text={status === 'success' ? 'Đã thanh toán' : status === 'failed' ? 'Thất bại' : 'Chưa thanh toán'}
+          status={
+            status === 'success' || status === 'completed'
+              ? 'success'
+              : status === 'failed'
+              ? 'error'
+              : 'processing'
+          }
+          text={
+            status === 'success' || status === 'completed'
+              ? 'Đã thanh toán'
+              : status === 'failed'
+              ? 'Thất bại'
+              : 'Chưa thanh toán'
+          }
           color={paymentStatusColors[status] || 'orange'}
         />
       ),
@@ -124,12 +135,44 @@ const ReservationHistory = () => {
       key: 'action',
       align: 'center',
       render: (_, record) => (
-        <Button size="small" onClick={() => showDetail(record)}>
-          Xem chi tiết
-        </Button>
+        (record.status === 'completed' && (record.paymentStatus === 'success' || record.paymentStatus === 'completed')) ? (
+          <Button size="small" onClick={() => navigate(`/reservation/${record.id}`)}>
+            Xem chi tiết
+          </Button>
+        ) : null
       ),
     },
   ];
+
+  // Hàm tổng hợp món ăn và combo từ nhiều order
+  function aggregateFoodsAndCombos(orders) {
+    const foodMap = {};
+    const comboMap = {};
+    let total = 0;
+    orders.forEach(order => {
+      total += order.totalprice || 0;
+      (order.foods || []).forEach(f => {
+        // Lấy name và price từ foodId (chuẩn hóa cho mọi trường hợp)
+        const id = f.foodId?._id || f.foodId;
+        const name = f.foodId?.name || '';
+        const price = f.foodId?.price || 0;
+        if (!foodMap[id]) foodMap[id] = { name, quantity: 0, price };
+        foodMap[id].quantity += f.quantity || 1;
+      });
+      (order.combos || []).forEach(c => {
+        const id = c._id || c;
+        const name = c.name || '';
+        const price = c.price || 0;
+        if (!comboMap[id]) comboMap[id] = { name, quantity: 0, price };
+        comboMap[id].quantity += 1;
+      });
+    });
+    return {
+      foods: Object.values(foodMap),
+      combos: Object.values(comboMap),
+      total
+    };
+  }
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: 32 }}>
@@ -153,48 +196,7 @@ const ReservationHistory = () => {
           style={{ background: '#fff', borderRadius: 8 }}
         />
       )}
-      <Modal
-        open={detailModal.visible}
-        title={`Chi tiết món ăn của đơn ${detailModal.reservation?.code || ''}`}
-        onCancel={() => setDetailModal({ ...detailModal, visible: false })}
-        footer={<Button onClick={() => setDetailModal({ ...detailModal, visible: false })}>Đóng</Button>}
-        width={700}
-      >
-        {detailModal.loading ? <Spin /> : (
-          (!detailModal.orders[0] || (detailModal.orders[0].foods.length === 0 && detailModal.orders[0].combos.length === 0)) ? (
-            <Empty description="Không có món nào." />
-          ) : (
-            <div>
-              <Divider orientation="left">Danh sách món ăn</Divider>
-              <List
-                dataSource={detailModal.orders[0].foods}
-                renderItem={item => (
-                  <List.Item>
-                    {item.name} x {item.quantity} <span style={{ float: 'right' }}>{item.price ? `${item.price.toLocaleString()}đ` : ''}</span>
-                  </List.Item>
-                )}
-              />
-              {detailModal.orders[0].combos && detailModal.orders[0].combos.length > 0 && (
-                <>
-                  <Divider orientation="left">Combo</Divider>
-                  <List
-                    dataSource={detailModal.orders[0].combos}
-                    renderItem={combo => (
-                      <List.Item>
-                        Combo: {combo.name} x {combo.quantity} <span style={{ float: 'right' }}>{combo.price ? `${combo.price.toLocaleString()}đ` : ''}</span>
-                      </List.Item>
-                    )}
-                  />
-                </>
-              )}
-              <Divider />
-              <div style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                Tổng tiền: {detailModal.orders[0].totalAmount.toLocaleString()}đ
-              </div>
-            </div>
-          )
-        )}
-      </Modal>
+      {/* Bỏ Modal chi tiết */}
     </div>
   );
 };

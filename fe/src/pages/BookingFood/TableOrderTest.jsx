@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Modal, 
-  Input, 
-  Button, 
-  Row, 
-  Col, 
-  Card, 
-  List, 
-  Tabs, 
-  Select, 
-  InputNumber, 
-  message, 
+import {
+  Modal,
+  Input,
+  Button,
+  Row,
+  Col,
+  Card,
+  List,
+  Tabs,
+  Select,
+  InputNumber,
+  message,
   Spin,
   Typography,
   Divider,
@@ -20,9 +20,9 @@ import {
   Tooltip,
   Table as AntTable
 } from 'antd';
-import { 
-  ShoppingCartOutlined, 
-  TableOutlined, 
+import {
+  ShoppingCartOutlined,
+  TableOutlined,
   CheckCircleOutlined,
   PlusOutlined,
   MinusOutlined
@@ -90,7 +90,7 @@ const TableOrderTest = () => {
 
     setCheckingCode(true);
     setCodeError('');
-    
+
     try {
       const [res, categoryRes, foodRes, comboRes] = await Promise.all([
         tableService.getReservationByCode(codeToCheck),
@@ -124,17 +124,17 @@ const TableOrderTest = () => {
     if (!selectedTable) {
       return;
     }
-    
+
     const tableId = selectedTable._id;
     const currentCart = cart[tableId] || [];
-    const existingItem = currentCart.find(cartItem => 
+    const existingItem = currentCart.find(cartItem =>
       cartItem.id === item._id && cartItem.type === type
     );
 
     if (existingItem) {
       setCart({
         ...cart,
-        [tableId]: currentCart.map(cartItem => 
+        [tableId]: currentCart.map(cartItem =>
           cartItem.id === item._id && cartItem.type === type
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
@@ -172,7 +172,7 @@ const TableOrderTest = () => {
     } else {
       setCart({
         ...cart,
-        [tableId]: currentCart.map(item => 
+        [tableId]: currentCart.map(item =>
           item.id === itemId && item.type === type
             ? { ...item, quantity: newQuantity }
             : item
@@ -272,7 +272,7 @@ const TableOrderTest = () => {
   };
 
   // Filter foods by selected category
-  const filteredFoods = selectedCategory 
+  const filteredFoods = selectedCategory
     ? foods.filter(food => String(food.categoryId?._id || food.categoryId) === String(selectedCategory))
     : foods;
 
@@ -405,8 +405,8 @@ const TableOrderTest = () => {
                 </Text>
               </Col>
               <Col>
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   size="large"
                   style={{ borderRadius: 8, fontWeight: 600, background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', border: 'none', boxShadow: '0 2px 8px #6366f133', transition: 'background 0.2s' }}
                   onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #60a5fa 0%, #6366f1 100%)'}
@@ -638,9 +638,11 @@ const TableOrderTest = () => {
                               <div>
                                 <Text type="secondary" style={{ fontSize: 15 }}>{combo.description}</Text>
                                 <br />
-                                <Text strong style={{ color: '#ff4d4f',
+                                <Text strong style={{
+                                  color: '#ff4d4f',
 
- fontSize: 17 }}>
+                                  fontSize: 17
+                                }}>
                                   {combo.price?.toLocaleString('vi-VN')}đ
                                 </Text>
                               </div>
@@ -657,7 +659,7 @@ const TableOrderTest = () => {
             {/* Right Column - Cart */}
             <Col xs={24} md={6}>
               {/* Cart */}
-              <Card 
+              <Card
                 title={
                   <span style={{ fontWeight: 600, fontSize: 18, color: '#6366f1' }}>
                     {selectedTable ? `Giỏ hàng - Bàn ${selectedTable.tableNumber}` : 'Giỏ hàng (Vui lòng chọn bàn)'}
@@ -684,15 +686,15 @@ const TableOrderTest = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Text style={{ fontSize: 15 }}>{item.price?.toLocaleString('vi-VN')}đ</Text>
                           <Space>
-                            <Button 
-                              size="small" 
+                            <Button
+                              size="small"
                               icon={<MinusOutlined />}
                               style={{ borderRadius: 6, background: '#e0e7ff', color: '#6366f1', border: 'none', fontWeight: 700 }}
                               onClick={() => updateCartQuantity(item.id, item.type, item.quantity - 1)}
                             />
                             <span style={{ fontWeight: 600, fontSize: 15 }}>{item.quantity}</span>
-                            <Button 
-                              size="small" 
+                            <Button
+                              size="small"
                               icon={<PlusOutlined />}
                               style={{ borderRadius: 6, background: '#e0e7ff', color: '#10b981', border: 'none', fontWeight: 700 }}
                               onClick={() => updateCartQuantity(item.id, item.type, item.quantity + 1)}
@@ -701,9 +703,9 @@ const TableOrderTest = () => {
                         </div>
                       </div>
                     ))}
-                    
+
                     <Divider />
-                    
+
                     <div style={{ marginBottom: '18px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Text strong style={{ fontSize: 16 }}>Tổng cộng:</Text>
@@ -712,10 +714,10 @@ const TableOrderTest = () => {
                         </Text>
                       </div>
                     </div>
-                    
-                    <Button 
-                      type="primary" 
-                      block 
+
+                    <Button
+                      type="primary"
+                      block
                       size="large"
                       style={{ borderRadius: 8, fontWeight: 600, fontSize: 17, background: 'linear-gradient(90deg, #6366f1 0%, #60a5fa 100%)', border: 'none', boxShadow: '0 2px 8px #6366f133', transition: 'background 0.2s' }}
                       onMouseOver={e => e.currentTarget.style.background = 'linear-gradient(90deg, #60a5fa 0%, #6366f1 100%)'}
@@ -753,7 +755,7 @@ const TableOrderTest = () => {
               </Card>
             </Col>
           </Row>
-          
+
         </div>
       )}
       {/* Modal xem đơn đã gọi */}
@@ -788,11 +790,14 @@ const TableOrderTest = () => {
                     {f.foodId?.name || ''} x {f.quantity} ({f.foodId?.price?.toLocaleString('vi-VN')}đ)
                   </li>
                 ))}
-                {(order.combos || []).map(c => (
-                  <li key={c._id}>
-                    Combo: {c.comboId} x {c.quantity}
-                  </li>
-                ))}
+                {(order.combos || []).map(comboId => {
+                  const combo = combos.find(cb => cb._id === (comboId._id || comboId));
+                  return (
+                    <li key={comboId._id || comboId}>
+                      Combo {combo ? combo.name : comboId} x 1
+                    </li>
+                  );
+                })}
               </ul>
               <div style={{ textAlign: 'right', fontWeight: 600 }}>
                 Tổng đơn: {order.totalprice?.toLocaleString('vi-VN')}đ
@@ -842,7 +847,7 @@ const TableOrderTest = () => {
                       ))}
                       {(record.combos || []).map(c => (
                         <li key={c._id}>
-                          Combo: {c.comboId} x {c.quantity}
+                          {c.name} x 1
                         </li>
                       ))}
                     </ul>

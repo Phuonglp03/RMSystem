@@ -431,6 +431,14 @@ const updateReservationStatus = async (req, res) => {
 
     const prevStatus = reservation.status;
     reservation.status = status;
+    // Cập nhật paymentStatus nếu có
+    if (req.body.paymentStatus) {
+      reservation.paymentStatus = req.body.paymentStatus;
+    }
+    // Cập nhật paymentMethod nếu có
+    if (req.body.paymentMethod) {
+      reservation.paymentMethod = req.body.paymentMethod;
+    }
     await reservation.save();
 
     // Nếu chuyển sang completed thì xóa reservation khỏi currentReservation của các bàn
@@ -499,8 +507,8 @@ const updateReservationStatus = async (req, res) => {
 const getReservationDetail = async (req, res) => {
   try {
     const { reservationId } = req.params;
-    // Lấy tất cả tableOrder thuộc reservation này
-    const tableOrders = await TableOrder.find({ reservationId })
+
+    const tableOrders = await TableOrder.find({ reservationId, status: 'completed' })
       .populate('foods.foodId')
       .populate('combos');
 
@@ -543,9 +551,11 @@ const getReservationDetail = async (req, res) => {
     });
 
     res.json({
-      foods: Object.values(foodsMap),
-      combos: Object.values(combosMap),
-      totalAmount
+      data:{
+        foods: Object.values(foodsMap),
+        combos: Object.values(combosMap),
+        totalAmount
+      }
     });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi lấy chi tiết reservation', error: err.message });
