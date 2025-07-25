@@ -316,7 +316,7 @@ const UserProfile = () => {
                     <Form.Item 
                       name="email" 
                       label="Email" 
-                      rules={[{ required: true, type: 'email', message: 'Email không hợp lệ!' }]}
+                      rules={[{ required: true, pattern: /^[a-zA-Z0-9]+([._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/, message: 'Email không hợp lệ!' }]}
                     >
                       <Input 
                         prefix={<MailOutlined className="form-icon" />} 

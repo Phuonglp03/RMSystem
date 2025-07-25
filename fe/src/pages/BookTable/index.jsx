@@ -653,7 +653,7 @@ const BookingTable = () => {
                     label="Email"
                     rules={[
                       { required: true, message: 'Vui lòng nhập mail!' },
-                      { pattern: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, message: 'Mail không hợp lệ!' }
+                      { pattern: /^[a-zA-Z0-9]+([._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/, message: 'Mail không hợp lệ!' }
                     ]}
                   >
                     <Input prefix={<PhoneOutlined />} placeholder="Nhập số điện thoại" />

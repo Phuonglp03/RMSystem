@@ -41,7 +41,7 @@ const Signup = () => {
       errors.username = 'Username phải có ít nhất 3 ký tự';
     }
 
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!formData.email || !/^[a-zA-Z0-9]+([._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/.test(formData.email)) {
       errors.email = 'Email không hợp lệ';
     }
 
@@ -168,7 +168,7 @@ const Signup = () => {
                               value={formData.email}
                               onChange={handleChange}
                               required
-                              isInvalid={validated && (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))}
+                              isInvalid={validated && (!formData.email || !/^[a-zA-Z0-9]+([._%+-][a-zA-Z0-9]+)*@[a-zA-Z0-9]+([.-][a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$/.test(formData.email))}
                             />
                             <Form.Control.Feedback type="invalid">
                               Email không hợp lệ
