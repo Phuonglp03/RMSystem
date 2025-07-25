@@ -4,6 +4,7 @@ const TableOrder = require('../models/TableOrder');
 const Combo = require('../models/Combo');
 const Food = require('../models/Food');
 const PayOS = require('@payos/node');
+const Table = require('../models/Table');
 require('dotenv').config();
 
 const payOS = new PayOS(
@@ -98,11 +99,19 @@ class PayosReservationController {
         return res.status(500).json({ success: false, message: 'Lỗi khi tạo link thanh toán PayOS', error: err.message, detail: err.response && err.response.data });
       }
       // Lưu trạng thái vào reservation
+      reservation.status = 'completed';
       reservation.paymentMethod = 'payos';
       reservation.paymentStatus = 'pending';
       reservation.reservation_payment_id = transactionCode.toString();
       reservation.totalAmount = totalAmount;
+      
       await reservation.save();
+      if (Array.isArray(reservation.bookedTable)) {
+        await Table.updateMany(
+          { _id: { $in: reservation.bookedTable } },
+          { $pull: { currentReservation: reservation._id } }
+        );
+      }
       return res.status(200).json({
         success: true,
         message: 'Tạo link thanh toán thành công',
@@ -128,6 +137,7 @@ class PayosReservationController {
       const reservation = await Reservation.findOne({ reservation_payment_id: orderCode.toString() });
       if (!reservation) return res.status(200).json({ success: true });
       if (webhookData.code === '00' && webhookData.success === true) {
+        reservation.status = 'completed';
         reservation.paymentStatus = 'success';
         reservation.paidAt = new Date();
         await reservation.save();
@@ -136,6 +146,8 @@ class PayosReservationController {
           { reservationId: reservation._id, status: 'completed' },
           { $set: { paymentStatus: 'success', paymentMethod: 'payos', paidAt: new Date() } }
         );
+
+        
         // Thêm reservationId vào reservationHistory của customer (robust)
         let customerId = null;
         if (Array.isArray(reservation.customerId) && reservation.customerId.length > 0) {
