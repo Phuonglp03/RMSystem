@@ -8,13 +8,15 @@ const {
   getReservation,
   updateReservationStatus,
   getReservationsFromToday,
-  getUserReservations 
+  getUserReservations,
+  getReservationsByUserId
 } = require('../controllers/reservation.controller');
 
 router.get('/tables/available', getAvailableTables);
 router.post('/', createReservation);
 router.get('/from', getReservationsFromToday);
 router.get('/user/history', authMiddleware, getUserReservations);
+router.get('/by-user', getReservationsByUserId);
 router.get('/:code', getReservation);
 router.put('/:code/status', updateReservationStatus);
 

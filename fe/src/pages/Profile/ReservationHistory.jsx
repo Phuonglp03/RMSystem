@@ -1,217 +1,201 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Table, 
-  Tag, 
-  Button, 
-  Space, 
-  Typography, 
-  Empty, 
-  Spin, 
-  message,
-  Modal
-} from 'antd';
-import { 
-  CalendarOutlined, 
-  ClockCircleOutlined, 
-  TeamOutlined, 
-  FileTextOutlined,
-  EyeOutlined
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
-import reservationService from '../../services/reservation.service';
+import React, { useEffect, useState } from 'react';
+import axiosInstance from '../../services/axios.service';
+import tableService from '../../services/table.service';
+import { Table, Tag, Badge, Button, Space, Typography, Empty, Spin, Modal, Descriptions, List, Divider } from 'antd';
+import { CheckCircleTwoTone, CloseCircleTwoTone, ClockCircleTwoTone } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const statusColors = {
   pending: 'orange',
-  confirmed: 'green',
+  confirmed: 'blue',
+  served: 'purple',
+  completed: 'green',
   cancelled: 'red',
-  completed: 'blue'
 };
 
-const statusLabels = {
-  pending: 'Chờ xác nhận',
-  confirmed: 'Đã xác nhận',
-  cancelled: 'Đã hủy',
-  completed: 'Đã hoàn thành'
+const paymentStatusColors = {
+  pending: 'orange',
+  success: 'green',
+  failed: 'red',
 };
 
 const ReservationHistory = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState(null);
-  const navigate = useNavigate();
+  const [filter, setFilter] = useState('all'); // all | paid | unpaid
+  const [detailModal, setDetailModal] = useState({ visible: false, loading: false, orders: [], reservation: null });
 
-  useEffect(() => {
-    fetchReservations();
-  }, []);
-
-  const fetchReservations = async () => {
+  const showDetail = async (reservation) => {
+    setDetailModal({ visible: true, loading: true, orders: [], reservation });
     try {
-      setLoading(true);
-      const response = await reservationService.getUserReservations();
-      if (response && response.success) {
-        setReservations(response.reservations || []);
-      } else {
-        message.error('Không thể tải lịch sử đặt bàn');
-      }
-    } catch (error) {
-      console.error('Error fetching reservations:', error);
-      message.error('Đã xảy ra lỗi khi tải lịch sử đặt bàn');
-    } finally {
-      setLoading(false);
+      const res = await tableService.getOrdersByReservationId(reservation.id);
+      setDetailModal({ visible: true, loading: false, orders: res.data || [], reservation });
+    } catch {
+      setDetailModal({ visible: true, loading: false, orders: [], reservation });
     }
   };
 
-  const showReservationDetail = (reservation) => {
-    setSelectedReservation(reservation);
-    setDetailModalVisible(true);
-  };
+  useEffect(() => {
+    const fetchReservations = async () => {
+      setLoading(true);
+      try {
+        const userId = localStorage.getItem('userID');
+        if (!userId) {
+          setReservations([]);
+          setLoading(false);
+          return;
+        }
+        const res = await axiosInstance.get(`/api/reservations/by-user?userId=${userId}`);
+        setReservations(res.reservations || []);
+      } catch (err) {
+        setReservations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReservations();
+  }, []);
+
+  const filteredReservations = reservations.filter(r => {
+    if (filter === 'all') return true;
+    if (filter === 'paid') return r.paymentStatus === true || r.paymentStatus === 'success';
+    if (filter === 'unpaid') return !r.paymentStatus || r.paymentStatus === false || r.paymentStatus === 'pending' || r.paymentStatus === 'failed';
+    return true;
+  });
 
   const columns = [
     {
-      title: 'Mã đặt bàn',
+      title: 'Mã đơn',
       dataIndex: 'code',
       key: 'code',
-      render: (text) => <Text strong>{text}</Text>
+      align: 'center',
+      render: text => <b>{text}</b>,
     },
     {
-      title: 'Ngày đặt',
+      title: 'Thời gian',
       dataIndex: 'startTime',
       key: 'startTime',
-      render: (text) => moment(text).format('DD/MM/YYYY')
-    },
-    {
-      title: 'Giờ đặt',
-      dataIndex: 'startTime',
-      key: 'time',
-      render: (text) => moment(text).format('HH:mm')
+      align: 'center',
+      render: text => new Date(text).toLocaleString('vi-VN'),
     },
     {
       title: 'Số người',
       dataIndex: 'numberOfPeople',
-      key: 'numberOfPeople'
+      key: 'numberOfPeople',
+      align: 'center',
     },
     {
-      title: 'Trạng thái',
+      title: 'Bàn',
+      dataIndex: 'tables',
+      key: 'tables',
+      align: 'center',
+      render: tables => tables && tables.length > 0 ? tables.map(t => <Tag color="blue" key={t.id}>Bàn {t.number}</Tag>) : '-',
+    },
+    {
+      title: 'Ghi chú',
+      dataIndex: 'note',
+      key: 'note',
+      align: 'center',
+      render: note => note || <span style={{ color: '#aaa' }}>Không có</span>,
+    },
+    {
+      title: 'Thanh toán',
+      dataIndex: 'paymentStatus',
+      key: 'paymentStatus',
+      align: 'center',
+      render: status => (
+        <Badge
+          status={status === 'success' ? 'success' : status === 'failed' ? 'error' : 'processing'}
+          text={status === 'success' ? 'Đã thanh toán' : status === 'failed' ? 'Thất bại' : 'Chưa thanh toán'}
+          color={paymentStatusColors[status] || 'orange'}
+        />
+      ),
+    },
+    {
+      title: 'Trạng thái đơn',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={statusColors[status] || 'default'}>
-          {statusLabels[status] || status}
-        </Tag>
-      )
+      align: 'center',
+      render: status => <Tag color={statusColors[status] || 'default'}>{status}</Tag>,
     },
     {
       title: 'Thao tác',
       key: 'action',
+      align: 'center',
       render: (_, record) => (
-        <Button 
-          type="primary" 
-          size="small" 
-          icon={<EyeOutlined />} 
-          onClick={() => showReservationDetail(record)}
-        >
-          Chi tiết
+        <Button size="small" onClick={() => showDetail(record)}>
+          Xem chi tiết
         </Button>
-      )
-    }
+      ),
+    },
   ];
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: 'center', padding: '50px 0' }}>
-        <Spin size="large" />
-        <div style={{ marginTop: 16 }}>
-          <Text>Đang tải lịch sử đặt bàn...</Text>
-        </div>
-      </div>
-    );
-  }
-
-  if (reservations.length === 0) {
-    return (
-      <Empty 
-        description="Bạn chưa có đơn đặt bàn nào" 
-        image={Empty.PRESENTED_IMAGE_SIMPLE}
-      >
-        <Button type="primary" onClick={() => navigate('/book-table')}>
-          Đặt bàn ngay
-        </Button>
-      </Empty>
-    );
-  }
-
   return (
-    <div>
-      <Table 
-        columns={columns} 
-        dataSource={reservations} 
-        rowKey="id"
-        pagination={{ pageSize: 5 }}
-      />
-
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: 32 }}>
+      <Title level={2} style={{ textAlign: 'center', marginBottom: 32 }}>Lịch sử đặt bàn của bạn</Title>
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <Button type={filter==='all' ? 'primary' : 'default'} onClick={() => setFilter('all')}>Tất cả</Button>
+        <Button type={filter==='paid' ? 'primary' : 'default'} onClick={() => setFilter('paid')} style={{marginLeft:8}}>Đã thanh toán</Button>
+        <Button type={filter==='unpaid' ? 'primary' : 'default'} onClick={() => setFilter('unpaid')} style={{marginLeft:8}}>Chưa thanh toán</Button>
+      </div>
+      {loading ? (
+        <div style={{ textAlign: 'center', margin: '40px 0' }}><Spin size="large" /></div>
+      ) : filteredReservations.length === 0 ? (
+        <Empty description="Không có đơn đặt bàn nào." style={{ margin: '40px 0' }} />
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={filteredReservations}
+          rowKey="id"
+          bordered
+          pagination={{ pageSize: 5 }}
+          style={{ background: '#fff', borderRadius: 8 }}
+        />
+      )}
       <Modal
-        title="Chi tiết đặt bàn"
-        open={detailModalVisible}
-        onCancel={() => setDetailModalVisible(false)}
-        footer={[
-          <Button key="back" onClick={() => setDetailModalVisible(false)}>
-            Đóng
-          </Button>
-        ]}
-        width={600}
+        open={detailModal.visible}
+        title={`Chi tiết món ăn của đơn ${detailModal.reservation?.code || ''}`}
+        onCancel={() => setDetailModal({ ...detailModal, visible: false })}
+        footer={<Button onClick={() => setDetailModal({ ...detailModal, visible: false })}>Đóng</Button>}
+        width={700}
       >
-        {selectedReservation && (
-          <div>
-            <div style={{ marginBottom: 16 }}>
-              <Title level={4}>Mã đặt bàn: {selectedReservation.code}</Title>
-              <Tag color={statusColors[selectedReservation.status] || 'default'} style={{ marginBottom: 16 }}>
-                {statusLabels[selectedReservation.status] || selectedReservation.status}
-              </Tag>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <Space direction="vertical" size="small">
-                <div>
-                  <CalendarOutlined style={{ marginRight: 8 }} />
-                  <Text>Ngày: {moment(selectedReservation.startTime).format('DD/MM/YYYY')}</Text>
+        {detailModal.loading ? <Spin /> : (
+          detailModal.orders.length === 0 ? <Empty description="Không có món nào." /> : (
+            <div>
+              {detailModal.orders.map((order, idx) => (
+                <div key={order._id || idx} style={{ marginBottom: 24 }}>
+                  <Divider orientation="left">Bàn {order.tableId?.tableNumber || order.tableId || ''}</Divider>
+                  {Array.isArray(order.foods) && order.foods.length > 0 ? (
+                    <List
+                      header={<b>Danh sách món ăn</b>}
+                      dataSource={order.foods}
+                      renderItem={item => (
+                        <List.Item>
+                          {item.foodId?.name || item.foodId || 'Món'} x {item.quantity || 1} <span style={{ float: 'right' }}>{item.foodId?.price ? `${item.foodId.price.toLocaleString()}đ` : ''}</span>
+                        </List.Item>
+                      )}
+                    />
+                  ) : (
+                    <div style={{ color: '#aaa', textAlign: 'center', margin: 12 }}>Không có món nào trong đơn này.</div>
+                  )}
+                  {order.combos && order.combos.length > 0 && (
+                    <>
+                      <Divider orientation="left">Combo</Divider>
+                      <List
+                        dataSource={order.combos}
+                        renderItem={combo => (
+                          <List.Item>
+                            Combo: {combo.comboId?.name || combo.comboId || ''} x {combo.quantity || 1}
+                          </List.Item>
+                        )}
+                      />
+                    </>
+                  )}
                 </div>
-                <div>
-                  <ClockCircleOutlined style={{ marginRight: 8 }} />
-                  <Text>Thời gian: {moment(selectedReservation.startTime).format('HH:mm')} - {moment(selectedReservation.endTime).format('HH:mm')}</Text>
-                </div>
-                <div>
-                  <TeamOutlined style={{ marginRight: 8 }} />
-                  <Text>Số người: {selectedReservation.numberOfPeople}</Text>
-                </div>
-                {selectedReservation.note && (
-                  <div>
-                    <FileTextOutlined style={{ marginRight: 8 }} />
-                    <Text>Ghi chú: {selectedReservation.note}</Text>
-                  </div>
-                )}
-              </Space>
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <Title level={5}>Thông tin bàn</Title>
-              {selectedReservation.tables.map((table) => (
-                <Tag key={table.id} style={{ marginBottom: 8 }}>
-                  Bàn {table.number} ({table.capacity} người)
-                </Tag>
               ))}
             </div>
-
-            <div>
-              <Title level={5}>Thanh toán</Title>
-              <Tag color={selectedReservation.paymentStatus ? 'green' : 'orange'}>
-                {selectedReservation.paymentStatus ? 'Đã thanh toán' : 'Chưa thanh toán'}
-              </Tag>
-            </div>
-          </div>
+          )
         )}
       </Modal>
     </div>

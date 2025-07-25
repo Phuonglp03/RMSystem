@@ -89,11 +89,13 @@ class PayosReservationController {
         cancelUrl: `${process.env.FRONTEND_URL}/user-profile/orders`,
         items: items,
       };
+      console.log('[PayOS] paymentData gửi PayOS:', paymentData);
       let paymentLinkResponse;
       try {
         paymentLinkResponse = await payOS.createPaymentLink(paymentData);
       } catch (err) {
-        return res.status(500).json({ success: false, message: 'Lỗi khi tạo link thanh toán PayOS', error: err.message });
+        console.error('[PayOS] Lỗi khi tạo link thanh toán PayOS:', err && err.message, err && err.response && err.response.data);
+        return res.status(500).json({ success: false, message: 'Lỗi khi tạo link thanh toán PayOS', error: err.message, detail: err.response && err.response.data });
       }
       // Lưu trạng thái vào reservation
       reservation.paymentMethod = 'payos';
@@ -134,6 +136,27 @@ class PayosReservationController {
           { reservationId: reservation._id, status: 'completed' },
           { $set: { paymentStatus: 'success', paymentMethod: 'payos', paidAt: new Date() } }
         );
+        // Thêm reservationId vào reservationHistory của customer (robust)
+        let customerId = null;
+        if (Array.isArray(reservation.customerId) && reservation.customerId.length > 0) {
+          if (typeof reservation.customerId[0] === 'string' || (typeof reservation.customerId[0] === 'object' && reservation.customerId[0]._bsontype === 'ObjectID')) {
+            customerId = reservation.customerId[0];
+          } else if (reservation.customerId[0]._id) {
+            customerId = reservation.customerId[0]._id;
+          }
+        } else if (reservation.customerId && reservation.customerId._id) {
+          customerId = reservation.customerId._id;
+        } else if (reservation.customerId) {
+          customerId = reservation.customerId;
+        }
+        if (customerId) {
+          const Customer = require('../models/Customer');
+          const customer = await Customer.findById(customerId);
+          if (customer && !customer.reservationHistory.includes(reservation._id)) {
+            customer.reservationHistory.push(reservation._id);
+            await customer.save();
+          }
+        }
       } else {
         reservation.paymentStatus = 'failed';
         await reservation.save();

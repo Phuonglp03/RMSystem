@@ -182,6 +182,11 @@ const createReservation = async (req, res) => {
       });
   
       await newReservation.save();
+      // Thêm reservationId vào reservationHistory của customer ngay khi tạo đơn
+      if (customer && !customer.reservationHistory.includes(newReservation._id)) {
+        customer.reservationHistory.push(newReservation._id);
+        await customer.save();
+      }
   
       // Gửi email cảm ơn đặt bàn (không gửi mã code, không xác nhận)
       if (email) {
@@ -347,6 +352,51 @@ const getUserReservations = async (req, res) => {
   }
 };
 
+// Lấy lịch sử đặt bàn theo userId (không cần token)
+const getReservationsByUserId = async (req, res) => {
+  try {
+    const userId = req.query.userId || req.params.userId;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'Thiếu userId' });
+    }
+    // Tìm customer dựa trên userId
+    const customer = await Customer.findOne({ userId });
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy thông tin khách hàng' });
+    }
+    // Lấy tất cả đặt bàn của customer này
+    const reservations = await Reservation.find({
+      customerId: { $in: [customer._id] }
+    })
+    .populate('bookedTable', 'tableNumber capacity')
+    .sort({ startTime: -1 });
+    // Format dữ liệu trả về
+    const formattedReservations = reservations.map(reservation => ({
+      id: reservation._id,
+      code: reservation.reservationCode,
+      status: reservation.status,
+      startTime: reservation.startTime,
+      endTime: reservation.endTime,
+      numberOfPeople: reservation.numberOfPeople,
+      note: reservation.note,
+      tables: reservation.bookedTable.map(table => ({
+        id: table._id,
+        number: table.tableNumber,
+        capacity: table.capacity
+      })),
+      paymentStatus: reservation.paymentStatus
+    }));
+    return res.status(200).json({
+      success: true,
+      message: 'Lấy lịch sử đặt bàn thành công',
+      reservations: formattedReservations
+    });
+  } catch (error) {
+    console.error('Error getting reservations by userId:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi khi lấy lịch sử đặt bàn', error: error.message });
+  }
+};
+
 // Cập nhật trạng thái đặt bàn
 const updateReservationStatus = async (req, res) => {
   try {
@@ -386,9 +436,21 @@ const updateReservationStatus = async (req, res) => {
         { _id: { $in: reservation.bookedTable } },
         { $pull: { currentReservation: reservation._id } }
       );
-      // Thêm reservationId vào reservationHistory của customer
-      if (Array.isArray(reservation.customerId) && reservation.customerId[0]) {
-        const customer = await Customer.findById(reservation.customerId[0]._id);
+      // Thêm reservationId vào reservationHistory của customer (robust)
+      let customerId = null;
+      if (Array.isArray(reservation.customerId) && reservation.customerId.length > 0) {
+        if (typeof reservation.customerId[0] === 'string' || (typeof reservation.customerId[0] === 'object' && reservation.customerId[0]._bsontype === 'ObjectID')) {
+          customerId = reservation.customerId[0];
+        } else if (reservation.customerId[0]._id) {
+          customerId = reservation.customerId[0]._id;
+        }
+      } else if (reservation.customerId && reservation.customerId._id) {
+        customerId = reservation.customerId._id;
+      } else if (reservation.customerId) {
+        customerId = reservation.customerId;
+      }
+      if (customerId) {
+        const customer = await Customer.findById(customerId);
         if (customer && !customer.reservationHistory.includes(reservation._id)) {
           customer.reservationHistory.push(reservation._id);
           await customer.save();
@@ -438,5 +500,6 @@ module.exports = {
   getReservation,
   updateReservationStatus,
   getReservationsFromToday,
-  getUserReservations
+  getUserReservations,
+  getReservationsByUserId
 };
