@@ -152,18 +152,38 @@ const ServantOrder = () => {
             }}
             bodyStyle={{ padding: 18, paddingBottom: 8 }}
             cover={
-              <img
-                alt={combo.name}
-                src={combo.image}
-                style={{
-                  height: 170,
-                  objectFit: 'cover',
-                  borderTopLeftRadius: 16,
-                  borderTopRightRadius: 16,
-                  transition: 'filter 0.2s',
-                  cursor: 'pointer'
-                }}
-              />
+              combo.image ? (
+                <img
+                  alt={combo.name}
+                  src={combo.image}
+                  style={{
+                    height: 170,
+                    objectFit: 'cover',
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16,
+                    transition: 'filter 0.2s',
+                    cursor: 'pointer'
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    height: 170,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    borderTopLeftRadius: 16,
+                    borderTopRightRadius: 16,
+                    width: '100%'
+                  }}
+                >
+                  <span style={{ fontWeight: 700, fontSize: 28, letterSpacing: 2 }}>COMBO</span>
+                  <span style={{ fontWeight: 500, fontSize: 16, marginTop: 8 }}>{combo.name}</span>
+                </div>
+              )
             }
             actions={[
               <Tooltip title={!selectedTable || !currentReservation ? 'Chỉ gọi món cho bàn đang sử dụng' : ''}>

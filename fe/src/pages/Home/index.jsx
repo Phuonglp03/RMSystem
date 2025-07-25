@@ -236,11 +236,29 @@ const HomePage = () => {
     <Card
       hoverable
       cover={
-        <img 
-          alt={combo.name} 
-          src={combo.image || 'https://via.placeholder.com/300x200?text=Combo'} 
-          style={{ height: 200, objectFit: 'cover' }} 
-        />
+        combo.image ? (
+          <img 
+            alt={combo.name} 
+            src={combo.image} 
+            style={{ height: 200, objectFit: 'cover' }} 
+          />
+        ) : (
+          <div
+            style={{
+              height: 200,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              borderRadius: '8px 8px 0 0',
+            }}
+          >
+            <span style={{ fontWeight: 700, fontSize: 28, letterSpacing: 2 }}>COMBO</span>
+            <span style={{ fontWeight: 500, fontSize: 16, marginTop: 8 }}>{combo.name}</span>
+          </div>
+        )
       }
       onClick={() => handleComboClick(combo)}
       style={{ cursor: 'pointer' }}

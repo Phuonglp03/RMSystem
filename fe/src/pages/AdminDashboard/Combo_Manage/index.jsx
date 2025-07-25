@@ -387,39 +387,6 @@ const ComboManage = () => {
 
   const columns = [
     {
-      title: 'Ảnh',
-      dataIndex: 'image',
-      key: 'image',
-      width: 80,
-      render: (image) => (
-        image ? (
-          <Image
-            width={60}
-            height={60}
-            src={image}
-            alt="combo"
-            style={{ borderRadius: 8, objectFit: 'cover' }}
-            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RUG8A+b1TVjFo4xWhvgjv8v8waw7oL9n7A/AK8BNwGu8B8BuwVIIEF2TBqEwGBhBDOjGktLdNvd9ep1dXX2e2/N7zN6lNfq17er6n7nvffe"
-          />
-        ) : (
-          <div 
-            style={{ 
-              width: 60, 
-              height: 60, 
-              backgroundColor: '#f5f5f5', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              borderRadius: 8,
-              color: '#ccc'
-            }}
-          >
-            No Image
-          </div>
-        )
-      ),
-    },
-    {
       title: 'Tên Combo',
       dataIndex: 'name',
       key: 'name',

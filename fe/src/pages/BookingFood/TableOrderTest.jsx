@@ -590,21 +590,43 @@ const TableOrderTest = () => {
                           }}
                           bodyStyle={{ padding: 18, paddingBottom: 8 }}
                           cover={
-                            <img
-                              alt={combo.name}
-                              src={combo.image}
-                              style={{
-                                height: 170,
-                                objectFit: 'cover',
-                                borderTopLeftRadius: 16,
-                                borderTopRightRadius: 16,
-                                transition: 'filter 0.2s',
-                                cursor: 'pointer'
-                              }}
-                              onMouseOver={e => e.currentTarget.style.filter = 'brightness(0.92)'}
-                              onMouseOut={e => e.currentTarget.style.filter = 'none'}
-                              onClick={() => openDetailModal(combo, 'combo')}
-                            />
+                            combo.image ? (
+                              <img
+                                alt={combo.name}
+                                src={combo.image}
+                                style={{
+                                  height: 170,
+                                  objectFit: 'cover',
+                                  borderTopLeftRadius: 16,
+                                  borderTopRightRadius: 16,
+                                  transition: 'filter 0.2s',
+                                  cursor: 'pointer'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.filter = 'brightness(0.92)'}
+                                onMouseOut={e => e.currentTarget.style.filter = 'none'}
+                                onClick={() => openDetailModal(combo, 'combo')}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  height: 170,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                  color: 'white',
+                                  borderTopLeftRadius: 16,
+                                  borderTopRightRadius: 16,
+                                  width: '100%',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => openDetailModal(combo, 'combo')}
+                              >
+                                <span style={{ fontWeight: 700, fontSize: 28, letterSpacing: 2 }}>COMBO</span>
+                                <span style={{ fontWeight: 500, fontSize: 16, marginTop: 8 }}>{combo.name}</span>
+                              </div>
+                            )
                           }
                           onMouseOver={e => { e.currentTarget.style.boxShadow = '0 6px 32px #10b98144'; e.currentTarget.style.border = '2px solid #10b981'; }}
                           onMouseOut={e => { e.currentTarget.style.boxShadow = '0 2px 16px rgba(16,185,129,0.10)'; e.currentTarget.style.border = '2px solid #e0e7ff'; }}
@@ -638,11 +660,7 @@ const TableOrderTest = () => {
                               <div>
                                 <Text type="secondary" style={{ fontSize: 15 }}>{combo.description}</Text>
                                 <br />
-                                <Text strong style={{
-                                  color: '#ff4d4f',
-
-                                  fontSize: 17
-                                }}>
+                                <Text strong style={{ color: '#ff4d4f', fontSize: 17 }}>
                                   {combo.price?.toLocaleString('vi-VN')}đ
                                 </Text>
                               </div>
@@ -885,11 +903,32 @@ const TableOrderTest = () => {
       >
         {detailModal.data && (
           <div style={{ textAlign: 'center' }}>
-            <img
-              src={detailModal.data.images?.[0] || detailModal.data.image}
-              alt={detailModal.data.name}
-              style={{ width: 220, height: 160, objectFit: 'cover', borderRadius: 12, marginBottom: 18, boxShadow: '0 2px 12px #6366f122' }}
-            />
+            {detailModal.data.images?.[0] || detailModal.data.image ? (
+              <img
+                src={detailModal.data.images?.[0] || detailModal.data.image}
+                alt={detailModal.data.name}
+                style={{ width: 220, height: 160, objectFit: 'cover', borderRadius: 12, marginBottom: 18, boxShadow: '0 2px 12px #6366f122' }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 220,
+                  height: 160,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  borderRadius: 12,
+                  margin: '0 auto 18px',
+                  boxShadow: '0 2px 12px #6366f122'
+                }}
+              >
+                <span style={{ fontWeight: 700, fontSize: 32, letterSpacing: 2 }}>COMBO</span>
+                <span style={{ fontWeight: 500, fontSize: 16, marginTop: 8 }}>{detailModal.data.name}</span>
+              </div>
+            )}
             <Title level={4} style={{ marginBottom: 8 }}>{detailModal.data.name}</Title>
             <Text strong style={{ color: '#ff4d4f', fontSize: 18 }}>{detailModal.data.price?.toLocaleString('vi-VN')}đ</Text>
             <div style={{ margin: '18px 0', color: '#555', fontSize: 16 }}>{detailModal.data.description}</div>

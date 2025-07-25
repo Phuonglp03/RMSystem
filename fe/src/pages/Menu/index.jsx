@@ -136,34 +136,32 @@ const Menu = () => {
         hoverable
         className="menu-card combo-card"
         cover={
-          <div 
-            className="card-image-container"
-            onClick={() => handleComboClick(combo)}
-            style={{ cursor: 'pointer' }}
-          >
-            {combo.image ? (
-              <img
-                alt={combo.name}
-                src={combo.image}
-                className="card-image"
-                style={{ height: 200, objectFit: 'cover', width: '100%' }}
-              />
-            ) : (
-              <div className="no-image-placeholder" style={{ 
-                height: 200, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
+          combo.image ? (
+            <img
+              alt={combo.name}
+              src={combo.image}
+              className="card-image"
+              style={{ height: 200, objectFit: 'cover', width: '100%' }}
+            />
+          ) : (
+            <div
+              className="card-image-container"
+              style={{
+                height: 200,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white'
-              }}>
-                <div style={{ textAlign: 'center' }}>
-                  <Title level={4} style={{ color: 'white', margin: 0 }}>COMBO</Title>
-                  <Text style={{ color: 'white' }}>{combo.name}</Text>
-                </div>
-              </div>
-            )}
-          </div>
+                color: 'white',
+                borderRadius: '8px 8px 0 0',
+                width: '100%'
+              }}
+            >
+              <span style={{ fontWeight: 700, fontSize: 28, letterSpacing: 2 }}>COMBO</span>
+              <span style={{ fontWeight: 500, fontSize: 16, marginTop: 8 }}>{combo.name}</span>
+            </div>
+          )
         }
         onClick={() => handleComboClick(combo)}
         style={{ cursor: 'pointer' }}

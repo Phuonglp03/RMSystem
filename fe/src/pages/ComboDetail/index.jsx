@@ -168,9 +168,9 @@ const ComboDetail = () => {
               position: 'relative'
             }}>
               {!combo.image && (
-                <div style={{ textAlign: 'center', color: 'white' }}>
-                  <Title level={2} style={{ color: 'white', margin: 0 }}>COMBO</Title>
-                  <Text style={{ color: 'white', fontSize: 18 }}>{combo.name}</Text>
+                <div style={{ textAlign: 'center', color: 'white', width: '100%' }}>
+                  <span style={{ fontWeight: 700, fontSize: 40, letterSpacing: 2, display: 'block' }}>COMBO</span>
+                  <span style={{ fontWeight: 500, fontSize: 22, marginTop: 12, display: 'block' }}>{combo.name}</span>
                 </div>
               )}
               
