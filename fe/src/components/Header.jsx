@@ -15,7 +15,7 @@ import {
     TableOutlined,
     PercentageOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../redux/authSlice';
 import { MainLogo } from './Logo';
@@ -23,6 +23,7 @@ const { Title } = Typography;
 
 const Header = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
     const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -132,6 +133,27 @@ const Header = () => {
                         <span style={{ marginRight: 16 }}>
                             Xin chào, {user?.username || user?.fullname || 'User'}!
                         </span>
+                        {/* Dashboard button for admin, chef, servant on home page */}
+                        {['admin', 'chef', 'servant'].includes(user?.role) && location.pathname === '/' && (
+                            <Button
+                                type="primary"
+                                style={{ marginRight: 16 }}
+                                icon={
+                                    user.role === 'admin' ? <BarChartOutlined /> :
+                                    user.role === 'servant' ? <TableOutlined /> :
+                                    <CheckCircleOutlined />
+                                }
+                                onClick={() => {
+                                    if (user.role === 'admin') navigate('/admin');
+                                    else if (user.role === 'servant') navigate('/servant');
+                                    else if (user.role === 'chef') navigate('/chef');
+                                }}
+                            >
+                                {user.role === 'admin' && 'Trang quản trị'}
+                                {user.role === 'servant' && 'Trang phục vụ'}
+                                {user.role === 'chef' && 'Trang bếp'}
+                            </Button>
+                        )}
                         <Button
                             onClick={handleLogout}
                             style={{ marginRight: 16 }}

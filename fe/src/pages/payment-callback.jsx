@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import tableService from '../services/table.service';
 import { Spin, Result, Button } from 'antd';
 
 const PaymentCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
   const [order, setOrder] = useState(null);
@@ -42,11 +44,16 @@ const PaymentCallback = () => {
   useEffect(() => {
     if (status === 'PAID') {
       const timer = setTimeout(() => {
-        navigate('/');
+        // Kiểm tra role để quyết định chuyển hướng
+        if (user?.role === 'servant') {
+          navigate('/servant');
+        } else {
+          navigate('/');
+        }
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [status, navigate]);
+  }, [status, navigate, user?.role]);
 
   if (loading) return <Spin style={{ display: 'block', margin: '100px auto' }} />;
 
@@ -59,7 +66,7 @@ const PaymentCallback = () => {
     resultProps = {
       status: 'success',
       title: 'Thanh toán thành công!',
-      subTitle: `Đặt bàn của bạn đã được thanh toán. `,
+      subTitle: `Đặt bàn của bạn đã được thanh toán.`,
     };
   } else if (status === 'FAILED' || status === 'CANCELLED') {
     resultProps = {
@@ -75,13 +82,21 @@ const PaymentCallback = () => {
     };
   }
 
+  const handleRedirect = () => {
+    if (user?.role === 'servant') {
+      navigate('/servant');
+    } else {
+      navigate('/');
+    }
+  };
+
   return (
     <div style={{ maxWidth: 500, margin: '60px auto' }}>
       <Result
         {...resultProps}
         extra={
-          <Button type="primary" onClick={() => navigate(`/`)}>
-            Về trang chủ
+          <Button type="primary" onClick={handleRedirect}>
+            {user?.role === 'servant' ? 'Về trang quản lý bàn' : 'Về trang chủ'}
           </Button>
         }
       />
