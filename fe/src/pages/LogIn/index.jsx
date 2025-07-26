@@ -158,11 +158,7 @@ const Login = () => {
                         )}
                       </Button>
 
-                      <div className="text-center mb-3">
-                        <NavLink to='/forgotPass' className="auth-link">
-                          Quên mật khẩu?
-                        </NavLink>
-                      </div>
+                      
 
                       <div className="text-center">
                         Chưa có tài khoản?{' '}
